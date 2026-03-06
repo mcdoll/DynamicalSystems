@@ -1,10 +1,15 @@
 name = "DynamicalSystems"
 defaultTargets = ["DynamicalSystems"]
+lintDriver = "batteries/runLinter"
 
 [leanOptions]
 pp.unicode.fun = true
 autoImplicit = false
 relaxedAutoImplicit = false
+maxSynthPendingDepth = 3
+weak.linter.flexible = true
+weak.linter.mathlibStandardSet = true
+warn.sorry = false
 
 [[require]]
 name = "mathlib"
