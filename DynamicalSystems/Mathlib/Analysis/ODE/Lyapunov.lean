@@ -48,15 +48,7 @@ section Flow
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-def IsFundamentalSolutionOn (Φ : ℝ → E → E) (f : ℝ → E → E) (s : Set ℝ) : Prop :=
-  ∀ x, IsIntegralCurveOn (Φ · x) f s
-
 variable {Φ : ℝ → E → E} {f : ℝ → E → E} {v : ℝ → E → E} {x₀ : E} (s : Set ℝ) {t : ℝ}
-
-theorem blubb (hΦ : IsFundamentalSolutionOn Φ f s) {t : ℝ} (ht : t ∈ s)
-    (hs : UniqueDiffWithinAt ℝ s t) :
-    derivWithin (Φ · x₀) s t = f t (Φ t x₀) :=
-  (hΦ x₀ t ht).derivWithin hs
 
 theorem foo₁ (hv : DifferentiableAt ℝ v.uncurry (t, Φ t x₀)) (hΦ : DifferentiableAt ℝ (Φ · x₀) t) :
     deriv (fun s ↦ v s (Φ s x₀)) t =
@@ -163,14 +155,17 @@ section Energy
 
 open NNReal Filter
 
+/-- A function of class `K`. -/
 def memK (f : ℝ≥0 → ℝ≥0) : Prop :=
   Continuous f ∧ StrictMono f ∧ f 0 = 0
 
+/-- A function of class `KR`. -/
 def memKR (f : ℝ≥0 → ℝ≥0) : Prop :=
   Continuous f ∧ StrictMono f ∧ f 0 = 0 ∧ Tendsto f atTop atTop
 
 variable [NormedAddCommGroup E]
 
+/-- A function is locally positive definite at `x₀` if .. -/
 def locPosDefFun (v : ℝ → E → ℝ) (x₀ : E) : Prop :=
   ∃ (r : ℝ) (_hr : 0 < r) (α : ℝ≥0 → ℝ≥0) (_hα : memK α),
   ∀ t, v t x₀ = 0 ∧ ∀ x ∈ Metric.ball (x₀ : E) r, α ‖x - x₀‖₊ ≤ v t x
@@ -182,9 +177,11 @@ section Stable
 
 variable [NormedAddCommGroup E]
 
+/-- A fixed point -/
 def IsFixedPoint (v : ℝ → E → ℝ) (x₀ : E) : Prop :=
   ∀ t, v t x₀ = v 0 x₀
 
+/-- A Lyapunov stable point -/
 def IsLyapunovStable (v : ℝ → E → ℝ) (x₀ : E) (t₀ : ℝ) : Prop :=
   ∀ ε (_hε : 0 < ε), ∃ δ, ∀ x, ‖x - x₀‖ < δ → ∀ t (_ht : t₀ ≤ t), ‖v t x‖ < ε
 

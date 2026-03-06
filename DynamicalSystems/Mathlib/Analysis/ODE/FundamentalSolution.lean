@@ -24,7 +24,6 @@ namespace IsFundamentalSolution
 
 variable {Φ : ℝ → E → E} {f : ℝ → E → E}
 
-@[simp]
 theorem zero_apply (hΦ : IsFundamentalSolution Φ f) (x : E) : Φ 0 x = x := by
   rw [hΦ.zero, id_eq]
 
