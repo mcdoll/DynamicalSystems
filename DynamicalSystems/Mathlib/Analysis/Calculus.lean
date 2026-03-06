@@ -20,8 +20,6 @@ variable [NormedAddCommGroup E] [NormedSpace ℝ E]
   -- todo: generalize to `𝕜`
   {x : E} {y : E'}
 
-#check HasFDerivAt.prodMk
-
 
 theorem bar {f : E → E' → F} {f₁ : E →L[ℝ] F} {f₂ : E' →L[ℝ] F}
     (hf₁ : HasFDerivAt (f · y) f₁ x) (hf₂ : HasFDerivAt (f x) f₂ y) :

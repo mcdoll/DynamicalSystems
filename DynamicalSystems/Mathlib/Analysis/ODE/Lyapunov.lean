@@ -140,15 +140,6 @@ theorem foo {v : E → E} {s : Set E}
   rw [add_isFundamentalSolution hv Φ hΦ hΦ']
   simp [hΦ.zero]
 
-
-theorem add_isFundamentalSolutionOn (Φ : ℝ → E → E) (v : E → E) {a b : ℝ}
-    (hΦ : IsFundamentalSolutionOn Φ (fun _ ↦ v) (Set.Ioo a b)) {t s : ℝ}
-    (ht : t ∈ Set.Ioo a b) (hs : s ∈ Set.Ioo a b) (hts : t + s ∈ Set.Ioo a b) :
-    Φ t ∘ Φ s = Φ (t + s) := by
-  ext x
-  simp only [Function.comp_apply]
-  sorry
-
 end Flow
 
 section Energy
