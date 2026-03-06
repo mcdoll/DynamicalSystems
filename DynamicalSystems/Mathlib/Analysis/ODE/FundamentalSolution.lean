@@ -16,6 +16,7 @@ variable {E E' F : Type*}
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
 
+/-- A fundamental solution -/
 structure IsFundamentalSolution (Φ : ℝ → E → E) (f : ℝ → E → E) : Prop where
   isIntegralCurve : ∀ x, IsIntegralCurve (Φ · x) f
   zero : Φ 0 = id
