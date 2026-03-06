@@ -8,6 +8,7 @@ module
 public import DynamicalSystems.Mathlib.Analysis.ODE.Transform
 public import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
 public import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
+public import DynamicalSystems.Mathlib.Analysis.Calculus
 
 /-! # Stability of ODEs -/
 
@@ -46,39 +47,6 @@ La Salle (5.22)
 
 variable {E E' F : Type*}
 
-section uncurry
-
-variable [NormedAddCommGroup E] [NormedSpace ℝ E]
-  [NormedAddCommGroup E'] [NormedSpace ℝ E']
-  [NormedAddCommGroup F] [NormedSpace ℝ F]
-  -- todo: generalize to `𝕜`
-  {x : E} {y : E'}
-
-theorem foo₀ {f : E × E' → F} (hf : DifferentiableAt ℝ f (x, y)) (v : E') :
-    fderiv ℝ f (x, y) (0, v) = fderiv ℝ (fun z ↦ f (x, z)) y v := by
-  have hg : DifferentiableAt ℝ (fun z ↦ (x, z)) y := by fun_prop
-  have := fderiv_comp (x := y) hf hg
-  have this' : ((fderiv ℝ (fun z ↦ (x, z)) y) v) = (0, v) := by
-    simp [(differentiableAt_const x).fderiv_prodMk (differentiableAt_fun_id)]
-  rw [ContinuousLinearMap.ext_iff] at this
-  specialize this v
-  simp at this
-  rw [this'] at this
-  exact this.symm
-
-theorem foo₀' {f : E × E' → F} (hf : DifferentiableAt ℝ f (x, y)) (v : E) :
-    fderiv ℝ f (x, y) (v, 0) = fderiv ℝ (fun z ↦ f (z, y)) x v := by
-  -- this follows from either `flip` or the same argument as above
-  sorry
-
-theorem fderiv_uncurry (f : E → E' → F) (hf : DifferentiableAt ℝ f.uncurry (x, y)) :
-    fderiv ℝ f.uncurry (x, y) = (fderiv ℝ (f · y) x).coprod (fderiv ℝ (f x) y) := by
-  ext z
-  · simp [foo₀' hf]
-  · simp [foo₀ hf]
-
-end uncurry
-
 section Flow
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -93,6 +61,11 @@ structure IsFundamentalSolution' (Φ : ℝ → E → E) (f : ℝ → E → E) : 
   isIntegralCurve : ∀ x, IsIntegralCurve (Φ · x) f
   zero : Φ 0 = id
 
+theorem IsFundamentalSolution'.differentiable {Φ : ℝ → E → E} {f : ℝ → E → E}
+    (hΦ : IsFundamentalSolution' Φ f) (x : E) : Differentiable ℝ (Φ · x) := by
+  intro t
+  apply (hΦ.isIntegralCurve x t).differentiableAt
+
 variable {Φ : ℝ → E → E} {f : ℝ → E → E} (v : ℝ → E → E)  (x₀ : E) (s : Set ℝ)
 
 theorem blubb (hΦ : IsFundamentalSolutionOn Φ f s) {t : ℝ} (ht : t ∈ s)
@@ -103,40 +76,29 @@ theorem blubb (hΦ : IsFundamentalSolutionOn Φ f s) {t : ℝ} (ht : t ∈ s)
 theorem blubb' (hΦ : IsFundamentalSolution Φ f) {t : ℝ} : deriv (Φ · x₀) t = f t (Φ t x₀) :=
   (hΦ x₀ t).deriv
 
-
-#check (fun t ↦ v t (Φ t x₀))
-
-variable (t : ℝ)
-
-#check fun t ↦ deriv (v · (Φ t x₀)) t
-
-#check fderiv ℝ (v t) (Φ t x₀) (deriv (Φ · x₀) t)
-#check deriv (Φ · x₀) t
-
-#check v.uncurry
-
-variable (t : ℝ) (x : E)
--- d f x y = d/dx f, d/dy f
-#check fderiv ℝ (v · x) t
-#check fderiv ℝ (v t) x
-
-#check (fderiv ℝ (v · x) t).prodMap (fderiv ℝ (v t) x)
-
-theorem foo₁ (hv : Differentiable ℝ v.uncurry) (t : ℝ) : deriv (fun s ↦ v s (Φ s x₀)) t =
+theorem foo₁ (hv : Differentiable ℝ v.uncurry) (hΦ : Differentiable ℝ (Φ · x₀)) (t : ℝ) : deriv (fun s ↦ v s (Φ s x₀)) t =
     deriv (v · (Φ t x₀)) t + fderiv ℝ (v t) (Φ t x₀) (deriv (Φ · x₀) t) := by
-  have uc : ∀ s, v s (Φ s x₀) = v.uncurry (s, (Φ s x₀)) := by simp
-  simp_rw [uc]
-  have := fderiv_comp_deriv (𝕜 := ℝ) (f := fun s ↦ (s, (Φ s x₀))) (l := v.uncurry) t sorry sorry
-  simp only at this
-  rw [fderiv_uncurry v (hv.differentiableAt )] at this
-  simp only [ContinuousLinearMap.coprod_apply, fderiv_eq_smul_deriv] at this
-  sorry
+  calc
+    _ = deriv (fun s ↦ v.uncurry (s, (Φ s x₀))) t := by simp
+    _ = (fderiv ℝ (Function.uncurry v) (t, Φ t x₀)) (deriv (fun s ↦ (s, Φ s x₀)) t) := by
+      have hΦ' : Differentiable ℝ fun s ↦ (s, Φ s x₀) := by
+        fun_prop
+      apply fderiv_comp_deriv t hv.differentiableAt hΦ'.differentiableAt
+    _ = deriv (fun x ↦ v x (Φ t x₀)) t + (fderiv ℝ (v t) (Φ t x₀)) (deriv (fun x ↦ Φ x x₀) t) := by
+      rw [fderiv_uncurry v (hv.differentiableAt )]
+      simp only [ContinuousLinearMap.coprod_apply, fderiv_eq_smul_deriv]
+      congr
+      · simp [hΦ.differentiableAt]
+      · simp [hΦ.differentiableAt]
 
 theorem foo₂ (hΦ : IsFundamentalSolution Φ f) (hv : Differentiable ℝ v.uncurry) (t : ℝ) :
     deriv (fun s ↦ v s (Φ s x₀)) t =
     deriv (v · (Φ t x₀)) t + fderiv ℝ (v t) (Φ t x₀) (f t (Φ t x₀)) := by
+  have hΦ' : Differentiable ℝ (Φ · x₀) := by
+    intro t
+    apply (hΦ x₀ t).differentiableAt
   have : deriv (Φ · x₀) t = f t (Φ t x₀) := blubb' x₀ hΦ
-  rw [foo₁ v x₀ hv, this]
+  rw [foo₁ v x₀ hv hΦ', this]
 
 -- Continuous dependence on initial data: `dist_le_of_trajectories_ODE_of_mem`
 
