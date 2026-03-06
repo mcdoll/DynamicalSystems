@@ -5,10 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Mathlib.Analysis.ODE.Transform
-public import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
-public import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
-public import DynamicalSystems.Mathlib.Analysis.Calculus
+public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 
 /-! # Stability of ODEs -/
 
@@ -54,51 +51,32 @@ variable [NormedAddCommGroup E] [NormedSpace ℝ E]
 def IsFundamentalSolutionOn (Φ : ℝ → E → E) (f : ℝ → E → E) (s : Set ℝ) : Prop :=
   ∀ x, IsIntegralCurveOn (Φ · x) f s
 
-def IsFundamentalSolution (Φ : ℝ → E → E) (f : ℝ → E → E) : Prop :=
-  ∀ x, IsIntegralCurve (Φ · x) f
-
-structure IsFundamentalSolution' (Φ : ℝ → E → E) (f : ℝ → E → E) : Prop where
-  isIntegralCurve : ∀ x, IsIntegralCurve (Φ · x) f
-  zero : Φ 0 = id
-
-theorem IsFundamentalSolution'.differentiable {Φ : ℝ → E → E} {f : ℝ → E → E}
-    (hΦ : IsFundamentalSolution' Φ f) (x : E) : Differentiable ℝ (Φ · x) := by
-  intro t
-  apply (hΦ.isIntegralCurve x t).differentiableAt
-
-variable {Φ : ℝ → E → E} {f : ℝ → E → E} (v : ℝ → E → E)  (x₀ : E) (s : Set ℝ)
+variable {Φ : ℝ → E → E} {f : ℝ → E → E} {v : ℝ → E → E} {x₀ : E} (s : Set ℝ) {t : ℝ}
 
 theorem blubb (hΦ : IsFundamentalSolutionOn Φ f s) {t : ℝ} (ht : t ∈ s)
     (hs : UniqueDiffWithinAt ℝ s t) :
     derivWithin (Φ · x₀) s t = f t (Φ t x₀) :=
   (hΦ x₀ t ht).derivWithin hs
 
-theorem blubb' (hΦ : IsFundamentalSolution Φ f) {t : ℝ} : deriv (Φ · x₀) t = f t (Φ t x₀) :=
-  (hΦ x₀ t).deriv
-
-theorem foo₁ (hv : Differentiable ℝ v.uncurry) (hΦ : Differentiable ℝ (Φ · x₀)) (t : ℝ) : deriv (fun s ↦ v s (Φ s x₀)) t =
+theorem foo₁ (hv : DifferentiableAt ℝ v.uncurry (t, Φ t x₀)) (hΦ : DifferentiableAt ℝ (Φ · x₀) t) :
+    deriv (fun s ↦ v s (Φ s x₀)) t =
     deriv (v · (Φ t x₀)) t + fderiv ℝ (v t) (Φ t x₀) (deriv (Φ · x₀) t) := by
   calc
     _ = deriv (fun s ↦ v.uncurry (s, (Φ s x₀))) t := by simp
     _ = (fderiv ℝ (Function.uncurry v) (t, Φ t x₀)) (deriv (fun s ↦ (s, Φ s x₀)) t) := by
-      have hΦ' : Differentiable ℝ fun s ↦ (s, Φ s x₀) := by
-        fun_prop
-      apply fderiv_comp_deriv t hv.differentiableAt hΦ'.differentiableAt
+      have hΦ' : DifferentiableAt ℝ (fun s ↦ (s, Φ s x₀)) t := by fun_prop
+      apply fderiv_comp_deriv t hv hΦ'
     _ = deriv (fun x ↦ v x (Φ t x₀)) t + (fderiv ℝ (v t) (Φ t x₀)) (deriv (fun x ↦ Φ x x₀) t) := by
-      rw [fderiv_uncurry v (hv.differentiableAt )]
+      rw [fderiv_uncurry v hv]
       simp only [ContinuousLinearMap.coprod_apply, fderiv_eq_smul_deriv]
       congr
-      · simp [hΦ.differentiableAt]
-      · simp [hΦ.differentiableAt]
+      · simp [hΦ]
+      · simp [hΦ]
 
-theorem foo₂ (hΦ : IsFundamentalSolution Φ f) (hv : Differentiable ℝ v.uncurry) (t : ℝ) :
+theorem foo₂ (hΦ : IsFundamentalSolution Φ f) (hv : DifferentiableAt ℝ v.uncurry (t, Φ t x₀)) :
     deriv (fun s ↦ v s (Φ s x₀)) t =
     deriv (v · (Φ t x₀)) t + fderiv ℝ (v t) (Φ t x₀) (f t (Φ t x₀)) := by
-  have hΦ' : Differentiable ℝ (Φ · x₀) := by
-    intro t
-    apply (hΦ x₀ t).differentiableAt
-  have : deriv (Φ · x₀) t = f t (Φ t x₀) := blubb' x₀ hΦ
-  rw [foo₁ v x₀ hv hΦ', this]
+  rw [foo₁ hv (hΦ.isIntegralCurve x₀ t).differentiableAt, hΦ.deriv x₀]
 
 -- Continuous dependence on initial data: `dist_le_of_trajectories_ODE_of_mem`
 
@@ -107,14 +85,11 @@ open scoped NNReal
 variable {K : ℝ≥0} (a b : ℝ) {s : ℝ → Set E}
   (hv : ∀ t ∈ Set.Ico a b, LipschitzOnWith K (v t) (s t))
 
-#check dist_le_of_trajectories_ODE_of_mem hv
-
-
 /-- The fundamental solution is continuous in the initial datum. -/
 theorem continuous_isFundamentalSolution {v : E → E} {s : Set E}
     (hv : LipschitzOnWith K v s)
     (Φ : ℝ → E → E)
-    (hΦ : IsFundamentalSolution' Φ (fun _ ↦ v))
+    (hΦ : IsFundamentalSolution Φ (fun _ ↦ v))
     (hΦ' : ∀ t x, Φ t x ∈ s) {t : ℝ} (ht : 0 ≤ t) :
     Continuous (Φ t) := by
   rw [Metric.continuous_iff]
@@ -132,8 +107,8 @@ theorem continuous_isFundamentalSolution {v : E → E} {s : Set E}
     apply hΦ' t' x
   have hdist : dist (Φ 0 y) (Φ 0 x) ≤ ε * Real.exp (- K * t - 1/2) := by
     convert hy.le
-    · apply congrFun hΦ.zero
-    · apply congrFun hΦ.zero
+    · apply hΦ.zero_apply
+    · apply hΦ.zero_apply
   have := dist_le_of_trajectories_ODE_of_mem (fun _ _ ↦ hv) (hcont y) (h y) (h' y) (hcont x) (h x)
     (h' x) hdist t (by simp [ht])
   grw [this]
@@ -147,7 +122,7 @@ theorem continuous_isFundamentalSolution {v : E → E} {s : Set E}
 theorem add_isFundamentalSolution {v : E → E} {s : Set E}
     (hv : LipschitzOnWith K v s)
     (Φ : ℝ → E → E)
-    (hΦ : IsFundamentalSolution' Φ (fun _ ↦ v))
+    (hΦ : IsFundamentalSolution Φ (fun _ ↦ v))
     (hΦ' : ∀ t x, Φ t x ∈ s)
     {t t' : ℝ} :
     Φ t ∘ Φ t' = Φ (t + t') := by
@@ -166,7 +141,7 @@ theorem add_isFundamentalSolution {v : E → E} {s : Set E}
 theorem foo {v : E → E} {s : Set E}
     (hv : LipschitzOnWith K v s)
     (Φ : ℝ → E → E)
-    (hΦ : IsFundamentalSolution' Φ (fun _ ↦ v))
+    (hΦ : IsFundamentalSolution Φ (fun _ ↦ v))
     (hΦ' : ∀ t x, Φ t x ∈ s)
     {t : ℝ} :
     (Φ (-t)) ∘ Φ t = id := by

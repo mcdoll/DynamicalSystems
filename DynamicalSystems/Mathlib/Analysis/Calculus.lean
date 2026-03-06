@@ -20,22 +20,35 @@ variable [NormedAddCommGroup E] [NormedSpace ℝ E]
   -- todo: generalize to `𝕜`
   {x : E} {y : E'}
 
+#check HasFDerivAt.prodMk
+
+
+theorem bar {f : E → E' → F} {f₁ : E →L[ℝ] F} {f₂ : E' →L[ℝ] F}
+    (hf₁ : HasFDerivAt (f · y) f₁ x) (hf₂ : HasFDerivAt (f x) f₂ y) :
+    HasFDerivAt f.uncurry (f₁.coprod f₂) (x, y) := by
+  sorry
+
 theorem foo₀ {f : E × E' → F} (hf : DifferentiableAt ℝ f (x, y)) (v : E') :
     fderiv ℝ f (x, y) (0, v) = fderiv ℝ (fun z ↦ f (x, z)) y v := by
-  have hg : DifferentiableAt ℝ (fun z ↦ (x, z)) y := by fun_prop
-  have := fderiv_comp (x := y) hf hg
-  have this' : ((fderiv ℝ (fun z ↦ (x, z)) y) v) = (0, v) := by
-    simp [(differentiableAt_const x).fderiv_prodMk (differentiableAt_fun_id)]
-  rw [ContinuousLinearMap.ext_iff] at this
-  specialize this v
-  simp at this
-  rw [this'] at this
-  exact this.symm
+  calc
+    _ = fderiv ℝ f (x, y) ((fderiv ℝ (fun z ↦ (x, z)) y) v) := by
+      simp [(differentiableAt_const x).fderiv_prodMk (differentiableAt_fun_id)]
+    _ = _ := by
+      have hg : DifferentiableAt ℝ (fun z ↦ (x, z)) y := by fun_prop
+      have := fderiv_comp (x := y) hf hg
+      rw [ContinuousLinearMap.ext_iff] at this
+      apply (this v).symm
 
 theorem foo₀' {f : E × E' → F} (hf : DifferentiableAt ℝ f (x, y)) (v : E) :
     fderiv ℝ f (x, y) (v, 0) = fderiv ℝ (fun z ↦ f (z, y)) x v := by
-  -- this follows from either `flip` or the same argument as above
-  sorry
+  calc
+    _ = fderiv ℝ f (x, y) ((fderiv ℝ (fun z ↦ (z, y)) x) v) := by
+      simp [(differentiableAt_fun_id).fderiv_prodMk]
+    _ = _ := by
+      have hg : DifferentiableAt ℝ (fun z ↦ (z, y)) x := by fun_prop
+      have := fderiv_comp (x := x) hf hg
+      rw [ContinuousLinearMap.ext_iff] at this
+      apply (this v).symm
 
 theorem fderiv_uncurry (f : E → E' → F) (hf : DifferentiableAt ℝ f.uncurry (x, y)) :
     fderiv ℝ f.uncurry (x, y) = (fderiv ℝ (f · y) x).coprod (fderiv ℝ (f x) y) := by
@@ -52,7 +65,7 @@ variable [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 theorem deriv_prodMk {f : ℝ → E} {g : ℝ → F} {t : ℝ} (hf : DifferentiableAt ℝ f t)
     (hg : DifferentiableAt ℝ g t) :
-    (deriv (fun s ↦ (f s, g s)) t) = (deriv f t, deriv g t) :=
+    deriv (fun s ↦ (f s, g s)) t = (deriv f t, deriv g t) :=
   (hf.prodMk hg).hasDerivAt.unique (hf.hasDerivAt.prodMk hg.hasDerivAt)
 
 @[simp]
