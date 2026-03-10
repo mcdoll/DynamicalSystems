@@ -1,3 +1,57 @@
-\section{La Salle's theorem}
+\section{LaSalle's invariance theorem}
 
 In this section, we prove La Salle's theorem on stability for autonomous systems.
+
+We consider the system
+\begin{align*}
+  \dot{x}(t) = f(x(t))
+\end{align*}
+
+Let $K \subset X$ be compact.
+We assume that the system has a fundamental solution $\Phi$ on $K$.
+
+tba: definitions
+
+Convergence to a set
+
+Limit set
+\begin{align*}
+    \Gamma^+(y) \coloneqq \{ p \colon \forall \eps > 0, \forall T > 0, \exists t > T, \norm{\Phi(t,y) - p} < \eps\}
+\end{align*}
+
+We set
+\begin{align*}
+    L \coloneqq \bigcup_{y \in K} \Gamma^+(y)\,.
+\end{align*}
+
+\begin{theorem}\label{thm:lasalle1}
+    The set $L$ is invariant under the flow.
+\end{theorem}
+\begin{proof}
+    We prove the stronger statement that $\Gamma^+(y)$ is invariant.
+    Let $y \in K$ and $x \in \Gamma^+(y)$, we have to show that $\Phi(t,x) \in \Gamma^+(y)$.
+    
+    Let $\eps > 0$ and $T > 0$ be arbitrary.
+    By definition of $\Gamma^+(y)$, it follows that for every $\eps > 0$ and $T > 0$ there exists $t > T$ with $\norm{\Phi(t,y) - x} < \eps$.
+\end{proof}
+
+\begin{theorem}\label{thm:lasalle2}
+    For every $y \in K$, $\Phi(t,y)$ converges to $L$ as $t \to \infty$.
+\end{theorem}
+\begin{proof}
+    tba
+\end{proof}
+
+Consider a differentiable function $V : X \to \RR$, then we denote by $\tilde{V}$ its gradient paired with $f$,
+\begin{align*}
+    \tilde{V}(p) = \ang{\nabla V(p), f(p)}\,.
+\end{align*}
+
+\begin{theorem}
+    Let $V : X \to \RR$ be differentiable and bounded on $K$ and assume that $\ang{\nabla V(p), f(p)} \leq 0$.
+    The set $L$ is contained in $\{ p \colon \ang{\nabla V(p), f(p)} = 0\}$.
+\end{theorem}
+\begin{proof}
+    tba
+\end{proof}
+
