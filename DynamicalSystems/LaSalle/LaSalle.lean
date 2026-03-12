@@ -57,7 +57,9 @@ theorem isSemigroup_univ : IsSemigroupOn Φ Set.univ ↔ IsSemigroup Φ := by
 
 theorem IsSemigroupOn.mono {s₁ s₂ : Set E} (h : s₁ ⊆ s₂) (hs₂ : IsSemigroupOn Φ s₂) :
     IsSemigroupOn Φ s₁ := by
-  sorry
+  intro t t' x hx
+  apply hs₂
+  apply h hx
 
 theorem IsSemigroupOn.comm (hs : IsSemigroupOn Φ s) {x : E} (hx : x ∈ s) (t t' : ℝ≥0) :
     Φ t (Φ t' x) = Φ t' (Φ t x) := by
@@ -124,11 +126,13 @@ theorem isInvariantSet_limitSet {s₁ s₂ : Set E} (hy : y ∈ s₁) (hs : limi
   exact hx.tendsto_comp ((hΦ₂ t).continuousAt hx')
 
 /-- If `Φ` is a semigroup and `Φ t` is continuous for every `t`, then the limit set is invariant. -/
-theorem isInvariantSet_limitSet' {s : Set E} (hs : limitSet Φ y ⊆ interior s)
+theorem isInvariantSet_limitSet' {s : Set E} (hs : IsOpen s) (hs' : limitSet Φ y ⊆ s)
     (hΦ₁ : IsSemigroupOn Φ {y}) (hΦ₂ : ∀ t, ContinuousOn (Φ t) s) :
     IsInvariantSet Φ (limitSet Φ y) := by
   intro x t hx
-  have hx' : s ∈ 𝓝 x := mem_interior_iff_mem_nhds.mp (hs hx)
+  have hx' : s ∈ 𝓝 x := by
+    rw [hs.mem_nhds_iff]
+    exact hs' hx
   apply limitSet_mono (by rfl) hΦ₁ t
   rw [mem_limitSet_iff] at *
   have : (fun s ↦ Φ t (Φ s y)) =ᶠ[Filter.atTop] fun s ↦ Φ s (Φ t y) := by
@@ -147,8 +151,8 @@ theorem thm520 : Filter.Tendsto (Φ · y) Filter.atTop (𝓝ˢ (limitSet Φ y)) 
 variable {v : E → ℝ}
 
 /-- If `v (Φ t y)` converges to `c`, then `v x = c` for all limit points `x`. -/
-theorem blubb' {c : ℝ} (h_tendsto : Filter.Tendsto (fun t ↦ v (Φ t y)) Filter.atTop (𝓝 c)) {x : E}
-    (hx : x ∈ limitSet (Φ ·) y) (hvx : ContinuousAt v x) : v x = c := by
+theorem eq_of_tendsto {c : ℝ} (h_tendsto : Filter.Tendsto (fun t ↦ v (Φ t y)) Filter.atTop (𝓝 c))
+    {x : E} (hx : x ∈ limitSet (Φ ·) y) (hvx : ContinuousAt v x) : v x = c := by
   -- this is some fairly basic result about composition of limits
   rw [mem_limitSet_iff] at hx
   have : MapClusterPt (v x) Filter.atTop fun t ↦ v (Φ t y) := by
@@ -210,31 +214,22 @@ theorem flow_deriv {x f' : E} (hv : DifferentiableAt ℝ v (Φ t₀ x)) (hΦ : H
   _ = (fderiv ℝ v (Φ t₀ x)) (deriv (Φ · x) t₀) := fderiv_comp_deriv _ hv hΦ.differentiableAt
   _ = _ := by rw [hΦ.deriv]
 
-/-- If a function `v` is constant on an invariant set, then `fderiv ℝ v x (f x)` vanishes for all
+/-- If a function `v` is constant on an invariant set, then `t ↦ v (Φ t x)` vanishes for all
 `x ∈ s`.
 
 This is an easy consequence of the chain rule, but with the twist that we can only calculate
 one-sided derivatives. -/
-theorem blubb {x : E} (hv : DifferentiableAt ℝ v x) {s : Set E} (hx : x ∈ s)
-    (hs : IsInvariantSet (Φ ·) s) (c : ℝ) (hsv : ∀ x ∈ s, v x = c) (hΦ : HasDerivAt (Φ · x) (f x) 0)
-    (hΦ0 : Φ 0 x = x) :
-    fderiv ℝ v x (f x) = 0 := calc
-  fderiv ℝ v x (f x) = deriv (fun t ↦ v (Φ t x)) 0 := by
-    -- Chain rule
-    rw [Eq.comm]
-    rw [flow_deriv (f' := f x)]
-    · congr
-    · rw [hΦ0]
-      apply hv
-    · exact hΦ
+theorem deriv_eq_zero {x : E} (hv : DifferentiableAt ℝ v (Φ 0 x)) {s : Set E} (hx : x ∈ s)
+    (hs : IsInvariantSet (Φ ·) s) (c : ℝ) (hsv : ∀ x ∈ s, v x = c)
+    (hΦ : DifferentiableAt ℝ (Φ · x) 0) :
+    deriv (v <| Φ · x) 0 = 0 := calc
   _ = derivWithin (fun t ↦ v (Φ t x)) {t | 0 ≤ t} 0 := by
     -- If a function is differentiable, then it suffices to calculate a one-sided limit
     refine (DifferentiableAt.derivWithin ?_ (uniqueDiffWithinAt_Ici _)).symm
     -- need that `Φ` is differentiable
     apply DifferentiableAt.comp
-    · rw [hΦ0]
-      apply hv
-    · exact hΦ.differentiableAt
+    · apply hv
+    · exact hΦ
   _ = derivWithin (fun (t : ℝ) ↦ c) {t | 0 ≤ t} 0 := by
     -- the function is constant for `t ≥ 0`
     apply derivWithin_congr
@@ -247,29 +242,116 @@ theorem blubb {x : E} (hv : DifferentiableAt ℝ v x) {s : Set E} (hx : x ∈ s)
     -- a constant function has vanishing derivative
     rw [derivWithin_fun_const, Pi.zero_apply]
 
+/-- If a function `v` is constant on an invariant set, then `fderiv ℝ v x (f x)` vanishes for all
+`x ∈ s`.
+
+This is an easy consequence of the chain rule, but with the twist that we can only calculate
+one-sided derivatives. -/
+theorem fderiv_eq_zero {x : E} (hv : DifferentiableAt ℝ v x) {s : Set E} (hx : x ∈ s)
+    (hs : IsInvariantSet (Φ ·) s) (c : ℝ) (hsv : ∀ x ∈ s, v x = c) (hΦ : HasDerivAt (Φ · x) (f x) 0)
+    (hΦ0 : Φ 0 x = x) :
+    fderiv ℝ v x (f x) = 0 := calc
+  fderiv ℝ v x (f x) = deriv (fun t ↦ v (Φ t x)) 0 := by
+    -- Chain rule
+    rw [Eq.comm]
+    rw [flow_deriv (f' := f x)]
+    · congr
+    · rw [hΦ0]
+      apply hv
+    · exact hΦ
+  _ = _ := by
+    apply deriv_eq_zero Φ _ hx hs c hsv hΦ.differentiableAt
+    rwa [hΦ0]
+
+theorem tendsto_anti' {f : ℝ≥0 → ℝ} (hf : Antitone f) (hf' : BddBelow (Set.range f)) :
+    ∃ c, Filter.Tendsto f Filter.atTop (𝓝 c) :=
+  ⟨iInf f, tendsto_atTop_ciInf hf hf'⟩
+
+/-- This is silly -/
+theorem tendsto_anti_foo' {f f' : ℝ → ℝ} (hf' : ∀ {t} (_ht : 0 ≤ t), HasDerivAt f (f' t) t)
+    (hf_pos : ∃ c, ∀ {t} (_ht : 0 ≤ t), c ≤ f t) (hf'_neg : ∀ {t} (_ht : 0 ≤ t), f' t ≤ 0) :
+    ∃ c, Filter.Tendsto f Filter.atTop (𝓝 c) := by
+  obtain ⟨c, hf_pos⟩ := hf_pos
+  let g : ℝ≥0 → ℝ := (f ·)
+  have hg₁ : Antitone g := by
+    have : AntitoneOn f (Set.Ici 0) := by
+      apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
+      · intro t (ht : 0 ≤ t)
+        exact (hf' ht).continuousAt.continuousWithinAt
+      · intro t ht
+        simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+        apply DifferentiableAt.differentiableWithinAt
+        exact (hf' ht.le).differentiableAt
+      · intro t ht
+        simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+        rw [(hf' ht.le).deriv]
+        exact hf'_neg ht.le
+    intro t₁ t₂ ht
+    exact this t₁.2 t₂.2 (Subtype.coe_le_coe.mpr ht)
+  have hg₂ : BddBelow (Set.range g) := by
+    rw [bddBelow_def]
+    use c
+    intro t ⟨t', h⟩
+    rw [← h]
+    exact hf_pos t'.2
+  obtain ⟨c₀, hg⟩ := tendsto_anti' hg₁ hg₂
+  use c₀
+  exact Filter.tendsto_comp_val_Ici_atTop.mp hg
+
+/-- This is even more silly -/
+theorem tendsto_anti_foo'' {f f' : ℝ → ℝ} (hf' : ∀ {t} (_ht : 0 ≤ t), HasDerivAt f (f' t) t)
+    (hf_pos : ∃ c, ∀ {t} (_ht : 0 ≤ t), c ≤ f t) (hf'_neg : ∀ t, f' t ≤ 0) :
+    ∃ c, Filter.Tendsto (fun t : ℝ≥0 ↦ f t) Filter.atTop (𝓝 c) := by
+  obtain ⟨c, hf_pos⟩ := hf_pos
+  let g : ℝ≥0 → ℝ := (f ·)
+  have hg₁ : Antitone g := by
+    have : AntitoneOn f (Set.Ici 0) := by
+      apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
+      · intro t (ht : 0 ≤ t)
+        exact (hf' ht).continuousAt.continuousWithinAt
+      · intro t ht
+        simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+        apply DifferentiableAt.differentiableWithinAt
+        exact (hf' ht.le).differentiableAt
+      · intro t ht
+        simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+        rw [(hf' ht.le).deriv]
+        exact hf'_neg t
+    intro t₁ t₂ ht
+    exact this t₁.2 t₂.2 (Subtype.coe_le_coe.mpr ht)
+  have hg₂ : BddBelow (Set.range g) := by
+    rw [bddBelow_def]
+    use c
+    intro t ⟨t', h⟩
+    rw [← h]
+    exact hf_pos t'.2
+  exact tendsto_anti' hg₁ hg₂
+
 /-- The limit set is contained in the zero set of the derivative of the Lyapunov function. -/
-theorem foo'' (hv : Differentiable ℝ v) (h_neg : ∀ x, fderiv ℝ v x (f x) ≤ 0) {s : Set E}
-    (hs : limitSet (Φ ·) y ⊆ interior s) (hΦs : ∀ t : ℝ≥0, ContinuousOn (Φ t) s)
+theorem foo'' (hv : Differentiable ℝ v) --(h_neg : ∀ x, fderiv ℝ v x (f x) ≤ 0)
+    {f' : ℝ → ℝ} (hf' : ∀ {t} (_ht : 0 ≤ t), HasDerivAt (v <| Φ · y) (f' t) t)
+    (h_neg : ∀ t, f' t ≤ 0)
+    --(h_neg : ∀ {t} (_ht : 0 ≤ t), deriv (v <| Φ · y) t ≤ 0)
+    {s : Set E}
+    (hs : IsOpen s) (hs' : limitSet (Φ ·) y ⊆ s) (hΦs : ∀ t : ℝ≥0, ContinuousOn (Φ t) s)
     (hΦ : IsSemigroupOn (Φ ·) {y}) :
-    limitSet (Φ ·) y ⊆ {x | fderiv ℝ v x (f x) = 0 } := by
+    limitSet (Φ ·) y ⊆ {x | deriv (v <| Φ · x) 0 = 0 } := by
   intro x hx
   simp only [Set.mem_setOf_eq]
-  -- first show that v (Φ t y) → c₀ for some c₀
-  let c : ℝ := 0
-  apply blubb hv.differentiableAt (Φ := Φ) (s := limitSet (Φ ·) y) hx
-    (isInvariantSet_limitSet' hs hΦ hΦs) c _ sorry sorry
+  obtain ⟨c, hc⟩ := tendsto_anti_foo'' (f := (v <| Φ · y)) (f' := f') hf' (by sorry) h_neg
+  apply deriv_eq_zero hv.differentiableAt (Φ := Φ) (s := limitSet (Φ ·) y) hx
+    (isInvariantSet_limitSet' hs hs' hΦ hΦs) c _ sorry
   intro x' hx'
-  apply blubb' _ hx' hv.continuous.continuousAt
-  sorry
+  apply eq_of_tendsto hc hx' hv.continuous.continuousAt
 
 /-- The union of all limit sets is contained in the zero set of the Lyapunov function. -/
 theorem foo₃ {s s' : Set E} (hs : IsCompact s) (hv : Differentiable ℝ v)
-    (h_neg : ∀ x, fderiv ℝ v x (f x) ≤ 0) (hs : ∀ y ∈ s, limitSet (Φ ·) y ⊆ interior s')
-    (hΦs' : ∀ t : ℝ≥0, ContinuousOn (Φ t) s') (hΦ : IsSemigroupOn (fun x ↦ Φ ↑x) s) :
+    (h_neg : ∀ x, fderiv ℝ v x (f x) ≤ 0) (hs' : IsOpen s') (hs'' : ∀ y ∈ s, limitSet (Φ ·) y ⊆ s')
+    (hΦs' : ∀ t : ℝ≥0, ContinuousOn (Φ t) s') (hΦ : IsSemigroupOn (Φ ·) s) :
     ⋃ y ∈ s, limitSet (Φ ·) y ⊆ {x | fderiv ℝ v x (f x) = 0 } := by
   apply Set.iUnion₂_subset
   intro y hy
-  apply foo'' Φ y hv h_neg (hs y hy) hΦs'
+  apply foo'' Φ y hv h_neg hs' (hs'' y hy) hΦs'
   apply hΦ.mono (by simp [hy])
 
 -- A fixed point is contained in `⋃ y ∈ s, limitSet (Φ ·) y`.
@@ -295,7 +377,7 @@ theorem foo₄ {s : Set E} (hs : IsCompact s) (hv : Differentiable ℝ v)
         --have := isInvariantSet_limitSet'
         sorry
       apply ht
-      apply foo'' (s := s) Φ y hv h_neg sorry sorry sorry h''
+      apply foo'' (s := s) Φ y hv h_neg sorry sorry sorry sorry h''
     · apply hx'
       -- the flow maps `s` to `s`
       sorry
