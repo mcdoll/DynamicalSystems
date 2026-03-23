@@ -82,7 +82,7 @@ theorem continuous_isFundamentalSolution {v : E → E} {s : Set E}
     (hv : LipschitzOnWith K v s)
     (Φ : ℝ → E → E)
     (hΦ : IsFundamentalSolution Φ (fun _ ↦ v))
-    (hΦ' : ∀ t x, Φ t x ∈ s) {t : ℝ} (ht : 0 ≤ t) :
+    (hΦ' : ∀ t (_ht : 0 ≤ t) x, Φ t x ∈ s) {t : ℝ} (ht : 0 ≤ t) :
     Continuous (Φ t) := by
   rw [Metric.continuous_iff]
   intro x ε hε
@@ -95,8 +95,8 @@ theorem continuous_isFundamentalSolution {v : E → E} {s : Set E}
     apply HasDerivAt.hasDerivWithinAt
     apply hΦ.isIntegralCurve
   have h' : ∀ x, ∀ t' ∈ Set.Ico 0 t, Φ t' x ∈ s := by
-    intro x t' ht'
-    apply hΦ' t' x
+    intro x t' ⟨ht', _⟩
+    apply hΦ' t' ht' x
   have hdist : dist (Φ 0 y) (Φ 0 x) ≤ ε * Real.exp (- K * t - 1/2) := by
     convert hy.le
     · apply hΦ.zero_apply
