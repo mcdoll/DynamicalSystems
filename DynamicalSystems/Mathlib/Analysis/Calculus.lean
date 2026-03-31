@@ -5,7 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
-public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Comp
 public import Mathlib.Analysis.Calculus.FDeriv.Prod
 
 @[expose] public noncomputable section
@@ -79,3 +79,27 @@ theorem snd_deriv_prodMk {f : ℝ → E} {g : ℝ → F} {t : ℝ} (hf : Differe
   rw [deriv_prodMk hf hg]
 
 end deriv_prod
+
+variable [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+variable {Φ : ℝ → E → E} {f : ℝ → E → E} {v : ℝ → E → E} {x₀ : E} (s : Set ℝ) {t : ℝ}
+
+theorem foo₁ (hv : DifferentiableAt ℝ v.uncurry (t, Φ t x₀)) (hΦ : DifferentiableAt ℝ (Φ · x₀) t) :
+    deriv (fun s ↦ v s (Φ s x₀)) t =
+    deriv (v · (Φ t x₀)) t + fderiv ℝ (v t) (Φ t x₀) (deriv (Φ · x₀) t) := by
+  calc
+    _ = deriv (fun s ↦ v.uncurry (s, (Φ s x₀))) t := by simp
+    _ = (fderiv ℝ (Function.uncurry v) (t, Φ t x₀)) (deriv (fun s ↦ (s, Φ s x₀)) t) := by
+      have hΦ' : DifferentiableAt ℝ (fun s ↦ (s, Φ s x₀)) t := by fun_prop
+      apply fderiv_comp_deriv t hv hΦ'
+    _ = deriv (fun x ↦ v x (Φ t x₀)) t + (fderiv ℝ (v t) (Φ t x₀)) (deriv (fun x ↦ Φ x x₀) t) := by
+      rw [fderiv_uncurry v hv]
+      simp only [ContinuousLinearMap.coprod_apply, fderiv_eq_smul_deriv]
+      congr
+      · simp [hΦ]
+      · simp [hΦ]
+
+/-theorem foo₂ (hΦ : IsFundamentalSolution Φ f) (hv : DifferentiableAt ℝ v.uncurry (t, Φ t x₀)) :
+    deriv (fun s ↦ v s (Φ s x₀)) t =
+    deriv (v · (Φ t x₀)) t + fderiv ℝ (v t) (Φ t x₀) (f t (Φ t x₀)) := by
+  rw [foo₁ hv (hΦ.isIntegralCurve x₀ t).differentiableAt, hΦ.deriv x₀]-/

@@ -1,0 +1,201 @@
+/-
+Copyright (c) 2026 Moritz Doll. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Moritz Doll
+-/
+module
+
+public import Mathlib.Dynamics.Flow
+public import Mathlib.Dynamics.OmegaLimit
+public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
+--public import Mathlib.Topology.Order.MonotoneConvergence
+
+
+@[expose] public noncomputable section
+
+section Abstract
+
+/-- A flow on a topological space `α` by an additive topological
+monoid `τ` is a continuous monoid action of `τ` on `α`. -/
+structure FlowOn (τ : Type*) [TopologicalSpace τ] [AddMonoid τ] [ContinuousAdd τ] (α : Type*)
+  [TopologicalSpace α] (s : Set τ) where
+  /-- The map `τ → α → α` underlying a flow of `τ` on `α`. -/
+  toFun : τ → α → α
+  cont' : ContinuousOn (Function.uncurry toFun) (s ×ˢ Set.univ)
+  map_add' : ∀ ⦃t₁ t₂ : τ⦄ (_ht₁ : t₁ ∈ s) (_ht₂ : t₂ ∈ s) (_ht₁₂ : t₁ + t₂ ∈ s) x,
+    toFun (t₁ + t₂) x = toFun t₁ (toFun t₂ x)
+  map_zero' : ∀ x, toFun 0 x = x
+
+
+end Abstract
+
+
+section Discrete
+
+variable {α : Type*}
+
+variable {f : α ≃ α} {n m : ℤ} {x : α}
+
+variable (f) in
+theorem Equiv.zpow_add_apply : (f ^ (n + m)) x = (f ^ n) ((f ^ m) x) := by
+  rw [← Equiv.Perm.mul_apply, zpow_add]
+
+variable (f) in
+protected theorem Equiv.zpow_mul {n m : ℤ} : f ^ (n * m) = (f ^ n) ^ m := by
+  rw [zpow_mul]
+
+namespace Homeomorph
+
+variable [TopologicalSpace α] {f : Homeomorph α α}
+
+instance : Pow (Homeomorph α α) ℕ where
+  pow f n := {
+    toEquiv := f ^ n
+    continuous_toFun := f.continuous_toFun.iterate _
+    continuous_invFun := f.continuous_invFun.iterate _ }
+
+variable {n : ℕ}
+
+@[simp]
+theorem npow_zero : f ^ 0 = Homeomorph.refl α := rfl
+
+@[simp]
+theorem npow_one : f ^ 1 = f := rfl
+
+instance : Pow (Homeomorph α α) ℤ where
+  pow f n := {
+    toEquiv := f ^ n
+    continuous_toFun := by
+      cases n with
+      | ofNat n => apply f.continuous_toFun.iterate
+      | negSucc n => apply f.continuous_invFun.iterate
+    continuous_invFun := by
+      cases n with
+      | ofNat n => apply f.continuous_invFun.iterate
+      | negSucc n => apply f.continuous_toFun.iterate }
+
+variable {n : ℤ}
+
+variable {f g : Homeomorph α α}
+
+@[simp]
+theorem zpow_zero : f ^ (0 : ℤ) = Homeomorph.refl α := rfl
+
+@[simp]
+theorem zpow_one : f ^ (1 : ℤ) = f := rfl
+
+@[simp]
+theorem zpow_neg_one : f ^ (-1) = f.symm := rfl
+
+theorem zpow_mul {n m : ℤ} : f ^ (n * m) = (f ^ n) ^ m := by
+  ext x
+  apply Equiv.ext_iff.mp
+  apply _root_.zpow_mul
+
+theorem zpow_neg : f ^ (-n) = f.symm ^ n := by
+  rw [neg_eq_neg_one_mul, f.zpow_mul, f.zpow_neg_one]
+
+@[simp, norm_cast]
+theorem zpow_coe {n : ℕ} : f ^ (n : ℤ) = f ^ n := rfl
+
+theorem zpow_add_apply {n m : ℤ} : (f ^ (n + m)) x = (f ^ n) ((f ^ m) x) :=
+  f.toEquiv.zpow_add_apply
+
+end Homeomorph
+
+variable [TopologicalSpace α] (f : Homeomorph α α)
+
+/-- The discrete flow `ℤ → α → α` induced by a homeomorphism `f : α → α`. -/
+def Homeomorph.toFlow (f : Homeomorph α α) : Flow ℤ α where
+  toFun n x := (f ^ n) x
+  cont' := by
+    rw [continuous_prod_of_discrete_left]
+    intro n
+    simp only [Function.uncurry_apply_pair]
+    fun_prop
+  map_add' n₁ n₂ := by
+    intro x
+    exact f.zpow_add_apply
+  map_zero' x := by simp
+
+
+end Discrete
+
+section Continuous
+
+/-! ### Flows of vector fields -/
+
+-- A vector field is complete if for every `x₀` the integral curve exists for all time
+
+
+variable {E : Type*}
+
+variable [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- A vector field is complete if for every point there exists a global integral curve
+`γ : ℝ → E`. -/
+def IsCompleteVectorField (f : E → E) : Prop :=
+  ∀ x, ∃ γ : ℝ → E, γ 0 = x ∧ IsIntegralCurve γ (fun _ ↦ f)
+
+variable {x : E}
+variable {f : E → E}
+
+namespace IsCompleteVectorField
+
+/-- The flow of a vector field at a point `x`. -/
+def flowAt (hf : IsCompleteVectorField f) (x : E) : ℝ → E :=
+  (hf x).choose
+
+@[simp]
+theorem flowAt_zero (hf : IsCompleteVectorField f) (x : E) : hf.flowAt x 0 = x :=
+  (hf x).choose_spec.left
+
+theorem flowAt_isIntegralCurve (hf : IsCompleteVectorField f) (x : E) :
+    IsIntegralCurve (hf.flowAt x) (fun _ ↦ f) :=
+  (hf x).choose_spec.right
+
+theorem flowAt_isFundamentalSolution (hf : IsCompleteVectorField f) :
+    IsFundamentalSolution (fun t x ↦ hf.flowAt x t) (fun _ ↦ f) where
+  isIntegralCurve x := hf.flowAt_isIntegralCurve x
+  zero := by
+    ext x
+    exact hf.flowAt_zero x
+
+open scoped NNReal
+
+variable {K : ℝ≥0}
+
+/-- Every complete and Lipschitz vector field admits a global flow. -/
+def flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) : Flow ℝ E where
+  toFun t x := hf.flowAt x t
+  cont' := hf.flowAt_isFundamentalSolution.continuous h
+  map_add' := (hf.flowAt_isFundamentalSolution.add_apply h · · · |>.symm)
+  map_zero' := by simp
+
+theorem differentiable_flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (x : E) :
+    Differentiable ℝ (hf.flow h · x) :=
+  (hf.flowAt_isIntegralCurve x · |>.differentiableAt)
+
+theorem deriv_flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (t : ℝ) (x : E) :
+    deriv (hf.flow h · x) t = f (hf.flow h t x) :=
+  (hf.flowAt_isIntegralCurve x t).deriv
+
+end IsCompleteVectorField
+
+theorem Flow.isCompleteVectorField {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
+    IsCompleteVectorField (fun x ↦ deriv (Φ · x) 0) := by
+  intro x
+  use (Φ · x)
+  simp only [Flow.map_zero, id_eq, true_and]
+  intro t
+  convert ((hΦ x).differentiableAt (x := t)).hasDerivAt using 1
+  calc
+    deriv (Φ · (Φ t x)) 0 = deriv (fun s ↦ Φ (s + t) x) 0 := by
+      congr
+      ext y
+      exact (Flow.map_add Φ y t x).symm
+    _ = (deriv (· + t) 0) • deriv (Φ · x) ((· + t) 0) :=
+      deriv.scomp 0 (hΦ x).differentiableAt (by fun_prop)
+    _ = _ := by simp
+
+end Continuous
