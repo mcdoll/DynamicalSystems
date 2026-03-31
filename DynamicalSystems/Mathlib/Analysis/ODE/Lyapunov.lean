@@ -6,6 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
+public import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall2
 
 /-! # Stability of ODEs -/
 
@@ -109,6 +110,57 @@ theorem continuous_isFundamentalSolution {v : E → E} {s : Set E}
   rw [mul_assoc, ← lt_div_iff₀' hε, div_self (by positivity), ← Real.exp_add, this,
     Real.exp_lt_one_iff]
   norm_num
+
+/-- The fundamental solution is continuous in the initial datum. -/
+theorem continuous_isFundamentalSolution' {v : E → E}
+    (hv : LipschitzWith K v)
+    (Φ : ℝ → E → E)
+    (hΦ : IsFundamentalSolution Φ (fun _ ↦ v)) :
+    Continuous Φ.uncurry := by
+  rw [Metric.continuous_iff]
+  intro ⟨t₀, x₀⟩ ε hε
+  have h_cont_x₀ : ContinuousAt (Φ · x₀) t₀ :=
+    (hΦ.isIntegralCurve x₀).continuous.continuousAt
+  rw [Metric.continuousAt_iff] at h_cont_x₀
+  obtain ⟨δ₀, hδ₀, h_cont_x₀⟩ := h_cont_x₀ (ε / 2) (by positivity)
+  use min δ₀ ((ε / 2) * Real.exp (- K * (|t₀| + δ₀) - 1/2)), by positivity
+  intro ⟨t, x⟩ hy
+  rw [Prod.dist_eq, max_lt_iff] at hy
+  simp only [neg_mul, one_div] at hy
+  obtain ⟨ht, hx⟩ := hy
+  calc
+    _ = dist (Φ t x) (Φ t₀ x₀) := by simp
+    _ ≤ dist (Φ t x) (Φ t x₀) + dist (Φ t x₀) (Φ t₀ x₀) := dist_triangle _ _ _
+    _ < ε/2 + ε/2 := by
+      gcongr
+      · have hcont : ∀ x, ContinuousOn (Φ · x) (Set.uIcc 0 t) :=
+          fun x ↦ (hΦ.isIntegralCurve x).continuous.continuousOn
+        have h : ∀ x, ∀ t' ∈ Set.uIcc 0 t, HasDerivAt (Φ · x) (v (Φ t' x)) t' := by
+          intro x t' ht'
+          apply hΦ.isIntegralCurve
+        have hdist : dist (Φ 0 x) (Φ 0 x₀) ≤ (ε / 2) * Real.exp (- K * |t| - 2⁻¹) := by
+          rw [hΦ.zero_apply, hΦ.zero_apply]
+          grw [hx, Std.min_le_right]
+          gcongr
+          simp only [neg_mul, neg_le_neg_iff]
+          gcongr
+          calc
+            _ = |t₀ + (t - t₀)| := by congr; ring
+            _ ≤ |t₀| + |t - t₀| := by apply abs_add_le
+            _ ≤ |t₀| + δ₀ := by
+              gcongr
+              rw [← Real.norm_eq_abs, ← dist_eq_norm]
+              grw [ht, Std.min_le_left]
+        have := dist_le_of_trajectories_ODE' (fun _ _ ↦ hv) (hcont x) (h x) (hcont x₀) (h x₀) hdist
+          t (by simp)
+        simp only [neg_mul, sub_zero] at this
+        grw [this]
+        rw [mul_assoc, ← lt_div_iff₀' (by positivity), div_self (by positivity), ← Real.exp_add,
+          Real.exp_lt_one_iff]
+        grind
+      · apply h_cont_x₀
+        apply lt_of_lt_of_le ht Std.min_le_left
+    _ = _ := by ring
 
 /-- The fundamental solution satisfies the group property, `Φ t ∘ Φ t' = Φ (t + t')`. -/
 theorem add_isFundamentalSolution {v : E → E} {s : Set E}

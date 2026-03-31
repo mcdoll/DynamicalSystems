@@ -5,122 +5,64 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 public import DynamicalSystems.Mathlib.Topology.Antitone
-public import DynamicalSystems.Mathlib.Topology.LimitSet
 public import DynamicalSystems.Stability
+public import DynamicalSystems.Mathlib.Dynamics.Basic
 
 @[expose] public section
 
-section Antitone
-
-variable {ι E : Type*}
-
-namespace Filter
-
-variable (Φ : ι → E → E)
-
-/-- A set `s` is invariant under the (positive) flow if for all `x ∈ s` we have that `Φ t x ∈ s`. -/
-def IsInvariantSetOn (s : Set E) (I : Set ι) : Prop :=
-  ∀ x ∈ s, ∀ t ∈ I, Φ t x ∈ s
-
-end Filter
-
-section Semigroup
-
-structure IsSemigroupOn [Add ι] [Zero ι] (Φ : ι → E → E) (s : Set E) : Prop where
-  zero : ∀ x ∈ s, Φ 0 x = x
-  add : ∀ t₀ t₁, ∀ x ∈ s, Φ (t₀ + t₁) x = Φ t₀ (Φ t₁ x)
-
-structure IsSemigroup [Add ι] [Zero ι] (Φ : ι → E → E) : Prop where
-  zero : ∀ x, Φ 0 x = x
-  add : ∀ t₀ t₁ x, Φ (t₀ + t₁) x = Φ t₀ (Φ t₁ x)
-
-variable {Φ : ι → E → E} {s : Set E} {y : E}
-
-theorem IsSemigroupOn.mono [Add ι] [Zero ι] {s₁ s₂ : Set E} (hs : s₁ ⊆ s₂)
-    (hs : IsSemigroupOn Φ s₂) : IsSemigroupOn Φ s₁ := by
-  sorry
-
-@[simp]
-theorem isSemigroup_univ [Add ι] [Zero ι] : IsSemigroupOn Φ Set.univ ↔ IsSemigroup Φ := by
-  sorry
-
-theorem IsSemigroupOn.comm [AddCommMagma ι] [Zero ι] (hΦ : IsSemigroupOn Φ s) {x : E} (hx : x ∈ s)
-    (t₀ t₁ : ι) :
-    Φ t₀ (Φ t₁ x) = Φ t₁ (Φ t₀ x) := by
-  rw [← hΦ.add t₀ t₁ x hx, ← hΦ.add t₁ t₀ x hx, add_comm]
-
-variable [TopologicalSpace E] [AddCommMonoid ι] [Preorder ι] [IsDirectedOrder ι] [AddLeftMono ι]
-
-open Filter
-
-/-- The limit set is monotone in the flow parameter. -/
-theorem limitSet_mono (hy : y ∈ s) (hΦ : IsSemigroupOn Φ s) {t : ι}
-    (ht : 0 ≤ t) :
-    atTop.limitSet (Φ · (Φ t y)) ⊆ atTop.limitSet (Φ · y) := by
-  intro x hx
-  rw [mem_limitSet_iff, mapClusterPt_iff_frequently] at *
-  simp only [Filter.frequently_atTop] at *
-  intro s' hs' t₀
-  obtain ⟨t', ht', h⟩ := hx s' hs' t₀
-  use t' + t
-  constructor
-  · grw [ht']
-    exact le_add_of_nonneg_right ht
-  · rwa [hΦ.add t' t y hy]
-
--- Todo: more general version
-
-/-- If `Φ` is a semigroup and `Φ t` is continuous for every `t`, then the limit set is invariant. -/
-theorem isInvariantSet_limitSet {y : E} {s : Set E} (hs' : atTop.limitSet (Φ · y) ⊆ s)
-    (hΦ₁ : IsSemigroupOn Φ {y}) (hΦ₂ : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
-    IsInvariantSetOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) := by
-  intro x hx t (ht : 0 ≤ t)
-  have hx' : x ∈ s := hs' hx
-  apply limitSet_mono (by rfl) hΦ₁ ht
-  rw [mem_limitSet_iff] at *
-  have : (fun s ↦ Φ t (Φ s y)) =ᶠ[Filter.atTop] fun s ↦ Φ s (Φ t y) := by
-    rw [Filter.EventuallyEq, Filter.eventually_atTop]
-    use 0
-    intro s hs
-    apply IsSemigroupOn.comm hΦ₁ rfl
-  exact (hx.tendsto_comp (hΦ₂ t ht x hx')).congrFun this
-
-
-end Semigroup
+variable {ι α E F : Type*}
 
 section TopologicalSpace
 
 open scoped Topology
 
-variable [TopologicalSpace E]
+section Definition
 
-structure IsLyapunovOn [Preorder ι] (v : E → ℝ) (Φ : ι → E → E) (s : Set E) : Prop where
+variable [TopologicalSpace E]
+  [Preorder F] [Zero F] [TopologicalSpace F]
+
+@[fun_prop]
+structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Set E) : Prop where
   pos : ∀ x, 0 ≤ v x
   cont : Continuous v
-  antitone : ∀ x t₀ t₁ (_ht₀ : Φ t₀ x ∈ s) (_ht₁ : Φ t₁ x ∈ s) (_ht : t₀ ≤ t₁),
+  antitone : ∀ ⦃x t₀ t₁⦄ (_ht₀ : Φ t₀ x ∈ s) (_ht₁ : Φ t₁ x ∈ s) (_ht : t₀ ≤ t₁),
     v (Φ t₁ x) ≤ v (Φ t₀ x)
 
-structure IsLyapunov [Preorder ι] (v : E → ℝ) (Φ : ι → E → E) : Prop where
+@[fun_prop]
+structure IsLyapunov [Preorder ι] (v : E → F) (Φ : ι → E → E) : Prop where
   pos : ∀ x, 0 ≤ v x
-  antitone : ∀ x t₀ t₁ (_ht : t₀ ≤ t₁), v (Φ t₁ x) ≤ v (Φ t₀ x)
   cont : Continuous v
+  antitone : ∀ ⦃x t₀ t₁⦄ (_ht : t₀ ≤ t₁), v (Φ t₁ x) ≤ v (Φ t₀ x)
 
-variable {Φ : ℝ → E → E} {v : E → ℝ} {x₀ : E} {s : Set E}
+end Definition
 
 open Filter
 
+
+variable {Φ : ι → E → E} {v : E → F} {x₀ : E} {s : Set E}
+
+section blubb
+
+variable [Preorder ι] [IsDirectedOrder ι] [TopologicalSpace E]
+
+variable
+  [Zero F] [TopologicalSpace F] [ConditionallyCompletePartialOrderInf F]
+  [InfConvergenceClass F]
+
+
 /-- The flow composed with a Lyapunov function converges to some point. -/
-theorem IsLyapunovOn.exists_tendsto {x : E} {t₀ : ℝ} (h_lya : IsLyapunovOn v Φ s)
+theorem IsLyapunovOn.exists_tendsto {x : E} {t₀ : ι} (h_lya : IsLyapunovOn v Φ s)
     (hx : ∀ t ∈ Set.Ici t₀, Φ t x ∈ s) :
     ∃ c, Filter.Tendsto (v <| Φ · x) Filter.atTop (𝓝 c) := by
   have h_anti : AntitoneOn (v <| Φ · x) (Set.Ici t₀) := by
     intro t ht t' ht' h
-    exact h_lya.antitone x t t' (hx t ht) (hx t' ht') h
+    exact h_lya.antitone (hx t ht) (hx t' ht') h
   apply h_anti.exists_tendsto ⟨0, ?_⟩
   intro t ht
   exact h_lya.pos _
+
+variable [Nonempty ι]
 
 /-- The flow composed with a Lyapunov function converges to some point. -/
 theorem IsLyapunovOn.exists_tendsto_of_eventually {x : E} (h_lya : IsLyapunovOn v Φ s)
@@ -130,13 +72,15 @@ theorem IsLyapunovOn.exists_tendsto_of_eventually {x : E} (h_lya : IsLyapunovOn 
   obtain ⟨t₀, hx⟩ := hx
   have h_anti : AntitoneOn (v <| Φ · x) (Set.Ici t₀) := by
     intro t ht t' ht' h
-    exact h_lya.antitone x t t' (hx t ht) (hx t' ht') h
+    exact h_lya.antitone (hx t ht) (hx t' ht') h
   apply h_anti.exists_tendsto ⟨0, ?_⟩
   intro t ht
   exact h_lya.pos _
 
+variable {v : E → ℝ}
+
 /-- The sublevel sets of `v` are contained in neighborhoods of `x₀`. -/
-theorem foo'' (h_cont : Continuous v) (hvx₀ : v x₀ = 0)
+theorem setOf_fun_le_mem_nhds (h_cont : Continuous v) (hvx₀ : v x₀ = 0)
     {δ : ℝ} (hδ : 0 < δ) : { p | v p ≤ δ } ∈ 𝓝 x₀ := by
   have : {p | v p < δ } ⊆ interior {p | v p ≤ δ } :=
     lt_subset_interior_le h_cont continuous_const
@@ -146,7 +90,8 @@ theorem foo'' (h_cont : Continuous v) (hvx₀ : v x₀ = 0)
 
 variable [FirstCountableTopology E]
 
-theorem foo' (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+theorem exists_setOf_fun_le_subset (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
+    (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
     {s : Set E} (hs : s ∈ 𝓝 x₀) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
     ∃ δ > 0, {p | v p ≤ δ } ⊆ s := by
   by_contra!
@@ -176,7 +121,7 @@ theorem foo' (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x) (hvx₀ : ∀ x,
   have hb₂ : ∀ n, b n ∉ s := by
     intro n
     exact (hδ (a n) (ha n)).2
-  have hb₃ : ∃ᶠ n in Filter.atTop, b n ∈ { p | v p ≤ δ₀ } := by
+  have hb₃ : ∃ᶠ n in atTop, b n ∈ { p | v p ≤ δ₀ } := by
     apply Filter.Eventually.frequently
     rw [Filter.eventually_atTop]
     obtain ⟨N, hN₀, hN⟩ := Real.exists_nat_pos_inv_lt hδ₀
@@ -186,7 +131,7 @@ theorem foo' (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x) (hvx₀ : ∀ x,
     grw [hb₁ n, ← hN, hn]
     field_simp
     simp
-  obtain ⟨y, hy, k, hk, h⟩ := h_cpt.tendsto_subseq' hb₃
+  obtain ⟨y, _hy, k, hk, h⟩ := h_cpt.tendsto_subseq' hb₃
   have hb₁' : Filter.Tendsto (fun n ↦ v (b (k n))) Filter.atTop (𝓝 0) := by
     apply squeeze_zero _ _ ha'
     · intro n
@@ -212,11 +157,17 @@ theorem hasBasis_setOf_le (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
   intro s
   constructor
   · intro hs
-    apply foo' h_cont h_pos hvx₀ hs hδ₀ h_cpt
+    apply exists_setOf_fun_le_subset h_cont h_pos hvx₀ hs hδ₀ h_cpt
   · intro ⟨δ, hδ, h⟩
-    exact mem_of_superset (foo'' h_cont (hvx₀ x₀ |>.mpr rfl) hδ) h
+    exact mem_of_superset (setOf_fun_le_mem_nhds h_cont (hvx₀ x₀ |>.mpr rfl) hδ) h
 
-/-- Lyapunov stability for autonomous systems. -/
+end blubb
+
+variable [TopologicalSpace E] [Preorder ι] [Zero ι] [FirstCountableTopology E]
+
+variable {v : E → ℝ}
+
+/-- Lyapunov stability for time-independent Lyapunov functions. -/
 theorem IsLyapunov.isStableOn (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
     (h_id : ∀ x, Φ 0 x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
     (𝓝 x₀).IsStableOn Φ (Set.Ici 0) := by
@@ -225,9 +176,9 @@ theorem IsLyapunov.isStableOn (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0
   use δ, hδ
   intro t (ht : 0 ≤ t) x (hx : v x ≤ δ)
   simp only [Set.mem_setOf_eq]
-  grw [h_lya.antitone x 0 t ht, h_id x, hx]
+  grw [h_lya.antitone ht, h_id x, hx]
 
-/-- Lyapunov stability for autonomous systems. -/
+/-- Lyapunov stability for time-independent Lyapunov functions. -/
 theorem IsLyapunovOn.isStableOn (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
     (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici 0, Φ t x ∈ s)
     (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
@@ -248,7 +199,61 @@ theorem IsLyapunovOn.isStableOn (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact
   simp only [Set.mem_setOf_eq]
   have hx0 : Φ 0 x ∈ s := hs _ hx' _ (by simp)
   have hxt : Φ t x ∈ s := hs _ hx' _ ht
-  grw [h_lya.antitone x 0 t hx0 hxt ht, h_id x, hx]
+  grw [h_lya.antitone hx0 hxt ht, h_id x, hx]
   exact Std.min_le_left
 
 end TopologicalSpace
+
+section Continuous
+
+variable [NormedAddCommGroup E]
+
+variable {f : E → E} {Φ : ℝ → E → E} {v : E → ℝ} (s : Set E)
+
+theorem isLyapunov_of_deriv
+    (hv : ∀ x, 0 ≤ v x)
+    (h_cont : Continuous v) (h_diff : ∀ x, Differentiable ℝ (v <| Φ · x))
+    (h_deriv : ∀ x, deriv (v <| Φ · x) ≤ 0) :
+    IsLyapunov v Φ where
+  pos := hv
+  cont := h_cont
+  antitone := fun x ↦ antitone_of_deriv_nonpos (h_diff x) (h_deriv x)
+
+variable [NormedSpace ℝ E]
+
+theorem Flow.isLyapunovOn_of_deriv (hf : IsFundamentalSolution Φ (fun _ ↦ f)) (hv : ∀ x, 0 ≤ v x)
+    (h_cont : Continuous v) (h_deriv : sorry) :
+    IsLyapunovOn v Φ s where
+  pos := hv
+  cont := h_cont
+  antitone := by
+    intro x t₀ t₁ ht₀ ht₁ ht
+    have : AntitoneOn (v <| Φ · x) (Set.Ici 0) := by
+      apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
+      · sorry
+      · sorry
+      · sorry
+    --specialize this t₀
+    sorry
+
+open scoped NNReal
+
+variable {K : ℝ≥0}
+
+theorem Flow.isLyapunov (hf : IsCompleteVectorField f) (hK : LipschitzWith K f) (hv : ∀ x, 0 ≤ v x)
+    (hv_diff : Differentiable ℝ v) (h_deriv : ∀ x, fderiv ℝ v x (f x) ≤ 0) :
+    IsLyapunov v (hf.flow hK) := isLyapunov_of_deriv hv hv_diff.continuous ?_ ?_
+where finally
+  · intro x
+    apply hv_diff.comp (hf.differentiable_flow hK _)
+  · intro x t
+    convert h_deriv (hf.flow hK t x)
+    calc
+      deriv (v <| hf.flow hK · x) t = (fderiv ℝ v (hf.flow hK t x)) (deriv (hf.flow hK · x) t) := by
+        apply fderiv_comp_deriv _ (by fun_prop)
+        apply hf.differentiable_flow
+      _ = (fderiv ℝ v (hf.flow hK t x)) (f (hf.flow hK t x)) := by
+        congr
+        apply hf.deriv_flow hK t x
+
+end Continuous

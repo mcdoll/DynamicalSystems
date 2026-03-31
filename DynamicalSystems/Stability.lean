@@ -5,7 +5,8 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
+public import Mathlib.Order.Filter.Bases.Basic
+
 
 /-!
 # Stability

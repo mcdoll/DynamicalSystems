@@ -9,6 +9,8 @@ public import Mathlib.Topology.Compactness.Compact
 
 @[expose] public section
 
+variable {ι α E : Type*}
+
 section TopologicalSpace
 
 variable {ι E : Type*} [TopologicalSpace E]
@@ -38,5 +40,8 @@ theorem IsCompact.tendsto_of_limitSet_inter_subset_singleton {s : Set E} (hs : I
   apply h
   rw [Set.mem_inter_iff, mem_limitSet_iff]
   exact ⟨hx', hx⟩
+
+theorem isClosed_limitSet : IsClosed (l.limitSet f) :=
+  isClosed_setOf_clusterPt
 
 end TopologicalSpace
