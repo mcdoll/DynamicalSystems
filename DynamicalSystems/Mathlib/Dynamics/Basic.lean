@@ -18,13 +18,15 @@ section Abstract
 /-- A flow on a topological space `α` by an additive topological
 monoid `τ` is a continuous monoid action of `τ` on `α`. -/
 structure FlowOn (τ : Type*) [TopologicalSpace τ] [AddMonoid τ] [ContinuousAdd τ] (α : Type*)
-  [TopologicalSpace α] (s : Set τ) where
+  [TopologicalSpace α] (sₜ : AddSubmonoid τ) (sₓ : Set α) where
   /-- The map `τ → α → α` underlying a flow of `τ` on `α`. -/
   toFun : τ → α → α
-  cont' : ContinuousOn (Function.uncurry toFun) (s ×ˢ Set.univ)
-  map_add' : ∀ ⦃t₁ t₂ : τ⦄ (_ht₁ : t₁ ∈ s) (_ht₂ : t₂ ∈ s) (_ht₁₂ : t₁ + t₂ ∈ s) x,
+  cont' : ContinuousOn (Function.uncurry toFun) (sₜ ×ˢ sₓ)
+  map_add' : ∀ ⦃t₁ t₂ : τ⦄ (_ht₁ : t₁ ∈ sₜ) (_ht₂ : t₂ ∈ sₜ) ⦃x⦄ (_hx : x ∈ sₓ),
     toFun (t₁ + t₂) x = toFun t₁ (toFun t₂ x)
   map_zero' : ∀ x, toFun 0 x = x
+
+
 
 
 end Abstract
