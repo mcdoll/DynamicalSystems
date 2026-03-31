@@ -22,6 +22,8 @@ section Definition
 variable [TopologicalSpace E]
   [Preorder F] [Zero F] [TopologicalSpace F]
 
+/-- A Lyapunov function is a continuous non-negative function that is non-increasing with respect
+to a given flow. -/
 @[fun_prop]
 structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Set E) : Prop where
   pos : ∀ x, 0 ≤ v x
@@ -29,6 +31,8 @@ structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Se
   antitone : ∀ ⦃x t₀ t₁⦄ (_ht₀ : Φ t₀ x ∈ s) (_ht₁ : Φ t₁ x ∈ s) (_ht : t₀ ≤ t₁),
     v (Φ t₁ x) ≤ v (Φ t₀ x)
 
+/-- A Lyapunov function is a continuous non-negative function that is non-increasing with respect
+to a given flow. -/
 @[fun_prop]
 structure IsLyapunov [Preorder ι] (v : E → F) (Φ : ι → E → E) : Prop where
   pos : ∀ x, 0 ≤ v x
@@ -242,7 +246,8 @@ variable {K : ℝ≥0}
 
 theorem Flow.isLyapunov (hf : IsCompleteVectorField f) (hK : LipschitzWith K f) (hv : ∀ x, 0 ≤ v x)
     (hv_diff : Differentiable ℝ v) (h_deriv : ∀ x, fderiv ℝ v x (f x) ≤ 0) :
-    IsLyapunov v (hf.flow hK) := isLyapunov_of_deriv hv hv_diff.continuous ?_ ?_
+    IsLyapunov v (hf.flow hK) :=
+  isLyapunov_of_deriv hv hv_diff.continuous ?_ ?_
 where finally
   · intro x
     apply hv_diff.comp (hf.differentiable_flow hK _)

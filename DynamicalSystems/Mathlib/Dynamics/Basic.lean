@@ -105,6 +105,7 @@ end Homeomorph
 
 variable [TopologicalSpace α] (f : Homeomorph α α)
 
+/-- The discrete flow `ℤ → α → α` induced by a homeomorphism `f : α → α`. -/
 def Homeomorph.toFlow (f : Homeomorph α α) : Flow ℤ α where
   toFun n x := (f ^ n) x
   cont' := by
@@ -141,6 +142,7 @@ variable {f : E → E}
 
 namespace IsCompleteVectorField
 
+/-- The flow of a vector field at a point `x`. -/
 def flowAt (hf : IsCompleteVectorField f) (x : E) : ℝ → E :=
   (hf x).choose
 
@@ -163,6 +165,7 @@ open scoped NNReal
 
 variable {K : ℝ≥0}
 
+/-- Every complete and Lipschitz vector field admits a global flow. -/
 def flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) : Flow ℝ E where
   toFun t x := hf.flowAt x t
   cont' := hf.flowAt_isFundamentalSolution.continuous h
@@ -177,8 +180,9 @@ theorem deriv_flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (t : �
     deriv (hf.flow h · x) t = f (hf.flow h t x) :=
   (hf.flowAt_isIntegralCurve x t).deriv
 
+end IsCompleteVectorField
 
-theorem foo {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
+theorem Flow.isCompleteVectorField {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
     IsCompleteVectorField (fun x ↦ deriv (Φ · x) 0) := by
   intro x
   use (Φ · x)
@@ -193,7 +197,5 @@ theorem foo {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
     _ = (deriv (· + t) 0) • deriv (Φ · x) ((· + t) 0) :=
       deriv.scomp 0 (hΦ x).differentiableAt (by fun_prop)
     _ = _ := by simp
-
-end IsCompleteVectorField
 
 end Continuous

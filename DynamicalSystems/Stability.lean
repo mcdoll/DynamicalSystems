@@ -19,11 +19,15 @@ variable {ι E : Type*}
 
 namespace Filter
 
-variable {f : Filter E} {Φ : ι → E → E} {I : Set ι}
+variable {l : Filter E} {Φ : ι → E → E} {I : Set ι}
 
-variable (Φ f I) in
+variable (Φ l I) in
+/-- A filter is stable if for every `s ∈ l` there exists a `s' ∈ l` such that for all `x ∈ s'` the
+flow of `x` is contained in `s`.
+
+Version for arbitrary time sets `I`. Forward stability is `l.IsStableOn Φ (Set.Ici 0)`. -/
 def IsStableOn : Prop :=
-  ∀ s ∈ f, ∃ s' ∈ f, ∀ t ∈ I, ∀ x ∈ s', Φ t x ∈ s
+  ∀ s ∈ l, ∃ s' ∈ l, ∀ t ∈ I, ∀ x ∈ s', Φ t x ∈ s
 
 theorem HasBasis.isStableOn {ι' : Sort*} {p : ι' → Prop} {s : ι' → Set E} {l : Filter E}
     (h : l.HasBasis p s) (h' : ∀ i (_hi : p i), ∃ i', p i' ∧ ∀ t ∈ I, ∀ x ∈ s i', Φ t x ∈ s i) :

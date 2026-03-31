@@ -30,10 +30,12 @@ end Filter
 
 section Semigroup
 
+/-- Deprecated in favour of Flow -/
 structure IsSemigroupOn [Add ι] [Zero ι] (Φ : ι → E → E) (s : Set E) : Prop where
   zero : ∀ x ∈ s, Φ 0 x = x
   add : ∀ t₀ t₁, ∀ x ∈ s, Φ (t₀ + t₁) x = Φ t₀ (Φ t₁ x)
 
+/-- Deprecated in favour of Flow -/
 structure IsSemigroup [Add ι] [Zero ι] (Φ : ι → E → E) : Prop where
   zero : ∀ x, Φ 0 x = x
   add : ∀ t₀ t₁ x, Φ (t₀ + t₁) x = Φ t₀ (Φ t₁ x)
