@@ -56,12 +56,15 @@ theorem IsSemigroupOn.comm [AddCommMagma ι] [Zero ι] (hΦ : IsSemigroupOn Φ s
   rw [← hΦ.add t₀ t₁ x hx, ← hΦ.add t₁ t₀ x hx, add_comm]
 
 variable [TopologicalSpace E] [AddCommMonoid ι] [Preorder ι] [IsDirectedOrder ι] [AddLeftMono ι]
+  [TopologicalSpace ι] [ContinuousAdd ι]
+
 
 open Filter
 
+variable {Φ : Flow ι E}
+
 /-- The limit set is monotone in the flow parameter. -/
-theorem limitSet_mono (hy : y ∈ s) (hΦ : IsSemigroupOn Φ s) {t : ι}
-    (ht : 0 ≤ t) :
+theorem limitSet_mono {t : ι} (ht : 0 ≤ t) :
     atTop.limitSet (Φ · (Φ t y)) ⊆ atTop.limitSet (Φ · y) := by
   intro x hx
   rw [mem_limitSet_iff, mapClusterPt_iff_frequently] at *
@@ -72,23 +75,23 @@ theorem limitSet_mono (hy : y ∈ s) (hΦ : IsSemigroupOn Φ s) {t : ι}
   constructor
   · grw [ht']
     exact le_add_of_nonneg_right ht
-  · rwa [hΦ.add t' t y hy]
+  · rwa [Flow.map_add]
 
 -- Todo: more general version
 
 /-- If `Φ` is a semigroup and `Φ t` is continuous for every `t`, then the limit set is invariant. -/
 theorem isInvariantSet_limitSet {y : E} {s : Set E} (hs' : atTop.limitSet (Φ · y) ⊆ s)
-    (hΦ₁ : IsSemigroupOn Φ {y}) (hΦ₂ : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
+    (hΦ₂ : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
     IsInvariantSetOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) := by
   intro x hx t (ht : 0 ≤ t)
   have hx' : x ∈ s := hs' hx
-  apply limitSet_mono (by rfl) hΦ₁ ht
+  apply limitSet_mono ht
   rw [mem_limitSet_iff] at *
   have : (fun s ↦ Φ t (Φ s y)) =ᶠ[Filter.atTop] fun s ↦ Φ s (Φ t y) := by
     rw [Filter.EventuallyEq, Filter.eventually_atTop]
     use 0
     intro s hs
-    apply IsSemigroupOn.comm hΦ₁ rfl
+    simp_rw [← Flow.map_add, add_comm]
   exact (hx.tendsto_comp (hΦ₂ t ht x hx')).congrFun this
 
 

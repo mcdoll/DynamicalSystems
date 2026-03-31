@@ -173,63 +173,60 @@ section TopologicalSpace
 
 variable [TopologicalSpace E]
 
+variable {Φ : Flow ℝ E} {s : Set E}
+
 /-- The limit set is contained in the zero set of the derivative of the Lyapunov function. -/
-theorem limitSet_subset {s : Set E}
+theorem limitSet_subset
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     {c : ℝ} (hc : Tendsto (v <| Φ · y) atTop (𝓝 c))
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
-    (hs' : atTop.limitSet (Φ · y) ⊆ s) (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
-    (hΦ : IsSemigroupOn Φ {y}) :
+    (hs' : atTop.limitSet (Φ · y) ⊆ s) (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
     atTop.limitSet (Φ · y) ⊆ {x | f' x = 0 } := by
   intro x hx
   have hx' : x ∈ s := hs' hx
   rw [Set.mem_setOf_eq]
-  apply hasDerivAt_eq_zero hx (isInvariantSet_limitSet hs' hΦ hΦs) c _ (hf' x hx')
+  apply hasDerivAt_eq_zero hx (isInvariantSet_limitSet hs' hΦs) c _ (hf' x hx')
   intro x' hx'
   apply eq_of_tendsto hc hx' (hv_diff _ (hs' hx'))
 
 /-- The limit set is contained in the zero set of the derivative of the Lyapunov function. -/
-theorem LyapunovOn.limitSet_subset {s : Set E} (hs : IsClosed s)
+theorem LyapunovOn.limitSet_subset (hs : IsClosed s)
     (h_lya : IsLyapunovOn v Φ s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
-    (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
-    (hΦ : IsSemigroupOn Φ {y}) :
+    (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
     atTop.limitSet (Φ · y) ⊆ {x | f' x = 0 } := by
   have h_lim : atTop.limitSet (Φ · y) ⊆ s := by
       intro x hx
       apply hs.mem_of_mapClusterPt hx hΦ_mem
   obtain ⟨c, hc⟩ := h_lya.exists_tendsto_of_eventually hΦ_mem
-  apply _root_.limitSet_subset (fun _ _ ↦ h_lya.cont.continuousAt) hc hf' h_lim hΦs hΦ
+  apply _root_.limitSet_subset (fun _ _ ↦ h_lya.cont.continuousAt) hc hf' h_lim hΦs
 
 /-- The limit set is contained in the zero set of the derivative of the Lyapunov function. -/
-theorem limitSet_subset' {s : Set E}
+theorem limitSet_subset'
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     (h_diff : ∀ t ∈ Set.Ici 0, DifferentiableAt ℝ (v <| Φ · y) t)
     (h_deriv_neg : ∀ t ∈ Set.Ioi 0, deriv (v <| Φ · y) t ≤ 0)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     (h_pos : ∃ c, ∀ {t : ℝ}, 0 ≤ t → c ≤ v (Φ t y))
-    (hs' : atTop.limitSet (Φ · y) ⊆ s) (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
-    (hΦ : IsSemigroupOn (Φ ·) {y}) :
+    (hs' : atTop.limitSet (Φ · y) ⊆ s) (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
     atTop.limitSet (Φ · y) ⊆ {x | f' x = 0 } := by
   obtain ⟨c, hc⟩ := exists_tendsto_of_deriv (f := (v <| Φ · y)) h_diff h_pos h_deriv_neg
-  exact limitSet_subset hv_diff hc hf' hs' hΦs hΦ
+  exact limitSet_subset hv_diff hc hf' hs' hΦs
 
 /-- The limit set is contained in the zero set of the derivative of the Lyapunov function. -/
-theorem iUnion_limitSet_subset' {s : Set E}
+theorem iUnion_limitSet_subset'
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     (h_diff : ∀ y ∈ s, ∀ t ∈ Set.Ici 0, DifferentiableAt ℝ (v <| Φ · y) t)
     (h_deriv_neg : ∀ y ∈ s, ∀ t ∈ Set.Ioi 0, deriv (v <| Φ · y) t ≤ 0)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     (h_pos : ∀ y ∈ s, ∃ c, ∀ {t : ℝ}, 0 ≤ t → c ≤ v (Φ t y))
     (hs' : ∀ y ∈ s, atTop.limitSet (Φ · y) ⊆ s)
-    (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
-    (hΦ : IsSemigroupOn Φ s) :
+    (hΦs : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
     ⋃ y ∈ s, atTop.limitSet (Φ · y) ⊆ {x | f' x = 0 } := by
   apply Set.iUnion₂_subset
   intro y hy
   apply limitSet_subset' hv_diff (h_diff y hy) (h_deriv_neg y hy) hf' (h_pos y hy) (hs' y hy) hΦs
-  exact hΦ.mono (by simp [hy])
 
 -- A fixed point is contained in `⋃ y ∈ s, limitSet (Φ ·) y`.
 /- Let x ∈ K such that there exists a `t` with `Φ t x ∉ {x | fderiv ℝ v x (f x) = 0 }`, then
@@ -237,11 +234,10 @@ theorem iUnion_limitSet_subset' {s : Set E}
 
 /-- If there exists no trajectories within the zero set of the Lyapunov function, then the limit
 set consists only of the fixed point. -/
-theorem limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
+theorem limitSet_eq_singleton (hs : IsClosed s)
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     (h_tendsto : ∃ c, Tendsto (v <| Φ · y) atTop (𝓝 c))
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
-    (hΦ : IsSemigroupOn Φ {y})
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
@@ -253,24 +249,23 @@ theorem limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
       intro x hx
       apply hs.mem_of_mapClusterPt hx hΦ_mem
   have h_inv : IsInvariantSetOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) :=
-      isInvariantSet_limitSet h_lim hΦ hΦ_cont
+      isInvariantSet_limitSet h_lim hΦ_cont
   by_cases! hx' : x ∈ s
   · obtain ⟨t, ht, h⟩ := h x hx' hx
     have h'' : Φ t x ∈ atTop.limitSet (Φ · y) := h_inv x h' t ht
     apply h
-    apply limitSet_subset hv_diff h_tendsto.choose_spec hf' h_lim hΦ_cont hΦ h''
+    apply limitSet_subset hv_diff h_tendsto.choose_spec hf' h_lim hΦ_cont h''
   · apply hx'
     apply h_lim h'
 
-theorem IsLyapunovOn.limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
+theorem IsLyapunovOn.limitSet_eq_singleton (hs : IsClosed s)
     (h_lya : IsLyapunovOn v Φ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
-    (hΦ : IsSemigroupOn Φ {y})
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
     atTop.limitSet (Φ · y) ⊆ {x₀} := by
-  apply _root_.limitSet_eq_singleton hs (fun _ _ ↦ h_lya.cont.continuousAt) _ hf' hΦ hΦ_cont hΦ_mem
+  apply _root_.limitSet_eq_singleton hs (fun _ _ ↦ h_lya.cont.continuousAt) _ hf' hΦ_cont hΦ_mem
     h
   apply h_lya.exists_tendsto_of_eventually hΦ_mem
 
@@ -283,14 +278,14 @@ theorem tendsto_of_limitSet_eq_singleton {x₀ : E} {s : Set E} (hs : IsCompact 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
 derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunovOn.tendsto [T2Space E] {s : Set E} (hs : IsCompact s)
-    (h_lya : IsLyapunovOn v Φ s) (hΦ : IsSemigroupOn Φ {y})
+    (h_lya : IsLyapunovOn v Φ s)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
   apply _root_.tendsto_of_limitSet_eq_singleton hs hΦ_mem
-  apply h_lya.limitSet_eq_singleton hs.isClosed hf' hΦ hΦ_cont hΦ_mem h
+  apply h_lya.limitSet_eq_singleton hs.isClosed hf' hΦ_cont hΦ_mem h
 
 
 
@@ -303,7 +298,6 @@ theorem iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     (h_tendsto : ∀ y ∈ s, ∃ c, Tendsto (v <| Φ · y) atTop (𝓝 c))
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
-    (hΦ : IsSemigroupOn Φ s)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ y ∈ s, ∀ᶠ t in atTop, Φ t y ∈ s)
     {x₀ : E} (hx₀s : x₀ ∈ s) (hx₀ : ∀ t, Φ t x₀ = x₀)
@@ -313,8 +307,7 @@ theorem iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
   · intro x hx
     rw [Set.mem_iUnion₂] at hx
     obtain ⟨y, hy, h'⟩ := hx
-    have hΦy : IsSemigroupOn Φ {y} := hΦ.mono (by simp [hy])
-    apply limitSet_eq_singleton hs hv_diff (h_tendsto y hy) hf' hΦy hΦ_cont (hΦ_mem y hy) h h'
+    apply limitSet_eq_singleton hs hv_diff (h_tendsto y hy) hf' hΦ_cont (hΦ_mem y hy) h h'
   · intro x₀ rfl
     rw [Set.mem_iUnion₂]
     use x₀, hx₀s
@@ -324,13 +317,12 @@ theorem iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
 theorem IsLyapunovOn.iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
     (h_lya : IsLyapunovOn v Φ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
-    (hΦ : IsSemigroupOn Φ s)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ y ∈ s, ∀ᶠ t in atTop, Φ t y ∈ s)
     {x₀ : E} (hx₀s : x₀ ∈ s) (hx₀ : ∀ t, Φ t x₀ = x₀)
     (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
     ⋃ y ∈ s, atTop.limitSet (Φ · y) = {x₀} := by
-  apply _root_.iUnion_limitSet_eq_singleton hs (fun _ _ ↦ h_lya.cont.continuousAt) _ hf' hΦ hΦ_cont
+  apply _root_.iUnion_limitSet_eq_singleton hs (fun _ _ ↦ h_lya.cont.continuousAt) _ hf' hΦ_cont
     hΦ_mem hx₀s hx₀ h
   apply (h_lya.exists_tendsto_of_eventually <| hΦ_mem · ·)
 
