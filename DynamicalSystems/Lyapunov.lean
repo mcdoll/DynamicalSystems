@@ -231,6 +231,8 @@ variable [NormedAddCommGroup E]
 
 variable {f : E → E} {Φ : ℝ → E → E} {v : E → ℝ} (s : Set E)
 
+/-- A non-negative differentiable function with decreasing derivative along the flow is a Lyapunov
+function for that flow. -/
 theorem isLyapunov_of_deriv
     (hv : ∀ x, 0 ≤ v x)
     (h_cont : Continuous v) (h_diff : ∀ x, Differentiable ℝ (v <| Φ · x))
@@ -277,19 +279,10 @@ open scoped NNReal
 
 variable {K : ℝ≥0}
 
+/-- Probably not needed anymore. -/
 theorem IsCompleteVectorField.isLyapunov (hf : IsCompleteVectorField f) (hK : LipschitzWith K f)
     (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v) (h_deriv : ∀ x, fderiv ℝ v x (f x) ≤ 0) :
-    IsLyapunov v (hf.flow hK) := by
-  refine isLyapunov_of_deriv hv hv_diff.continuous ?_ ?_
-  · intro x
-    fun_prop
-  · intro x t
-    convert h_deriv (hf.flow hK t x)
-    calc
-      deriv (v <| hf.flow hK · x) t = (fderiv ℝ v (hf.flow hK t x)) (deriv (hf.flow hK · x) t) :=
-        fderiv_comp_deriv _ (by fun_prop) (by fun_prop)
-      _ = (fderiv ℝ v (hf.flow hK t x)) (f (hf.flow hK t x)) := by
-        congr
-        apply hf.deriv_flow hK t x
+    IsLyapunov v (hf.flow hK) :=
+  Flow.isLyapunov (by fun_prop) hv hv_diff (by simpa)
 
 end Continuous
