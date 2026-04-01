@@ -23,7 +23,10 @@ variable [TopologicalSpace E]
   [Preorder F] [Zero F] [TopologicalSpace F]
 
 /-- A Lyapunov function is a continuous non-negative function that is non-increasing with respect
-to a given flow. -/
+to a given flow.
+
+Note that we assume that `v` is non-negative and continuous everywhere, but only decreasing on
+`s`. -/
 @[fun_prop]
 structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Set E) : Prop where
   pos : ∀ x, 0 ≤ v x
@@ -37,7 +40,23 @@ to a given flow. -/
 structure IsLyapunov [Preorder ι] (v : E → F) (Φ : ι → E → E) : Prop where
   pos : ∀ x, 0 ≤ v x
   cont : Continuous v
-  antitone : ∀ ⦃x t₀ t₁⦄ (_ht : t₀ ≤ t₁), v (Φ t₁ x) ≤ v (Φ t₀ x)
+  antitone : ∀ x ⦃t₀ t₁⦄ (_ht : t₀ ≤ t₁), v (Φ t₁ x) ≤ v (Φ t₀ x)
+
+attribute [fun_prop] IsLyapunov.cont
+
+variable [Preorder ι] {v : E → F} {Φ : ι → E → E} {s : Set E}
+
+@[fun_prop]
+theorem IsLyapunovOn.continuous (h : IsLyapunovOn v Φ s) : Continuous v := h.cont
+
+@[fun_prop]
+theorem IsLyapunovOn.continuousAt (h : IsLyapunovOn v Φ s) {x : E} : ContinuousAt v x :=
+  h.cont.continuousAt
+
+theorem IsLyapunov.isLyapunovOn (h : IsLyapunov v Φ) (s : Set E) : IsLyapunovOn v Φ s where
+  pos := h.pos
+  cont := h.cont
+  antitone x _ _ _ _ ht := h.antitone x ht
 
 end Definition
 
@@ -172,17 +191,6 @@ variable [TopologicalSpace E] [Preorder ι] [Zero ι] [FirstCountableTopology E]
 variable {v : E → ℝ}
 
 /-- Lyapunov stability for time-independent Lyapunov functions. -/
-theorem IsLyapunov.isStableOn (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
-    (h_id : ∀ x, Φ 0 x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
-    (𝓝 x₀).IsStableOn Φ (Set.Ici 0) := by
-  apply (hasBasis_setOf_le h_lya.cont h_lya.pos hvx₀ hδ₀ h_cpt).isStableOn
-  intro δ hδ
-  use δ, hδ
-  intro t (ht : 0 ≤ t) x (hx : v x ≤ δ)
-  simp only [Set.mem_setOf_eq]
-  grw [h_lya.antitone ht, h_id x, hx]
-
-/-- Lyapunov stability for time-independent Lyapunov functions. -/
 theorem IsLyapunovOn.isStableOn (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
     (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici 0, Φ t x ∈ s)
     (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
@@ -206,6 +214,15 @@ theorem IsLyapunovOn.isStableOn (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact
   grw [h_lya.antitone hx0 hxt ht, h_id x, hx]
   exact Std.min_le_left
 
+/-- Lyapunov stability for time-independent Lyapunov functions. -/
+theorem IsLyapunov.isStableOn (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+    (h_id : ∀ x, Φ 0 x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
+    (𝓝 x₀).IsStableOn Φ (Set.Ici 0) := by
+  refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
+  intro x (hx : v x ≤ δ₀) t (ht : 0 ≤ t)
+  simp only [Set.mem_setOf_eq]
+  grw [h_lya.antitone x ht, h_id x, hx]
+
 end TopologicalSpace
 
 section Continuous
@@ -214,6 +231,8 @@ variable [NormedAddCommGroup E]
 
 variable {f : E → E} {Φ : ℝ → E → E} {v : E → ℝ} (s : Set E)
 
+/-- A non-negative differentiable function with decreasing derivative along the flow is a Lyapunov
+function for that flow. -/
 theorem isLyapunov_of_deriv
     (hv : ∀ x, 0 ≤ v x)
     (h_cont : Continuous v) (h_diff : ∀ x, Differentiable ℝ (v <| Φ · x))
@@ -240,25 +259,30 @@ theorem Flow.isLyapunovOn_of_deriv (hf : IsFundamentalSolution Φ (fun _ ↦ f))
     --specialize this t₀
     sorry
 
+theorem Flow.isLyapunov {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+    (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v)
+    (h_deriv : ∀ x, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
+    IsLyapunov v Φ := by
+  refine isLyapunov_of_deriv hv hv_diff.continuous ?_ ?_
+  · intro x
+    fun_prop
+  · intro x t
+    convert h_deriv (Φ t x)
+    calc
+      deriv (v <| Φ · x) t = (fderiv ℝ v (Φ t x)) (deriv (Φ · x) t) :=
+        fderiv_comp_deriv _ (by fun_prop) (by fun_prop)
+      _ = (fderiv ℝ v (Φ t x)) (deriv (Φ · (Φ t x)) 0) := by
+        congr 1
+        exact DifferentiableAt.deriv_eq_deriv_zero (hΦ · 0)
+
 open scoped NNReal
 
 variable {K : ℝ≥0}
 
-theorem Flow.isLyapunov (hf : IsCompleteVectorField f) (hK : LipschitzWith K f) (hv : ∀ x, 0 ≤ v x)
-    (hv_diff : Differentiable ℝ v) (h_deriv : ∀ x, fderiv ℝ v x (f x) ≤ 0) :
+/-- Probably not needed anymore. -/
+theorem IsCompleteVectorField.isLyapunov (hf : IsCompleteVectorField f) (hK : LipschitzWith K f)
+    (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v) (h_deriv : ∀ x, fderiv ℝ v x (f x) ≤ 0) :
     IsLyapunov v (hf.flow hK) :=
-  isLyapunov_of_deriv hv hv_diff.continuous ?_ ?_
-where finally
-  · intro x
-    apply hv_diff.comp (hf.differentiable_flow hK _)
-  · intro x t
-    convert h_deriv (hf.flow hK t x)
-    calc
-      deriv (v <| hf.flow hK · x) t = (fderiv ℝ v (hf.flow hK t x)) (deriv (hf.flow hK · x) t) := by
-        apply fderiv_comp_deriv _ (by fun_prop)
-        apply hf.differentiable_flow
-      _ = (fderiv ℝ v (hf.flow hK t x)) (f (hf.flow hK t x)) := by
-        congr
-        apply hf.deriv_flow hK t x
+  Flow.isLyapunov (by fun_prop) hv hv_diff (by simpa)
 
 end Continuous

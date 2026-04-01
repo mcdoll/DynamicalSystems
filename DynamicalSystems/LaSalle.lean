@@ -9,29 +9,14 @@ public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 public import DynamicalSystems.Autonomous
 public import DynamicalSystems.Lyapunov
 
-/-! # LaSalle's invariance principle -/
+/-! # LaSalle's invariance principle
 
+In this file we prove LaSalle's invariance principle as well as its main consequence, namely the
+convergence of trajectories to a fixed point.
 
-/-
+## Main statements
 
-La Salle:
-
-Proposition 5.20
-- Filter.TotallyBounded.isCompact_setOf_clusterPt
-- IsCompact.exists_mapClusterPt_of_frequently
-- IsCompact.tendsto_subseq'
-
-Lemma: Trajectories are continuous in initial data (maybe just as an assumption - the Coq proof does
-that)
-
-Proposition 5.21
-- previous lemma and 5.20
-
-La Salle (5.22)
-- Product rule, negative derivative implies non-increasing (seems missing,
-  `Mathlib.Analysis.Calculus.DerivativeTest` almost gets there)
-- monotone bounded sequences converge: `Mathlib.Topology.Order.MonotoneConvergence`
-
+* `IsLyapunov.tendsto_of_hasDerivAt_nonpos`
 
 -/
 
@@ -234,7 +219,7 @@ theorem iUnion_limitSet_subset'
 
 /-- If there exists no trajectories within the zero set of the Lyapunov function, then the limit
 set consists only of the fixed point. -/
-theorem limitSet_eq_singleton (hs : IsClosed s)
+theorem limitSet_subset_singleton (hs : IsClosed s)
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     (h_tendsto : ∃ c, Tendsto (v <| Φ · y) atTop (𝓝 c))
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
@@ -258,43 +243,84 @@ theorem limitSet_eq_singleton (hs : IsClosed s)
   · apply hx'
     apply h_lim h'
 
-theorem IsLyapunovOn.limitSet_eq_singleton (hs : IsClosed s)
+theorem IsLyapunovOn.limitSet_subset_singleton (hs : IsClosed s)
     (h_lya : IsLyapunovOn v Φ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
     atTop.limitSet (Φ · y) ⊆ {x₀} := by
-  apply _root_.limitSet_eq_singleton hs (fun _ _ ↦ h_lya.cont.continuousAt) _ hf' hΦ_cont hΦ_mem
-    h
+  apply _root_.limitSet_subset_singleton hs (by fun_prop) _ hf' hΦ_cont hΦ_mem h
   apply h_lya.exists_tendsto_of_eventually hΦ_mem
 
-theorem tendsto_of_limitSet_eq_singleton {x₀ : E} {s : Set E} (hs : IsCompact s)
+theorem tendsto_of_limitSet_subset_singleton {x₀ : E} (hs : IsCompact s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s) (h : atTop.limitSet (Φ · y) ⊆ {x₀}) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
   apply hs.tendsto_of_limitSet_inter_subset_singleton hΦ_mem
   grw [Set.inter_subset_left, h]
 
+section T2Space
+
+variable [T2Space E]
+
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
 derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
-theorem IsLyapunovOn.tendsto [T2Space E] {s : Set E} (hs : IsCompact s)
+theorem IsLyapunovOn.tendsto (hs : IsCompact s)
     (h_lya : IsLyapunovOn v Φ s)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
-  apply _root_.tendsto_of_limitSet_eq_singleton hs hΦ_mem
-  apply h_lya.limitSet_eq_singleton hs.isClosed hf' hΦ_cont hΦ_mem h
+  apply _root_.tendsto_of_limitSet_subset_singleton hs hΦ_mem
+  apply h_lya.limitSet_subset_singleton hs.isClosed hf' hΦ_cont hΦ_mem h
 
+/-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
+derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
+theorem IsLyapunov.tendsto (hs : IsCompact s)
+    (h_lya : IsLyapunov v Φ)
+    (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
+    Tendsto (Φ · y) atTop (𝓝 x₀) :=
+  (h_lya.isLyapunovOn s).tendsto hs hΦ_cont hΦ_mem hf' h
 
+/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
+theorem IsLyapunovOn.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)
+    (h_lya : IsLyapunovOn v Φ s)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → f' x < 0) :
+    Tendsto (Φ · y) atTop (𝓝 x₀) := by
+  refine h_lya.tendsto hs (by fun_prop) hΦ_mem hf' ?_
+  intro x hx hx'
+  use 0, by positivity
+  simp
+  grind
+
+/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
+theorem IsLyapunov.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)
+    (h_lya : IsLyapunov v Φ) (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → f' x < 0) :
+    Tendsto (Φ · y) atTop (𝓝 x₀) := by
+  refine (h_lya.isLyapunovOn s).tendsto_of_hasDerivAt_nonpos hs ?_ hf' h
+  rw [eventually_atTop]
+  use 0
+  intro t ht
+  apply hs'
+  convert h_lya.antitone y ht
+  rw [Φ.map_zero']
+
+end T2Space
 
 /- Let x ∈ K such that there exists a `t` with `Φ t x ∉ {x | fderiv ℝ v x (f x) = 0 }`, then
   `x ∉ ⋃ y ∈ s, limitSet (Φ ·) y`. -/
 
 /-- If there exists no trajectories within the zero set of the Lyapunov function, then the limit
 set consists only of the fixed point. -/
-theorem iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
+theorem iUnion_limitSet_eq_singleton (hs : IsClosed s)
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     (h_tendsto : ∀ y ∈ s, ∃ c, Tendsto (v <| Φ · y) atTop (𝓝 c))
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
@@ -307,14 +333,14 @@ theorem iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
   · intro x hx
     rw [Set.mem_iUnion₂] at hx
     obtain ⟨y, hy, h'⟩ := hx
-    apply limitSet_eq_singleton hs hv_diff (h_tendsto y hy) hf' hΦ_cont (hΦ_mem y hy) h h'
+    apply limitSet_subset_singleton hs hv_diff (h_tendsto y hy) hf' hΦ_cont (hΦ_mem y hy) h h'
   · intro x₀ rfl
     rw [Set.mem_iUnion₂]
     use x₀, hx₀s
     simp_rw [mem_limitSet_iff, hx₀]
     exact tendsto_const_nhds.mapClusterPt
 
-theorem IsLyapunovOn.iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
+theorem IsLyapunovOn.iUnion_limitSet_eq_singleton (hs : IsClosed s)
     (h_lya : IsLyapunovOn v Φ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
@@ -322,8 +348,7 @@ theorem IsLyapunovOn.iUnion_limitSet_eq_singleton {s : Set E} (hs : IsClosed s)
     {x₀ : E} (hx₀s : x₀ ∈ s) (hx₀ : ∀ t, Φ t x₀ = x₀)
     (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
     ⋃ y ∈ s, atTop.limitSet (Φ · y) = {x₀} := by
-  apply _root_.iUnion_limitSet_eq_singleton hs (fun _ _ ↦ h_lya.cont.continuousAt) _ hf' hΦ_cont
-    hΦ_mem hx₀s hx₀ h
+  apply _root_.iUnion_limitSet_eq_singleton hs (by fun_prop) _ hf' hΦ_cont hΦ_mem hx₀s hx₀ h
   apply (h_lya.exists_tendsto_of_eventually <| hΦ_mem · ·)
 
 
@@ -331,30 +356,17 @@ end TopologicalSpace
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-theorem flow_deriv {x f' : E} (hv : DifferentiableAt ℝ v (Φ t₀ x)) (hΦ : HasDerivAt (Φ · x) f' t₀) :
-    deriv (v <| Φ · x) t₀ = fderiv ℝ v (Φ t₀ x) f' := calc
-  _ = (fderiv ℝ v (Φ t₀ x)) (deriv (Φ · x) t₀) := fderiv_comp_deriv _ hv hΦ.differentiableAt
-  _ = _ := by rw [hΦ.deriv]
+variable {Φ : Flow ℝ E}
 
-/-- If a function `v` is constant on an invariant set, then `fderiv ℝ v x (f x)` vanishes for all
-`x ∈ s`.
-
-This is an easy consequence of the chain rule, but with the twist that we can only calculate
-one-sided derivatives. -/
-theorem fderiv_eq_zero {x : E} (hv : DifferentiableAt ℝ v x) {s : Set E} (hx : x ∈ s)
-    (hs : IsInvariantSetOn Φ s (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c)
-    (hΦ : HasDerivAt (Φ · x) (f x) 0)
-    (hΦ0 : Φ 0 x = x) :
-    fderiv ℝ v x (f x) = 0 := calc
-  fderiv ℝ v x (f x) = deriv (v <| Φ · x) 0 := by
-    -- Chain rule
-    rw [Eq.comm]
-    rw [flow_deriv (f' := f x)]
-    · congr
-    · rw [hΦ0]
-      apply hv
-    · exact hΦ
-  _ = _ := deriv_eq_zero hx hs c hsv
-
+theorem IsLyapunov.tendsto_of_fderiv_nonpos {s : Set E} (hs : IsCompact s)
+    (h_lya : IsLyapunov v Φ) (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
+    (hv_diff : Differentiable ℝ v) (hΦ_diff : ∀ x ∈ s, DifferentiableAt ℝ (Φ · x) 0)
+    {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → fderiv ℝ v x (deriv (Φ · x) 0) < 0) :
+    Tendsto (Φ · y) atTop (𝓝 x₀) := by
+  apply h_lya.tendsto_of_hasDerivAt_nonpos hs hs' _ h
+  intro x hx
+  apply HasFDerivAt.comp_hasDerivAt
+  · simpa using (hv_diff x).hasFDerivAt
+  · exact (hΦ_diff x hx).hasDerivAt
 
 end DynSys

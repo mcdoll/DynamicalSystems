@@ -1,4 +1,5 @@
 import DynamicalSystems.Autonomous
+import DynamicalSystems.Example
 import DynamicalSystems.LaSalle
 import DynamicalSystems.Lyapunov
 import DynamicalSystems.Mathlib.Analysis.Calculus
