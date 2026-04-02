@@ -186,40 +186,40 @@ theorem hasBasis_setOf_le (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
 
 end blubb
 
-variable [TopologicalSpace E] [Preorder ι] [Zero ι] [FirstCountableTopology E]
+variable [TopologicalSpace E] [Preorder ι] [FirstCountableTopology E]
 
-variable {v : E → ℝ}
+variable {v : E → ℝ} {t₀ : ι}
 
 /-- Lyapunov stability for time-independent Lyapunov functions. -/
 theorem IsLyapunovOn.isStableOn (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
-    (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici 0, Φ t x ∈ s)
+    (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici t₀, Φ t x ∈ s)
     (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
-    (h_id : ∀ x, Φ 0 x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
-    (𝓝 x₀).IsStableOn Φ (Set.Ici 0) := by
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
+    (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
   have h_cpt' : IsCompact { p | v p ≤ δ₀ } := by
     apply h_cpt.of_isClosed_subset _ h_subset
     refine isClosed_le h_lya.cont continuous_const
   apply (hasBasis_setOf_le h_lya.cont h_lya.pos hvx₀ hδ₀ h_cpt').isStableOn
   intro δ hδ
   use min δ δ₀, lt_min hδ hδ₀
-  intro t (ht : 0 ≤ t) x (hx : v x ≤ min δ δ₀)
+  intro t (ht : t₀ ≤ t) x (hx : v x ≤ min δ δ₀)
   have hx' : x ∈ s := by
     apply h_subset
     simp only [Set.mem_setOf_eq]
     grw [hx]
     exact Std.min_le_right
   simp only [Set.mem_setOf_eq]
-  have hx0 : Φ 0 x ∈ s := hs _ hx' _ (by simp)
+  have hx0 : Φ t₀ x ∈ s := hs _ hx' _ (by simp)
   have hxt : Φ t x ∈ s := hs _ hx' _ ht
   grw [h_lya.antitone hx0 hxt ht, h_id x, hx]
   exact Std.min_le_left
 
 /-- Lyapunov stability for time-independent Lyapunov functions. -/
 theorem IsLyapunov.isStableOn (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
-    (h_id : ∀ x, Φ 0 x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
-    (𝓝 x₀).IsStableOn Φ (Set.Ici 0) := by
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
+    (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
   refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
-  intro x (hx : v x ≤ δ₀) t (ht : 0 ≤ t)
+  intro x (hx : v x ≤ δ₀) t (ht : t₀ ≤ t)
   simp only [Set.mem_setOf_eq]
   grw [h_lya.antitone x ht, h_id x, hx]
 
