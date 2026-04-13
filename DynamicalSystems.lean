@@ -1,4 +1,5 @@
 import DynamicalSystems.Autonomous
+import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Example
 import DynamicalSystems.LaSalle
 import DynamicalSystems.Lyapunov

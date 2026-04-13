@@ -24,19 +24,24 @@ While it is easy to deduce this from the explicit solution operator `Φ t x = x 
 will prove the theorem using Lyapunov's theorem and LaSalle's theorem as a test that these results
 are usable. -/
 
-theorem isCompleteVectorField_smul : IsCompleteVectorField (fun x : ℝ ↦ r • x) := by
-  -- This will follow from a general result about completeness of vector fields with at most
-  -- linear growth.
-  sorry
+variable (r) in
+theorem isLinearlyBddVectorField_smul : IsLinearlyBddVectorField (fun x : ℝ ↦ r • x) where
+  differentiable := by fun_prop
+  exists_bound := by
+    use |r|
+    intro x
+    rw [fderiv_fun_const_smul (by fun_prop)]
+    simp only [fderiv_id', norm_smul, Real.norm_eq_abs]
+    exact mul_le_of_le_one_right (by positivity) ContinuousLinearMap.norm_id_le
 
 variable (r) in
 /-- The flow of the vector field `x ↦ r • x`. -/
 def smulFlow : Flow ℝ ℝ :=
-  isCompleteVectorField_smul.flow (K := ‖r‖₊) (lipschitzWith_smul r)
+  (isLinearlyBddVectorField_smul r).flow
 
 @[simp]
 theorem deriv_smulFlow {x : ℝ} : deriv (smulFlow r · x) 0 = r • (smulFlow r 0 x) :=
-  isCompleteVectorField_smul.deriv_flow (lipschitzWith_smul r) _ _
+  (isLinearlyBddVectorField_smul r).deriv_flow _ _
 
 /-- The function `x ↦ x ^ 2` is a Lyapunov function for the system `d/dt x = (-r) • x`. -/
 theorem isLyapunov_sq_smulFlow (hr : 0 ≤ r) : IsLyapunov (fun x : ℝ ↦ x ^ 2) (smulFlow (-r)) := by
