@@ -253,6 +253,8 @@ theorem flow_congr (hΦ : ∀ x, Differentiable ℝ (Φ · x)) (hΦ' : ∀ x, Di
   ext t x
   sorry
 
+/-- A vector field `f : E → E` is called linearly bounded if it is differentiable and its derivative
+is uniformly bounded. -/
 structure IsLinearlyBddVectorField (f : E → E) : Prop where
   differentiable : Differentiable ℝ f
   exists_bound : ∃ C, ∀ x, ‖fderiv ℝ f x‖ ≤ C
@@ -264,6 +266,9 @@ open NNReal
 variable {f : E → E}
 
 open Classical in
+/-- A bound for a linearly bounded vector field.
+
+Note that this bound is not unique. -/
 protected
 def bound (hf : IsLinearlyBddVectorField f) : ℝ := hf.exists_bound.choose
 
@@ -274,6 +279,9 @@ theorem bound_nonneg (hf : IsLinearlyBddVectorField f) :
     0 ≤ hf.bound := by
   grw [← hf.norm_fderiv_le_bound 0, ← norm_nonneg]
 
+/-- A bound for a linearly bounded vector field.
+
+Note that this bound is not unique. -/
 def nnbound (hf : IsLinearlyBddVectorField f) : ℝ≥0 :=
   ⟨hf.bound, hf.bound_nonneg⟩
 
@@ -295,6 +303,7 @@ theorem isCompleteVectorField (hf : IsLinearlyBddVectorField f) :
   -- this follows from Theorem 2.17 of Teschl and the fundamental theorem of calculus
   sorry
 
+/-- The flow of a linearly bounded vector field. -/
 def flow (hf : IsLinearlyBddVectorField f) : Flow ℝ E :=
   hf.isCompleteVectorField.flow hf.lipschitzWith
 
