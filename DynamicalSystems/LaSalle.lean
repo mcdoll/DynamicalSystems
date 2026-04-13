@@ -267,24 +267,28 @@ variable [T2Space E]
 derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunovOn.tendsto (hs : IsCompact s)
     (h_lya : IsLyapunovOn v Φ s)
-    (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
   apply _root_.tendsto_of_limitSet_subset_singleton hs hΦ_mem
-  apply h_lya.limitSet_subset_singleton hs.isClosed hf' hΦ_cont hΦ_mem h
+  exact h_lya.limitSet_subset_singleton hs.isClosed hf' (by fun_prop) hΦ_mem h
 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
 derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunov.tendsto (hs : IsCompact s)
     (h_lya : IsLyapunov v Φ)
-    (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
-    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
-    Tendsto (Φ · y) atTop (𝓝 x₀) :=
-  (h_lya.isLyapunovOn s).tendsto hs hΦ_cont hΦ_mem hf' h
+    Tendsto (Φ · y) atTop (𝓝 x₀) := by
+  refine (h_lya.isLyapunovOn s).tendsto hs ?_ hf' h
+  rw [eventually_atTop]
+  use 0
+  intro t ht
+  apply hs'
+  convert h_lya.antitone y ht
+  rw [Φ.map_zero']
 
 /-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunovOn.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)
@@ -293,7 +297,7 @@ theorem IsLyapunovOn.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → f' x < 0) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
-  refine h_lya.tendsto hs (by fun_prop) hΦ_mem hf' ?_
+  refine h_lya.tendsto hs hΦ_mem hf' ?_
   intro x hx hx'
   use 0, by positivity
   simp
@@ -356,12 +360,27 @@ end TopologicalSpace
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-variable {Φ : Flow ℝ E}
+variable {Φ : Flow ℝ E} {s : Set E} {x₀ : E}
 
-theorem IsLyapunov.tendsto_of_fderiv_nonpos {s : Set E} (hs : IsCompact s)
+/-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
+derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
+theorem IsLyapunov.tendsto_of_forall_exists_nonMem (hs : IsCompact s)
     (h_lya : IsLyapunov v Φ) (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
     (hv_diff : Differentiable ℝ v) (hΦ_diff : ∀ x ∈ s, DifferentiableAt ℝ (Φ · x) 0)
-    {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → fderiv ℝ v x (deriv (Φ · x) 0) < 0) :
+    (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | fderiv ℝ v x (deriv (Φ · x) 0) = 0 }) :
+    Tendsto (Φ · y) atTop (𝓝 x₀) := by
+  apply h_lya.tendsto hs hs' _ h
+  intro x hx
+  apply HasFDerivAt.comp_hasDerivAt
+  · simpa using (hv_diff x).hasFDerivAt
+  · exact (hΦ_diff x hx).hasDerivAt
+
+/-- Lyapunov's theorem: if the Lyapunov function is strictly decreasing for every point `x ≠ x₀`,
+then `Φ · y` converges to the fixed point `x₀`. -/
+theorem IsLyapunov.tendsto_of_fderiv_nonpos (hs : IsCompact s)
+    (h_lya : IsLyapunov v Φ) (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
+    (hv_diff : Differentiable ℝ v) (hΦ_diff : ∀ x ∈ s, DifferentiableAt ℝ (Φ · x) 0)
+    (h : ∀ x ∈ s, x ≠ x₀ → fderiv ℝ v x (deriv (Φ · x) 0) < 0) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
   apply h_lya.tendsto_of_hasDerivAt_nonpos hs hs' _ h
   intro x hx
