@@ -89,7 +89,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: Build
+    needs: build_project
     steps:
       - name: Deploy to GitHub pages
         uses: actions/deploy-pages@v5
