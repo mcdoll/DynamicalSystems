@@ -1,8 +1,8 @@
 import DynamicalSystems.Autonomous
+import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Example
 import DynamicalSystems.LaSalle
 import DynamicalSystems.Lyapunov
-import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Mathlib.Analysis.Calculus
 import DynamicalSystems.Mathlib.Analysis.ODE.Autonomous
 import DynamicalSystems.Mathlib.Analysis.ODE.Basic
