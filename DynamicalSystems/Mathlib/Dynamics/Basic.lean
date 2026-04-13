@@ -194,7 +194,7 @@ example (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (x : E) :
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
-theorem deriv_flow_comp {v : E → F} (hv : Differentiable ℝ v) (hf : IsCompleteVectorField f)
+theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v) (hf : IsCompleteVectorField f)
     (h : LipschitzWith K f) (t : ℝ) (x : E) :
     deriv (v <| hf.flow h · x) t = fderiv ℝ v (hf.flow h t x) (f <| hf.flow h t x) := calc
   _ = (fderiv ℝ v (hf.flow h t x)) (deriv (hf.flow h · x) t) := by
@@ -203,7 +203,36 @@ theorem deriv_flow_comp {v : E → F} (hv : Differentiable ℝ v) (hf : IsComple
 
 end IsCompleteVectorField
 
-theorem Flow.isCompleteVectorField {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
+end Continuous
+
+section Differentiable
+
+variable {E F : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+variable {Φ Φ' : Flow ℝ E} {x : E} {t : ℝ}
+
+theorem DifferentiableAt.deriv_eq_deriv_zero (h : ∀ x, DifferentiableAt ℝ (Φ · x) 0) :
+    deriv (Φ · x) t = deriv (Φ · (Φ t x)) 0 := calc
+  _ = deriv (fun s ↦ (Φ (s - t) (Φ t x))) t := by
+    congr
+    ext s
+    rw [← Φ.map_add']
+    grind
+  _ = deriv (fun s : ℝ ↦ s - t) t • deriv (Φ · (Φ t x)) ((fun s : ℝ ↦ s - t) t) :=
+    deriv.scomp (h := (· - t)) (g₁ := (Φ · (Φ t x))) t (by simp [h (Φ t x)]) (by fun_prop)
+  _ = _ := by
+    simp
+
+theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v) (h : ∀ x, Differentiable ℝ (Φ · x))
+    (t : ℝ) (x : E) :
+    deriv (v <| Φ · x) t = fderiv ℝ v (Φ t x) (deriv (Φ · (Φ t x)) 0) := calc
+  _ = (fderiv ℝ v (Φ t x)) (deriv (Φ · x) t) := by
+    apply fderiv_comp_deriv t (by fun_prop) (by fun_prop)
+  _ = _ := by
+    rw [DifferentiableAt.deriv_eq_deriv_zero (by fun_prop)]
+
+theorem Flow.isCompleteVectorField (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
     IsCompleteVectorField (fun x ↦ deriv (Φ · x) 0) := by
   intro x
   use (Φ · x)
@@ -219,33 +248,70 @@ theorem Flow.isCompleteVectorField {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiabl
       deriv.scomp 0 (hΦ x).differentiableAt (by fun_prop)
     _ = _ := by simp
 
-end Continuous
+theorem flow_congr (hΦ : ∀ x, Differentiable ℝ (Φ · x)) (hΦ' : ∀ x, Differentiable ℝ (Φ' · x))
+    (h : ∀ x, deriv (Φ · x) 0 = deriv (Φ' · x) 0) : Φ = Φ' := by
+  ext t x
 
-section Differentiable
+  sorry
 
-variable {E F : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
+structure IsLinearlyBddVectorField (f : E → E) : Prop where
+  differentiable : Differentiable ℝ f
+  exists_bound : ∃ C, ∀ x, ‖fderiv ℝ f x‖ ≤ C
 
-variable {Φ : Flow ℝ E} {x : E} {t : ℝ}
+namespace IsLinearlyBddVectorField
 
-theorem DifferentiableAt.deriv_eq_deriv_zero (h : ∀ x, DifferentiableAt ℝ (Φ · x) 0) :
-    deriv (Φ · x) t = deriv (Φ · (Φ t x)) 0 := calc
-  _ = deriv (fun s ↦ (Φ (s - t) (Φ t x))) t := by
-    congr
-    ext s
-    rw [← Φ.map_add']
-    grind
-  _ = deriv (fun s : ℝ ↦ s - t) t • deriv (Φ · (Φ t x)) ((fun s : ℝ ↦ s - t) t) :=
-    deriv.scomp (h := (· - t)) (g₁ := (Φ · (Φ t x))) t (by simp [h (Φ t x)]) (by fun_prop)
-  _ = _ := by
-    simp
+open NNReal
 
-theorem deriv_flow_comp {v : E → F} (hv : Differentiable ℝ v) (h : ∀ x, Differentiable ℝ (Φ · x))
+variable {f : E → E}
+
+open Classical in
+protected
+def bound (hf : IsLinearlyBddVectorField f) : ℝ := hf.exists_bound.choose
+
+theorem norm_fderiv_le_bound (hf : IsLinearlyBddVectorField f) (x : E) :
+    ‖fderiv ℝ f x‖ ≤ hf.bound := hf.exists_bound.choose_spec x
+
+theorem bound_nonneg (hf : IsLinearlyBddVectorField f) :
+    0 ≤ hf.bound := by
+  grw [← hf.norm_fderiv_le_bound 0, ← norm_nonneg]
+
+def nnbound (hf : IsLinearlyBddVectorField f) : ℝ≥0 :=
+  ⟨hf.bound, hf.bound_nonneg⟩
+
+@[simp, norm_cast]
+theorem coe_nnbound (hf : IsLinearlyBddVectorField f) :
+    (hf.nnbound : ℝ) = hf.bound := rfl
+
+theorem nnnorm_fderiv_le_nnbound (hf : IsLinearlyBddVectorField f) (x : E) :
+    ‖fderiv ℝ f x‖₊ ≤ hf.nnbound := by
+  simp [← NNReal.coe_le_coe, hf.norm_fderiv_le_bound]
+
+theorem lipschitzWith (hf : IsLinearlyBddVectorField f) :
+    LipschitzWith hf.nnbound f :=
+  lipschitzWith_of_nnnorm_fderiv_le hf.differentiable hf.nnnorm_fderiv_le_nnbound
+
+theorem isCompleteVectorField (hf : IsLinearlyBddVectorField f) :
+    IsCompleteVectorField f := by
+  intro x
+  -- this follows from Theorem 2.17 of Teschl and the fundamental theorem of calculus
+  sorry
+
+def flow (hf : IsLinearlyBddVectorField f) : Flow ℝ E :=
+  hf.isCompleteVectorField.flow hf.lipschitzWith
+
+@[simp]
+theorem deriv_flow (hf : IsLinearlyBddVectorField f) (t : ℝ) (x : E) :
+    deriv (hf.flow · x) t = f (hf.flow t x) :=
+  hf.isCompleteVectorField.deriv_flow hf.lipschitzWith t x
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+theorem deriv_comp_flow (hf : IsLinearlyBddVectorField f) {v : E → F} (hv : Differentiable ℝ v)
     (t : ℝ) (x : E) :
-    deriv (v <| Φ · x) t = fderiv ℝ v (Φ t x) (deriv (Φ · (Φ t x)) 0) := calc
-  _ = (fderiv ℝ v (Φ t x)) (deriv (Φ · x) t) := by
-    apply fderiv_comp_deriv t (by fun_prop) (by fun_prop)
-  _ = _ := by
-    rw [DifferentiableAt.deriv_eq_deriv_zero (by fun_prop)]
+    deriv (v <| hf.flow · x) t = fderiv ℝ v (hf.flow t x) (f <| hf.flow t x) :=
+  hf.isCompleteVectorField.deriv_comp_flow hv hf.lipschitzWith t x
+
+
+end IsLinearlyBddVectorField
 
 end Differentiable

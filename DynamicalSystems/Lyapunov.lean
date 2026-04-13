@@ -244,19 +244,24 @@ theorem isLyapunov_of_deriv
 
 variable [NormedSpace ℝ E]
 
-theorem Flow.isLyapunovOn_of_deriv (hf : IsFundamentalSolution Φ (fun _ ↦ f)) (hv : ∀ x, 0 ≤ v x)
-    (h_cont : Continuous v) (h_deriv : sorry) :
+theorem Flow.isLyapunovOn_of_deriv {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+    (hv : ∀ x, 0 ≤ v x)
+    (hv_diff : Differentiable ℝ v)
+    (h_deriv : ∀ x, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
     IsLyapunovOn v Φ s where
   pos := hv
-  cont := h_cont
+  cont := hv_diff.continuous
   antitone := by
     intro x t₀ t₁ ht₀ ht₁ ht
     have : AntitoneOn (v <| Φ · x) (Set.Ici 0) := by
       apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
-      · sorry
-      · sorry
-      · sorry
+      · exact hv_diff.comp (hΦ x) |>.continuous.continuousOn
+      · fun_prop
+      · intro x hx
+        --apply h_deriv
+        sorry
     --specialize this t₀
+    --apply this
     sorry
 
 theorem Flow.isLyapunov {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
@@ -267,13 +272,8 @@ theorem Flow.isLyapunov {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ �
   · intro x
     fun_prop
   · intro x t
-    convert h_deriv (Φ t x)
-    calc
-      deriv (v <| Φ · x) t = (fderiv ℝ v (Φ t x)) (deriv (Φ · x) t) :=
-        fderiv_comp_deriv _ (by fun_prop) (by fun_prop)
-      _ = (fderiv ℝ v (Φ t x)) (deriv (Φ · (Φ t x)) 0) := by
-        congr 1
-        exact DifferentiableAt.deriv_eq_deriv_zero (hΦ · 0)
+    rw [deriv_comp_flow hv_diff hΦ]
+    exact h_deriv (Φ t x)
 
 open scoped NNReal
 
