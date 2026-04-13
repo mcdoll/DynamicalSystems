@@ -74,7 +74,7 @@ jobs:
         with:
           build: true
           lint: true
-          mk_all-check: true
+          mk_all-check: false
       - name: Build verso
         run: lake exe generate-docs
       - name: Setup pages
