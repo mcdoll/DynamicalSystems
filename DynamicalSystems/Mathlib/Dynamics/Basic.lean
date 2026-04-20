@@ -7,7 +7,8 @@ module
 
 public import Mathlib.Dynamics.Flow
 public import Mathlib.Dynamics.OmegaLimit
-public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
+public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
+--public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 --public import Mathlib.Topology.Order.MonotoneConvergence
 
 
@@ -134,49 +135,24 @@ variable {E : Type*}
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- A vector field is complete if for every point there exists a global integral curve
-`γ : ℝ → E`. -/
-def IsCompleteVectorField (f : E → E) : Prop :=
-  ∀ x, ∃ γ : ℝ → E, γ 0 = x ∧ IsIntegralCurve γ (fun _ ↦ f)
+namespace IsCompleteVectorField
+
+open scoped NNReal
 
 variable {x : E}
 variable {f : E → E}
 
-namespace IsCompleteVectorField
-
-/-- The flow of a vector field at a point `x`. -/
-def flowAt (hf : IsCompleteVectorField f) (x : E) : ℝ → E :=
-  (hf x).choose
-
-@[simp]
-theorem flowAt_zero (hf : IsCompleteVectorField f) (x : E) : hf.flowAt x 0 = x :=
-  (hf x).choose_spec.left
-
-theorem flowAt_isIntegralCurve (hf : IsCompleteVectorField f) (x : E) :
-    IsIntegralCurve (hf.flowAt x) (fun _ ↦ f) :=
-  (hf x).choose_spec.right
-
-theorem flowAt_isFundamentalSolution (hf : IsCompleteVectorField f) :
-    IsFundamentalSolution (fun t x ↦ hf.flowAt x t) (fun _ ↦ f) where
-  isIntegralCurve x := hf.flowAt_isIntegralCurve x
-  zero := by
-    ext x
-    exact hf.flowAt_zero x
-
-@[fun_prop]
-theorem differentiable_flowAt (hf : IsCompleteVectorField f) {x : E} :
-    Differentiable ℝ (hf.flowAt x) :=
-  (hf.flowAt_isIntegralCurve x · |>.differentiableAt)
-
-open scoped NNReal
-
 variable {K : ℝ≥0}
 
 /-- Every complete and Lipschitz vector field admits a global flow. -/
-def flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) : Flow ℝ E where
-  toFun t x := hf.flowAt x t
-  cont' := hf.flowAt_isFundamentalSolution.continuous h
-  map_add' := (hf.flowAt_isFundamentalSolution.add_apply h · · · |>.symm)
+def flow (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) : Flow ℝ E where
+  toFun t x := hf.flowAt 0 x t
+  cont' :=
+    (hf.flowAt_isFundamentalSolution.continuous h.uniformlyLocallyLipschitz continuous_const 0).comp
+      continuous_swap
+  map_add' := by
+    intro t₀ t₁ x
+    apply (hf.flowAt_isFundamentalSolution |>.add_apply'' f h 0 t₀ t₁ x).symm
   map_zero' := by simp
 
 /-@[fun_prop]
@@ -184,18 +160,20 @@ theorem differentiable_flow (hf : IsCompleteVectorField f) (h : LipschitzWith K 
     Differentiable ℝ (hf.flow h · x) := by fun_prop-/
 
 @[simp]
-theorem deriv_flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (t : ℝ) (x : E) :
+theorem deriv_flow (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) (t : ℝ)
+    (x : E) :
     deriv (hf.flow h · x) t = f (hf.flow h t x) :=
-  (hf.flowAt_isIntegralCurve x t).deriv
+  (hf.flowAt_isIntegralCurve 0 x t).deriv
 
-example (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (x : E) :
+example (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) (x : E) :
     deriv (hf.flow h · x) 0 = f x := by
   simp
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
-theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v) (hf : IsCompleteVectorField f)
-    (h : LipschitzWith K f) (t : ℝ) (x : E) :
+theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v)
+    (hf : IsCompleteVectorField (fun _ ↦ f))
+    (h : LocallyLipschitz f) (t : ℝ) (x : E) :
     deriv (v <| hf.flow h · x) t = fderiv ℝ v (hf.flow h t x) (f <| hf.flow h t x) := calc
   _ = (fderiv ℝ v (hf.flow h t x)) (deriv (hf.flow h · x) t) := by
     apply fderiv_comp_deriv t (by fun_prop) (by fun_prop)
@@ -233,20 +211,19 @@ theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v) (h : ∀ x, Di
     rw [DifferentiableAt.deriv_eq_deriv_zero (by fun_prop)]
 
 theorem Flow.isCompleteVectorField (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
-    IsCompleteVectorField (fun x ↦ deriv (Φ · x) 0) := by
-  intro x
-  use (Φ · x)
-  simp only [Flow.map_zero, id_eq, true_and]
-  intro t
-  convert ((hΦ x).differentiableAt (x := t)).hasDerivAt using 1
-  calc
-    deriv (Φ · (Φ t x)) 0 = deriv (fun s ↦ Φ (s + t) x) 0 := by
-      congr
-      ext y
-      exact (Flow.map_add Φ y t x).symm
-    _ = (deriv (· + t) 0) • deriv (Φ · x) ((· + t) 0) :=
-      deriv.scomp 0 (hΦ x).differentiableAt (by fun_prop)
-    _ = _ := by simp
+    IsCompleteVectorField (fun _ x ↦ deriv (Φ · x) 0) := by
+  intro t₀ x
+  use fun t ↦ Φ (t - t₀) x
+  simp only [sub_self, map_zero, id_eq, true_and]
+  rw [isIntegralCurve_comp_add (dt := t₀)]
+  have : IsIntegralCurve (Φ · x) (fun _ x ↦ deriv (Φ · x) 0) := by
+    intro t
+    simp only [← map_add]
+    convert (hΦ x t).hasDerivAt using 1
+    convert deriv_comp_add_const (Φ · x) t 0
+    simp
+  convert this
+  simp
 
 theorem flow_congr (hΦ : ∀ x, Differentiable ℝ (Φ · x)) (hΦ' : ∀ x, Differentiable ℝ (Φ' · x))
     (h : ∀ x, deriv (Φ · x) 0 = deriv (Φ' · x) 0) : Φ = Φ' := by
@@ -298,26 +275,26 @@ theorem lipschitzWith (hf : IsLinearlyBddVectorField f) :
   lipschitzWith_of_nnnorm_fderiv_le hf.differentiable hf.nnnorm_fderiv_le_nnbound
 
 theorem isCompleteVectorField (hf : IsLinearlyBddVectorField f) :
-    IsCompleteVectorField f := by
+    IsCompleteVectorField (fun _ ↦ f) := by
   intro x
   -- this follows from Theorem 2.17 of Teschl and the fundamental theorem of calculus
   sorry
 
 /-- The flow of a linearly bounded vector field. -/
 def flow (hf : IsLinearlyBddVectorField f) : Flow ℝ E :=
-  hf.isCompleteVectorField.flow hf.lipschitzWith
+  hf.isCompleteVectorField.flow hf.lipschitzWith.locallyLipschitz
 
 @[simp]
 theorem deriv_flow (hf : IsLinearlyBddVectorField f) (t : ℝ) (x : E) :
     deriv (hf.flow · x) t = f (hf.flow t x) :=
-  hf.isCompleteVectorField.deriv_flow hf.lipschitzWith t x
+  hf.isCompleteVectorField.deriv_flow hf.lipschitzWith.locallyLipschitz t x
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 theorem deriv_comp_flow (hf : IsLinearlyBddVectorField f) {v : E → F} (hv : Differentiable ℝ v)
     (t : ℝ) (x : E) :
     deriv (v <| hf.flow · x) t = fderiv ℝ v (hf.flow t x) (f <| hf.flow t x) :=
-  hf.isCompleteVectorField.deriv_comp_flow hv hf.lipschitzWith t x
+  hf.isCompleteVectorField.deriv_comp_flow hv hf.lipschitzWith.locallyLipschitz t x
 
 
 end IsLinearlyBddVectorField

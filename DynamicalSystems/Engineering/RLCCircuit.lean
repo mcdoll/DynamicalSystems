@@ -5,8 +5,8 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.LaSalle
-public import DynamicalSystems.Lyapunov
+public import DynamicalSystems.Stability.LaSalle
+public import DynamicalSystems.Stability.Lyapunov
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 --public import Mathlib.Analysis.Calculus.MeanValue
 

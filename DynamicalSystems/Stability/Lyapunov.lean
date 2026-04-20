@@ -6,7 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Mathlib.Topology.Antitone
-public import DynamicalSystems.Stability
+public import DynamicalSystems.Stability.Basic
 public import DynamicalSystems.Mathlib.Dynamics.Basic
 
 @[expose] public section
@@ -277,12 +277,11 @@ theorem Flow.isLyapunov {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ �
 
 open scoped NNReal
 
-variable {K : ℝ≥0}
-
 /-- Probably not needed anymore. -/
-theorem IsCompleteVectorField.isLyapunov (hf : IsCompleteVectorField f) (hK : LipschitzWith K f)
+theorem IsCompleteVectorField.isLyapunov (hf : IsCompleteVectorField (fun _ ↦ f))
+    (hf' : LocallyLipschitz f)
     (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v) (h_deriv : ∀ x, fderiv ℝ v x (f x) ≤ 0) :
-    IsLyapunov v (hf.flow hK) :=
+    IsLyapunov v (hf.flow hf') :=
   Flow.isLyapunov (by fun_prop) hv hv_diff (by simpa)
 
 end Continuous
