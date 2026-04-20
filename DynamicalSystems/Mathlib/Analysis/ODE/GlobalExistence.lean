@@ -54,6 +54,8 @@ theorem linear_fundamental_solution (hX₀ : ∀ t₀, X t₀ t₀ = ContinuousL
     IsFundamentalSolution (fun t₀ x t ↦ X t₀ t x) (L · ·) := by
   sorry
 
+/-- The operator solving the inhomogeneous ODE `d/dx x = L(t) x + g t` given a solution operator
+`X : ℝ → ℝ → E →L[ℝ] E`. -/
 def duhamelOperator (X : ℝ → ℝ → E →L[ℝ] E) (g : ℝ → E) (t₀ : ℝ) (x₀ : E) (t : ℝ) : E :=
   X t₀ t x₀ + ∫ τ in t₀..t, X τ t (g τ)
 

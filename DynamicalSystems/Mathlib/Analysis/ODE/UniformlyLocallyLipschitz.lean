@@ -264,15 +264,19 @@ theorem UniformlyLocallyLipschitz.exists_forall_mem_closedBall_eq_isIntegralCurv
 
 variable [NormedSpace ℝ E]
 
+/-- foo -/
 def IsExistenceIntervalOn (f : ℝ → E → E) (t₀ : ℝ) (x₀ : E) (I : Set ℝ) (s : ℝ → Set E) : Prop :=
   t₀ ∈ I ∧ IsPreconnected I ∧ ∃ u : ℝ → E, u t₀ = x₀ ∧ IsIntegralCurveOn u f I ∧ ∀ t ∈ I, u t ∈ s t
 
+/-- foo -/
 def IsExistenceInterval (f : ℝ → E → E) (t₀ : ℝ) (x₀ : E) (I : Set ℝ) : Prop :=
   t₀ ∈ I ∧ IsPreconnected I ∧ ∃ u : ℝ → E, u t₀ = x₀ ∧ IsIntegralCurveOn u f I
 
+/-- foo -/
 def maximalExistenceIntervalOn (f : ℝ → E → E) (t₀ : ℝ) (x₀ : E) (s : ℝ → Set E) : Set ℝ :=
   ⋃₀ { I | IsExistenceIntervalOn f t₀ x₀ I s }
 
+/-- foo -/
 def maximalExistenceInterval (f : ℝ → E → E) (t₀ : ℝ) (x₀ : E) : Set ℝ :=
   ⋃₀ { s | IsExistenceInterval f t₀ x₀ s }
 

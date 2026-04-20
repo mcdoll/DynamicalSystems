@@ -1,4 +1,5 @@
 import VersoManual
+import Lean
 
 import DynamicalSystems.Stability.Basic
 import DynamicalSystems.Stability.Example

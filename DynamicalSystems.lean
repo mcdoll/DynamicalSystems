@@ -3,7 +3,6 @@ import DynamicalSystems.ComparisonFunctions
 import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Mathlib.Analysis.Calculus
 import DynamicalSystems.Mathlib.Analysis.ODE.Basic
-import DynamicalSystems.Mathlib.Analysis.ODE.Documentation
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
@@ -14,7 +13,6 @@ import DynamicalSystems.Mathlib.Dynamics.Basic
 import DynamicalSystems.Mathlib.Topology.Antitone
 import DynamicalSystems.Mathlib.Topology.LimitSet
 import DynamicalSystems.Stability.Basic
-import DynamicalSystems.Stability.Documentation
 import DynamicalSystems.Stability.InputToState
 import DynamicalSystems.Stability.Example
 import DynamicalSystems.Stability.LaSalle
