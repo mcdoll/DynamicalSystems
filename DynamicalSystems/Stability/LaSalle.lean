@@ -5,9 +5,9 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
+--public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 public import DynamicalSystems.Autonomous
-public import DynamicalSystems.Lyapunov
+public import DynamicalSystems.Stability.Lyapunov
 
 /-! # LaSalle's invariance principle
 

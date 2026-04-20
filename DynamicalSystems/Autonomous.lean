@@ -5,12 +5,14 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
+--public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 public import DynamicalSystems.Mathlib.Dynamics.Basic
 public import DynamicalSystems.Mathlib.Topology.LimitSet
 
 /-!
-# Stability
+# Invariant sets and semigroups
+
+This file should be retired in favour of mathlib definitions.
 -/
 
 

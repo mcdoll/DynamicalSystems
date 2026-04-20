@@ -86,6 +86,10 @@ lemma isIntegralCurve_comp_sub {dt : ℝ} :
     IsIntegralCurve γ v ↔ IsIntegralCurve (γ ∘ (· - dt)) (v ∘ (· - dt)) := by
   simpa using isIntegralCurve_comp_add (dt := -dt)
 
+lemma IsIntegralCurve.comp_sub (hγ : IsIntegralCurve γ v) (dt : ℝ) :
+    IsIntegralCurve (γ ∘ (· - dt)) (v ∘ (· - dt)) :=
+  isIntegralCurve_comp_sub.mp hγ
+
 end Translation
 
 /-! ### Scaling lemmas -/

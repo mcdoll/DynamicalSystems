@@ -1,6 +1,6 @@
 import VersoManual
-import DynamicalSystems.Docs
+import DynamicalSystems.Documentation
 
 open Verso.Genre Manual
 
-def main := manualMain (%doc DynamicalSystems.Docs) (options := ["--output", "html"])
+def main := manualMain (%doc DynamicalSystems.Documentation) (options := ["--output", "html"])
