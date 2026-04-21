@@ -161,9 +161,9 @@ theorem differentiable_flow (x) : Differentiable ℝ (RLCCircuit.flow f g · x) 
     sorry
 
 theorem deriv_flow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f)
-    (hf₂ : ∀ x, |deriv f x| ≤ C₁) (hg₁ : Differentiable ℝ g) (hg₂ : ∀ x, |deriv g x| ≤ C₂) (x) :
-    deriv (RLCCircuit.flow f g · x) 0 = ((RLCCircuit.flow f g 0 x).2,
-      - f (RLCCircuit.flow f g 0 x).2 - g (RLCCircuit.flow f g 0 x).1) := by
+    (hf₂ : ∀ x, |deriv f x| ≤ C₁) (hg₁ : Differentiable ℝ g) (hg₂ : ∀ x, |deriv g x| ≤ C₂) (t) (x) :
+    deriv (RLCCircuit.flow f g · x) t = ((RLCCircuit.flow f g t x).2,
+      - f (RLCCircuit.flow f g t x).2 - g (RLCCircuit.flow f g t x).1) := by
   simp [flow_eq hf₁ hf₂ hg₁ hg₂]
 
 /-- The energy function is a Lyapunov function for the RLC system. -/
@@ -198,7 +198,7 @@ theorem isStableOn_flow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) (hf₂ 
 
 /-- The origin is asymptotic stable under the forward flow of `d/dt x = r x` -/
 theorem tendsto_smulFlow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) (hf₂ : ∀ x, |deriv f x| ≤ C₁)
-    (hf_pass : ∀ x, 0 ≤ x * f x)
+    (hf_pass : ∀ x, 0 ≤ x * f x) (hf' : ∀ x, x * f x = 0 ↔ x = 0)
     (hg₁ : Differentiable ℝ g) (hg₂ : ∀ x, |deriv g x| ≤ C₂) (hg_pass : ∀ x, 0 ≤ x * g x) (x) :
     Tendsto (RLCCircuit.flow f g · x) atTop (𝓝 0) := by
   apply (isLyapunov_energy_flow hf₁ hf₂ hf_pass hg₁ hg₂ hg_pass).tendsto_of_forall_exists_nonMem
@@ -208,9 +208,55 @@ theorem tendsto_smulFlow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) (hf₂
   · apply differentiable_energy hg₁.continuous
   · fun_prop
   · intro y hy h
-    --sorry
     simp_rw [deriv_flow hf₁ hf₂ hg₁ hg₂, fderiv_energy hg₁.continuous, Flow.map_zero_apply]
-    sorry
+    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.coe_smul',
+      ContinuousLinearMap.coe_snd', Pi.smul_apply, smul_eq_mul, ContinuousLinearMap.coe_fst']
+    ring_nf
+    simp_rw [neg_eq_zero, hf', Set.mem_setOf_eq]
+    by_contra!
+    set γ₁ := fun t ↦ (RLCCircuit.flow f g t y).1
+    set γ₂ := fun t ↦ (RLCCircuit.flow f g t y).2
+    have hγ₀ : (γ₁ 0, γ₂ 0) = y := by simp [γ₁, γ₂]
+    have hγ₁_ode : deriv γ₁ = γ₂ := by
+      ext t
+      simp only [γ₁, γ₂]
+      have := deriv_flow hf₁ hf₂ hg₁ hg₂ t y
+      rw [Prod.ext_iff] at this
+      simp only at this
+      rw [← this.1]
+      sorry
+    have hγ₂_ode : deriv γ₂ = - f ∘ γ₂ - g ∘ γ₁ := by
+      ext t
+      simp only [γ₁, γ₂]
+      simp only [Pi.sub_apply, Pi.neg_apply, Function.comp_apply]
+      have := deriv_flow hf₁ hf₂ hg₁ hg₂ t y
+      simp only [Prod.ext_iff] at this
+      rw [← this.2]
+      sorry
+    have hγ₂ : ∀ t ≥ 0, γ₂ t = 0 := by
+      intro t ht
+      simp [γ₂, this t ht]
+    have hx : ∃ c, ∀ t ≥ 0, γ₁ t = c := by
+      use γ₂ 0
+      intro t ht
+      -- use ftc
+      sorry
+    obtain ⟨c, hc⟩ := hx
+    have hy' : ∀ t ≥ 0, deriv γ₂ t = - g c := by
+      intro t ht
+      simp [hγ₂_ode, hγ₂ t ht, hc t ht]
+      sorry
+    have hγ₂' : ∀ t ≥ 0, deriv γ₂ t = 0 := by
+      -- follows from hγ₂
+      sorry
+    have hgc : g c = 0 := by
+      rw [← neg_eq_zero, ← hγ₂' 0 (le_refl _), hy' 0 (le_refl _)]
+    have hc' : c = 0 := by
+      -- passivity
+      sorry
+    apply h
+    rw [← hγ₀, hγ₂ 0 (le_refl _), hc 0 (le_refl _), hc']
+    rfl
 
 -- the energy is decreasing along the flow
 

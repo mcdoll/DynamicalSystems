@@ -45,11 +45,34 @@ theorem Equiv.zpow_add_apply : (f ^ (n + m)) x = (f ^ n) ((f ^ m) x) := by
 
 variable (f) in
 protected theorem Equiv.zpow_mul {n m : ℤ} : f ^ (n * m) = (f ^ n) ^ m := by
-  rw [zpow_mul]
+  apply zpow_mul
+
+example : f ^ 0 = Equiv.refl _ := by
+  simp only [pow_zero]
+  exact Equiv.Perm.one_def
 
 namespace Homeomorph
 
-variable [TopologicalSpace α] {f : Homeomorph α α}
+variable [TopologicalSpace α] {f : α ≃ₜ α}
+
+instance instOne : One (α ≃ₜ α) where one := Homeomorph.refl _
+instance instMul : Mul (α ≃ₜ α) where mul f g := g.trans f
+instance instInv : Inv (α ≃ₜ α) where inv := Homeomorph.symm
+instance : Pow (α ≃ₜ α) ℕ where
+  pow f n := {
+    toEquiv := f ^ n
+    continuous_toFun := f.continuous_toFun.iterate _
+    continuous_invFun := f.continuous_invFun.iterate _ }
+
+instance instGroup : Group (α ≃ₜ α) where
+  mul_assoc _ _ _ := rfl
+  one_mul _ := rfl
+  mul_one _ := rfl
+  inv_mul_cancel := self_trans_symm
+  npow n f := f ^ n
+  npow_succ _ _ := DFunLike.coe_injective <| Function.iterate_succ _ _
+  zpow := zpowRec fun n f ↦ f ^ n
+  zpow_succ' _ _ := DFunLike.coe_injective <| Function.iterate_succ _ _
 
 instance : Pow (Homeomorph α α) ℕ where
   pow f n := {
@@ -65,44 +88,35 @@ theorem npow_zero : f ^ 0 = Homeomorph.refl α := rfl
 @[simp]
 theorem npow_one : f ^ 1 = f := rfl
 
-instance : Pow (Homeomorph α α) ℤ where
-  pow f n := {
-    toEquiv := f ^ n
-    continuous_toFun := by
-      cases n with
-      | ofNat n => apply f.continuous_toFun.iterate
-      | negSucc n => apply f.continuous_invFun.iterate
-    continuous_invFun := by
-      cases n with
-      | ofNat n => apply f.continuous_invFun.iterate
-      | negSucc n => apply f.continuous_toFun.iterate }
-
 variable {n : ℤ}
 
 variable {f g : Homeomorph α α}
 
 @[simp]
+theorem mul_apply (x) : (f * g) x = f (g x) :=
+  rfl
+
+@[simp]
+theorem one_apply (x) : (1 : α ≃ₜ α) x = x :=
+  rfl
+
+theorem one_def : (1 : α ≃ₜ α) = Equiv.refl α :=
+  rfl
+
+theorem mul_def (f g : α ≃ₜ α) : f * g = g.trans f :=
+  rfl
+
+theorem inv_def (f : α ≃ₜ α) : f⁻¹ = f.symm :=
+  rfl
+
+@[simp]
 theorem zpow_zero : f ^ (0 : ℤ) = Homeomorph.refl α := rfl
-
-@[simp]
-theorem zpow_one : f ^ (1 : ℤ) = f := rfl
-
-@[simp]
-theorem zpow_neg_one : f ^ (-1) = f.symm := rfl
-
-theorem zpow_mul {n m : ℤ} : f ^ (n * m) = (f ^ n) ^ m := by
-  ext x
-  apply Equiv.ext_iff.mp
-  apply _root_.zpow_mul
-
-theorem zpow_neg : f ^ (-n) = f.symm ^ n := by
-  rw [neg_eq_neg_one_mul, f.zpow_mul, f.zpow_neg_one]
 
 @[simp, norm_cast]
 theorem zpow_coe {n : ℕ} : f ^ (n : ℤ) = f ^ n := rfl
 
-theorem zpow_add_apply {n m : ℤ} : (f ^ (n + m)) x = (f ^ n) ((f ^ m) x) :=
-  f.toEquiv.zpow_add_apply
+theorem zpow_add_apply {n m : ℤ} : (f ^ (n + m)) x = (f ^ n) ((f ^ m) x) := by
+  rw [← mul_apply, zpow_add]
 
 end Homeomorph
 
@@ -117,8 +131,7 @@ def Homeomorph.toFlow (f : Homeomorph α α) : Flow ℤ α where
     simp only [Function.uncurry_apply_pair]
     fun_prop
   map_add' n₁ n₂ := by
-    intro x
-    exact f.zpow_add_apply
+    simp_rw [← mul_apply, ← Homeomorph.ext_iff, zpow_add]
   map_zero' x := by simp
 
 
