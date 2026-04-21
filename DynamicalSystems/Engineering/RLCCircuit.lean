@@ -189,8 +189,8 @@ theorem isStableOn_flow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) (hf₂ 
     (hf_pass : ∀ x, 0 ≤ x * f x)
     (hg₁ : Differentiable ℝ g) (hg₂ : ∀ x, |deriv g x| ≤ C₂) (hg_pass : ∀ x, 0 ≤ x * g x) :
     (𝓝 0).IsStableOn (RLCCircuit.flow f g) (Set.Ici 0) := by
-  apply (isLyapunov_energy_flow hf₁ hf₂ hf_pass hg₁ hg₂ hg_pass).isStableOn (by sorry) (by simp)
-    zero_lt_one
+  apply (isLyapunov_energy_flow hf₁ hf₂ hf_pass hg₁ hg₂ hg_pass).isStableOn_nhds (by sorry)
+    (by simp) zero_lt_one
   --simp only [sq_le_one_iff_abs_le_one]
   apply Metric.isCompact_of_isClosed_isBounded
   · exact isClosed_le (differentiable_energy hg₁.continuous).continuous (by fun_prop)
