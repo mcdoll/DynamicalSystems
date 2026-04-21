@@ -56,7 +56,7 @@ open Filter
 
 /-- The origin is stable under the forward flow of `d/dt x = r x` -/
 theorem isStableOn_smulFlow (hr : 0 ≤ r) : (𝓝 0).IsStableOn (smulFlow (-r)) (Set.Ici 0) := by
-  apply (isLyapunov_sq_smulFlow hr).isStableOn (by simp) (by simp) zero_lt_one
+  apply (isLyapunov_sq_smulFlow hr).isStableOn_nhds (by simp) (by simp) zero_lt_one
   simp only [sq_le_one_iff_abs_le_one]
   apply Metric.isCompact_of_isClosed_isBounded
   · exact isClosed_le (by fun_prop) (by fun_prop)

@@ -7,3 +7,6 @@ module
 
 public import DynamicalSystems.Stability.Lyapunov
 public import DynamicalSystems.ComparisonFunctions
+
+variable {E : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E]

@@ -6,6 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Mathlib.Topology.Antitone
+public import DynamicalSystems.Mathlib.Topology.NhdsSet
 public import DynamicalSystems.Stability.Basic
 public import DynamicalSystems.Mathlib.Dynamics.Basic
 
@@ -102,20 +103,34 @@ theorem IsLyapunovOn.exists_tendsto_of_eventually {x : E} (h_lya : IsLyapunovOn 
 
 variable {v : E → ℝ}
 
+variable {s s' : Set E}
+
+theorem setOf_fun_le_mem_nhdsSet (h_cont : Continuous v) (hvs : ∀ x ∈ s, v x = 0)
+    {δ : ℝ} (hδ : 0 < δ) : { p | v p ≤ δ } ∈ 𝓝ˢ s := by
+  set s' := v ⁻¹' Set.Ioo (-δ) δ
+  have hs' : IsOpen s' :=
+    h_cont.isOpen_preimage _ isOpen_Ioo
+  have hs'_subset : s' ⊆ { p | v p ≤ δ } := by
+    intro x ⟨hx₁, hx₂⟩
+    exact hx₂.le
+  have hss' : s ⊆ s' := by
+    intro x hx
+    simp [s', hvs x hx, hδ]
+  have hs'_nhdsSet : s' ∈ 𝓝ˢ s := by
+    refine mem_nhdsSet_iff_exists.mpr ?_
+    use s', hs'
+  exact mem_of_superset hs'_nhdsSet hs'_subset
+
 /-- The sublevel sets of `v` are contained in neighborhoods of `x₀`. -/
 theorem setOf_fun_le_mem_nhds (h_cont : Continuous v) (hvx₀ : v x₀ = 0)
     {δ : ℝ} (hδ : 0 < δ) : { p | v p ≤ δ } ∈ 𝓝 x₀ := by
-  have : {p | v p < δ } ⊆ interior {p | v p ≤ δ } :=
-    lt_subset_interior_le h_cont continuous_const
-  rw [← mem_interior_iff_mem_nhds]
-  apply this
-  simp [hvx₀, hδ]
+  simpa using setOf_fun_le_mem_nhdsSet (s := {x₀}) h_cont (by simp [hvx₀]) hδ
 
 variable [FirstCountableTopology E]
 
 theorem exists_setOf_fun_le_subset (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
-    (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
-    {s : Set E} (hs : s ∈ 𝓝 x₀) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
+    (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
+    {s : Set E} (hs : s ∈ 𝓝ˢ s') {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
     ∃ δ > 0, {p | v p ≤ δ } ⊆ s := by
   by_contra!
   simp only [gt_iff_lt] at this
@@ -164,25 +179,38 @@ theorem exists_setOf_fun_le_subset (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤
       simp only [a]
       field_simp
       simpa using hk.le_apply
-  have hy' : y = x₀ := by
+  have hy' : y ∈ s' := by
     rw [← hvx₀]
     apply tendsto_nhds_unique (h_cont.tendsto y |>.comp h) hb₁'
-  rw [hy'] at h
+  have h := tendsto_nhdsSet_of_tendsto_nhds hy' h
   obtain ⟨n₀, hn₀⟩ := h.eventually_mem hs |>.exists_forall_of_atTop
   exact hb₂ (k n₀) (hn₀ n₀ <| le_refl _)
 
-/-- The sublevel sets of a Lyapunov function form a basis of the neighbourhood filter of `x₀`. -/
-theorem hasBasis_setOf_le (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
+theorem exists_setOf_fun_le_subset' (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
     (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+    {s : Set E} (hs : s ∈ 𝓝 x₀) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
+    ∃ δ > 0, {p | v p ≤ δ } ⊆ s :=
+  exists_setOf_fun_le_subset (s' := {x₀}) h_cont h_pos (by simp [hvx₀]) (by simp [hs]) hδ₀ h_cpt
+
+/-- The sublevel sets of a Lyapunov function form a basis of the neighbourhood filter of `s'`. -/
+theorem hasBasis_nhdsSet_setOf_le (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
+    (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
     {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
-    (𝓝 x₀).HasBasis (0 < ·) ({ p | v p ≤ · }) := by
+    (𝓝ˢ s').HasBasis (0 < ·) ({ p | v p ≤ · }) := by
   rw [hasBasis_iff]
   intro s
   constructor
   · intro hs
     apply exists_setOf_fun_le_subset h_cont h_pos hvx₀ hs hδ₀ h_cpt
   · intro ⟨δ, hδ, h⟩
-    exact mem_of_superset (setOf_fun_le_mem_nhds h_cont (hvx₀ x₀ |>.mpr rfl) hδ) h
+    exact mem_of_superset (setOf_fun_le_mem_nhdsSet h_cont (fun x hx ↦ (hvx₀ x).mpr hx) hδ) h
+
+/-- The sublevel sets of a Lyapunov function form a basis of the neighbourhood filter of `x₀`. -/
+theorem hasBasis_setOf_le (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
+    (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+    {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
+    (𝓝 x₀).HasBasis (0 < ·) ({ p | v p ≤ · }) := by
+  simpa using hasBasis_nhdsSet_setOf_le (s' := {x₀}) h_cont h_pos (by simp [hvx₀]) hδ₀ h_cpt
 
 end blubb
 
@@ -190,16 +218,20 @@ variable [TopologicalSpace E] [Preorder ι] [FirstCountableTopology E]
 
 variable {v : E → ℝ} {t₀ : ι}
 
-/-- Lyapunov stability for time-independent Lyapunov functions. -/
-theorem IsLyapunovOn.isStableOn (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
+variable {s' : Set E}
+
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
+Version for stability of subsets and local Lyapunov functions. -/
+theorem IsLyapunovOn.isStableOn_nhdsSet (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
     (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici t₀, Φ t x ∈ s)
-    (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+    (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
     (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
-    (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
+    (𝓝ˢ s').IsStableOn Φ (Set.Ici t₀) := by
   have h_cpt' : IsCompact { p | v p ≤ δ₀ } := by
     apply h_cpt.of_isClosed_subset _ h_subset
     refine isClosed_le h_lya.cont continuous_const
-  apply (hasBasis_setOf_le h_lya.cont h_lya.pos hvx₀ hδ₀ h_cpt').isStableOn
+  apply (hasBasis_nhdsSet_setOf_le h_lya.cont h_lya.pos hvx₀ hδ₀ h_cpt').isStableOn
   intro δ hδ
   use min δ δ₀, lt_min hδ hδ₀
   intro t (ht : t₀ ≤ t) x (hx : v x ≤ min δ δ₀)
@@ -214,11 +246,34 @@ theorem IsLyapunovOn.isStableOn (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact
   grw [h_lya.antitone hx0 hxt ht, h_id x, hx]
   exact Std.min_le_left
 
-/-- Lyapunov stability for time-independent Lyapunov functions. -/
-theorem IsLyapunov.isStableOn (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
+Version for stability of points and local Lyapunov functions. -/
+theorem IsLyapunovOn.isStableOn_nhds (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
+    (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici t₀, Φ t x ∈ s)
+    (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
+    (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
+  simpa using h_lya.isStableOn_nhdsSet (s' := {x₀}) h_cpt hs (by simp [hvx₀]) h_id hδ₀ h_subset
+
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
+Version for stability of a point and global Lyapunov functions. -/
+theorem IsLyapunov.isStableOn_nhdsSet (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
+    (𝓝ˢ s').IsStableOn Φ (Set.Ici t₀) := by
+  refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn_nhdsSet h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
+  intro x (hx : v x ≤ δ₀) t (ht : t₀ ≤ t)
+  simp only [Set.mem_setOf_eq]
+  grw [h_lya.antitone x ht, h_id x, hx]
+
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
+Version for stability of a point and global Lyapunov functions. -/
+theorem IsLyapunov.isStableOn_nhds (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
     (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
     (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
-  refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
+  refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn_nhds h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
   intro x (hx : v x ≤ δ₀) t (ht : t₀ ≤ t)
   simp only [Set.mem_setOf_eq]
   grw [h_lya.antitone x ht, h_id x, hx]
