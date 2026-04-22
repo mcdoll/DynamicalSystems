@@ -196,7 +196,7 @@ theorem UniformlyLocallyLipschitzOn.isPicardLindelof (hf : UniformlyLocallyLipsc
     rw [hε']
     grw [Std.min_le_left]
     simp [hε]
-  use ε', by positivity, ⟨a, ha.le⟩, ⟨a / 2, by positivity⟩, ⟨L, hL0.le⟩, K,
+  use ε', by positivity, .mk a ha.le, .mk (a / 2) (by positivity), .mk L hL0.le, K,
     (NNReal.coe_pos.mp ha), (by
     simp only [← NNReal.coe_pos, NNReal.coe_mk, Nat.ofNat_pos, div_pos_iff_of_pos_right]
     positivity)
