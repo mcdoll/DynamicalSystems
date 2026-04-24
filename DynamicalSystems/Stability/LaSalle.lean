@@ -158,7 +158,7 @@ section TopologicalSpace
 
 variable [TopologicalSpace E]
 
-variable {Φ : Flow ℝ E} {s : Set E}
+variable {Φ : Flow ℝ E} {s s' : Set E}
 
 /-- The limit set is contained in the zero set of the derivative of the Lyapunov function. -/
 theorem limitSet_subset
@@ -219,17 +219,17 @@ theorem iUnion_limitSet_subset'
 
 /-- If there exists no trajectories within the zero set of the Lyapunov function, then the limit
 set consists only of the fixed point. -/
-theorem limitSet_subset_singleton (hs : IsClosed s)
+theorem limitSet_subset_of_notMem (hs : IsClosed s)
     (hv_diff : ∀ x ∈ s, ContinuousAt v x)
     (h_tendsto : ∃ c, Tendsto (v <| Φ · y) atTop (𝓝 c))
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
-    {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
-    atTop.limitSet (Φ · y) ⊆ {x₀} := by
+    (h : ∀ x ∈ s, ¬ x ∈ s' → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
+    atTop.limitSet (Φ · y) ⊆ s' := by
   intro x
   contrapose
-  intro (hx : x ≠ x₀) h'
+  intro (hx : ¬x ∈ s') h'
   have h_lim : atTop.limitSet (Φ · y) ⊆ s := by
       intro x hx
       apply hs.mem_of_mapClusterPt hx hΦ_mem
@@ -243,25 +243,63 @@ theorem limitSet_subset_singleton (hs : IsClosed s)
   · apply hx'
     apply h_lim h'
 
+/-- If there exists no trajectories within the zero set of the Lyapunov function, then the limit
+set consists only of the fixed point. -/
+theorem limitSet_subset_singleton (hs : IsClosed s)
+    (hv_diff : ∀ x ∈ s, ContinuousAt v x)
+    (h_tendsto : ∃ c, Tendsto (v <| Φ · y) atTop (𝓝 c))
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
+    atTop.limitSet (Φ · y) ⊆ {x₀} :=
+  limitSet_subset_of_notMem hs hv_diff h_tendsto hf' hΦ_cont hΦ_mem h
+
+theorem IsLyapunovOn.limitSet_subset_notMem (hs : IsClosed s)
+    (h_lya : IsLyapunovOn v Φ s)
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    (h : ∀ x ∈ s, ¬ x ∈ s' → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
+    atTop.limitSet (Φ · y) ⊆ s' := by
+  apply _root_.limitSet_subset_of_notMem hs (by fun_prop) _ hf' hΦ_cont hΦ_mem h
+  apply h_lya.exists_tendsto_of_eventually hΦ_mem
+
 theorem IsLyapunovOn.limitSet_subset_singleton (hs : IsClosed s)
     (h_lya : IsLyapunovOn v Φ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     (hΦ_cont : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
-    atTop.limitSet (Φ · y) ⊆ {x₀} := by
-  apply _root_.limitSet_subset_singleton hs (by fun_prop) _ hf' hΦ_cont hΦ_mem h
-  apply h_lya.exists_tendsto_of_eventually hΦ_mem
+    atTop.limitSet (Φ · y) ⊆ {x₀} :=
+  h_lya.limitSet_subset_notMem hs hf' hΦ_cont hΦ_mem h
+
+theorem tendsto_of_limitSet_subset (hs : IsCompact s)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s) (h : atTop.limitSet (Φ · y) ⊆ s') :
+    Tendsto (Φ · y) atTop (𝓝ˢ s') := by
+  apply hs.tendsto_of_limitSet_inter_subset hΦ_mem
+  grw [Set.inter_subset_left, h]
 
 theorem tendsto_of_limitSet_subset_singleton {x₀ : E} (hs : IsCompact s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s) (h : atTop.limitSet (Φ · y) ⊆ {x₀}) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
-  apply hs.tendsto_of_limitSet_inter_subset_singleton hΦ_mem
-  grw [Set.inter_subset_left, h]
+  rw [← nhdsSet_singleton]
+  exact tendsto_of_limitSet_subset hs hΦ_mem h
 
 section T2Space
 
 variable [T2Space E]
+
+/-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
+derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
+theorem IsLyapunovOn.tendsto_nhdsSet (hs : IsCompact s)
+    (h_lya : IsLyapunovOn v Φ s)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    (h : ∀ x ∈ s, ¬ x ∈ s' → ∃ t, 0 ≤ t ∧ Φ t x ∉ {x | f' x = 0 }) :
+    Tendsto (Φ · y) atTop (𝓝ˢ s') := by
+  apply _root_.tendsto_of_limitSet_subset hs hΦ_mem
+  exact h_lya.limitSet_subset_notMem hs.isClosed hf' (by fun_prop) hΦ_mem h
 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
 derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
