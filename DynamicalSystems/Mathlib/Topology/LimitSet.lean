@@ -6,6 +6,7 @@ Authors: Moritz Doll
 module
 
 public import Mathlib.Topology.Compactness.Compact
+public import DynamicalSystems.Mathlib.Topology.NhdsSet
 
 @[expose] public section
 
@@ -33,13 +34,18 @@ theorem limitSet_subset_of_eventually {s : Set E} (hs : IsClosed s) (h : ∀ᶠ 
 
 open scoped Topology
 
-theorem IsCompact.tendsto_of_limitSet_inter_subset_singleton {s : Set E} (hs : IsCompact s) {x₀ : E}
-    (hf : ∀ᶠ x in l, f x ∈ s) (h : l.limitSet f ∩ s ⊆ {x₀}) : Tendsto f l (𝓝 x₀) := by
-  apply hs.tendsto_nhds_of_unique_mapClusterPt hf
+theorem IsCompact.tendsto_of_limitSet_inter_subset {s s' : Set E} (hs : IsCompact s)
+    (hf : ∀ᶠ x in l, f x ∈ s) (h : l.limitSet f ∩ s ⊆ s') : Tendsto f l (𝓝ˢ s') := by
+  apply hs.tendsto_nhdsSet_of_mapClusterPt hf
   intro x hx hx'
   apply h
   rw [Set.mem_inter_iff, mem_limitSet_iff]
   exact ⟨hx', hx⟩
+
+theorem IsCompact.tendsto_of_limitSet_inter_subset_singleton {s : Set E} (hs : IsCompact s) {x₀ : E}
+    (hf : ∀ᶠ x in l, f x ∈ s) (h : l.limitSet f ∩ s ⊆ {x₀}) : Tendsto f l (𝓝 x₀) := by
+  rw [← nhdsSet_singleton]
+  exact hs.tendsto_of_limitSet_inter_subset hf h
 
 theorem isClosed_limitSet : IsClosed (l.limitSet f) :=
   isClosed_setOf_clusterPt

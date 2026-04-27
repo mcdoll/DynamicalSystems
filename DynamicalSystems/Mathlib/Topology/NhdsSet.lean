@@ -13,7 +13,7 @@ In this file we prove theorems about convergence to sets in metric spaces. -/
 
 public section
 
-variable {α β E : Type*}
+variable {α β E X Y : Type*}
   {s : Set E} {l : Filter α}
 
 open Filter Metric
@@ -30,6 +30,27 @@ variable [TopologicalSpace E]
 theorem tendsto_nhdsSet_of_tendsto_nhds {f : α → E} {x : E} (hx : x ∈ s) (hf : Tendsto f l (𝓝 x)) :
     Tendsto f l (𝓝ˢ s) :=
   hf.trans (nhds_le_nhdsSet hx)
+
+variable [TopologicalSpace X]
+
+-- these go to Topology/Compactness/Compact.lean
+
+variable {s s' : Set X} {l : Filter X}
+
+/-- If a compact set belongs to a filter and this filter has a unique cluster point `y` in this set,
+then the filter is less than or equal to `𝓝 y`. -/
+lemma IsCompact.le_nhdsSet_of_clusterPt (hs : IsCompact s)
+    (hmem : s ∈ l) (h : ∀ x ∈ s, ClusterPt x l → x ∈ s') : l ≤ 𝓝ˢ s' := by
+  refine le_iff_ultrafilter.2 fun f hf ↦ ?_
+  rcases hs.ultrafilter_le_nhds' f (hf hmem) with ⟨x, hxs, hx⟩
+  grw [hx]
+  refine nhds_le_nhdsSet ?_
+  exact h x hxs (.mono (.of_le_nhds hx) hf)
+
+lemma IsCompact.tendsto_nhdsSet_of_mapClusterPt {Y} {l : Filter Y} {f : Y → X}
+    (hs : IsCompact s) (hmem : ∀ᶠ x in l, f x ∈ s) (h : ∀ x ∈ s, MapClusterPt x l f → x ∈ s') :
+    Tendsto f l (𝓝ˢ s') :=
+  hs.le_nhdsSet_of_clusterPt (mem_map.2 hmem) h
 
 end TopologicalSpace
 
