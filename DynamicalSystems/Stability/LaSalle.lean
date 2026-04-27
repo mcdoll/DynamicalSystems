@@ -329,17 +329,27 @@ theorem IsLyapunov.tendsto (hs : IsCompact s)
   rw [Φ.map_zero']
 
 /-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
+theorem IsLyapunovOn.tendsto_nhdsSet_of_hasDerivAt_nonpos (hs : IsCompact s)
+    (h_lya : IsLyapunovOn v Φ s)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    (h : ∀ x ∈ s, ¬ x ∈ s' → f' x < 0) :
+    Tendsto (Φ · y) atTop (𝓝ˢ s') := by
+  refine h_lya.tendsto_nhdsSet hs hΦ_mem hf' ?_
+  intro x hx hx'
+  use 0, by positivity
+  simp
+  grind
+
+/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunovOn.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)
     (h_lya : IsLyapunovOn v Φ s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → f' x < 0) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
-  refine h_lya.tendsto hs hΦ_mem hf' ?_
-  intro x hx hx'
-  use 0, by positivity
-  simp
-  grind
+  rw [← nhdsSet_singleton]
+  exact h_lya.tendsto_nhdsSet_of_hasDerivAt_nonpos hs hΦ_mem hf' h
 
 /-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunov.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)
