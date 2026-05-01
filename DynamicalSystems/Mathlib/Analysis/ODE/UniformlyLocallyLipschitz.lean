@@ -7,7 +7,7 @@ module
 
 public import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 
-/-! # Global existence of ODEs
+/-! # Uniform locally Lipschitz functions
 
 In this file, we prove that an ODE `d/dt x = f(t, x)` admits a global fundamental solution
 if `f` satisfies `‖f t x‖ ≤ a t + b t * ‖x‖` for locally integrable `a` and `b`.
