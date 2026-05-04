@@ -5,7 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Mathlib.Analysis.ODE.Basic
+public import Mathlib.Analysis.ODE.Basic
 
 @[expose] public noncomputable section
 

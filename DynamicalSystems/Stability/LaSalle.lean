@@ -5,7 +5,6 @@ Authors: Moritz Doll
 -/
 module
 
---public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 public import DynamicalSystems.Autonomous
 public import DynamicalSystems.Stability.Lyapunov
 
@@ -24,7 +23,7 @@ convergence of trajectories to a fixed point.
 
 open scoped NNReal Topology
 
-variable {E E' F : Type*}
+variable {α E E' F : Type*}
 
 open Filter
 
@@ -42,11 +41,6 @@ variable {Φ y}
 theorem nonempty_limitSet {K : Set E} (hK : IsCompact K)
     (h : ∃ᶠ x in Filter.atTop, Φ x y ∈ K) : ∃ x ∈ K, x ∈ (atTop.limitSet (Φ · y)) := by
   apply hK.exists_mapClusterPt_of_frequently h
-
-theorem thm520 : Filter.Tendsto (Φ · y) Filter.atTop (𝓝ˢ (atTop.limitSet (Φ · y))) := by
-  unfold Filter.Tendsto
-  -- probably needs a bit of development of limits to sets
-  sorry
 
 variable {v : E → ℝ}
 
@@ -329,17 +323,27 @@ theorem IsLyapunov.tendsto (hs : IsCompact s)
   rw [Φ.map_zero']
 
 /-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
+theorem IsLyapunovOn.tendsto_nhdsSet_of_hasDerivAt_neg (hs : IsCompact s)
+    (h_lya : IsLyapunovOn v Φ s)
+    (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
+    {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
+    (h : ∀ x ∈ s, ¬ x ∈ s' → f' x < 0) :
+    Tendsto (Φ · y) atTop (𝓝ˢ s') := by
+  refine h_lya.tendsto_nhdsSet hs hΦ_mem hf' ?_
+  intro x hx hx'
+  use 0, by positivity
+  simp
+  grind
+
+/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunovOn.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)
     (h_lya : IsLyapunovOn v Φ s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
     {x₀ : E} (h : ∀ x ∈ s, x ≠ x₀ → f' x < 0) :
     Tendsto (Φ · y) atTop (𝓝 x₀) := by
-  refine h_lya.tendsto hs hΦ_mem hf' ?_
-  intro x hx hx'
-  use 0, by positivity
-  simp
-  grind
+  rw [← nhdsSet_singleton]
+  exact h_lya.tendsto_nhdsSet_of_hasDerivAt_neg hs hΦ_mem hf' h
 
 /-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunov.tendsto_of_hasDerivAt_nonpos (hs : IsCompact s)

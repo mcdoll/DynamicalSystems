@@ -106,6 +106,15 @@ theorem differentiable_flowAt (hf : IsCompleteVectorField f) (t₀ : ℝ) (x₀ 
     Differentiable ℝ (hf.flowAt t₀ x₀) :=
   (hf.flowAt_isIntegralCurve t₀ x₀ · |>.differentiableAt)
 
+/-- The flow of a vector field as a continuous map `ℝ → E`. -/
+def contFlowAt (hf : IsCompleteVectorField f) (t₀ : ℝ) (x₀ : E) : C(ℝ, E) where
+  toFun := hf.flowAt t₀ x₀
+  continuous_toFun := (hf.differentiable_flowAt _ _).continuous
+
+@[simp]
+theorem contFlowAt_apply (hf : IsCompleteVectorField f) (t₀ : ℝ) (x₀ : E) (t : ℝ) :
+  hf.contFlowAt t₀ x₀ t = hf.flowAt t₀ x₀ t := rfl
+
 end IsCompleteVectorField
 
 variable {f : ℝ → E → E}

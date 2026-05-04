@@ -5,7 +5,7 @@ Authors: Winston Yin
 -/
 module
 
-public import DynamicalSystems.Mathlib.Analysis.ODE.Basic
+public import Mathlib.Analysis.ODE.Basic
 public import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
 public import DynamicalSystems.Mathlib.Analysis.ODE.PicardLindelof
 

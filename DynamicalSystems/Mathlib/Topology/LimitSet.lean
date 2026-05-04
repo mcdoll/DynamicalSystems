@@ -22,17 +22,23 @@ def Filter.limitSet (l : Filter ι) (g : ι → E) : Set E :=
 
 open Filter
 
-variable {l : Filter ι} {f : ι → E}
+variable {l : Filter ι} {f : ι → E} {s : Set E}
 
 @[simp]
 theorem mem_limitSet_iff {x : E} : x ∈ l.limitSet f ↔ MapClusterPt x l f := by rfl
 
-theorem limitSet_subset_of_eventually {s : Set E} (hs : IsClosed s) (h : ∀ᶠ x in l, f x ∈ s) :
+theorem limitSet_subset_of_eventually (hs : IsClosed s) (h : ∀ᶠ x in l, f x ∈ s) :
     l.limitSet f ⊆ s := by
   intro y hy
   exact hs.mem_of_mapClusterPt hy h
 
 open scoped Topology
+
+/-- a function converges to the limit set -/
+theorem IsCompact.tendsto_nhdsSet_limitSet (hs : IsCompact s) (hs' : ∀ᶠ x in l, f x ∈ s) :
+    Tendsto f l (𝓝ˢ <| l.limitSet f) := by
+  apply hs.tendsto_nhdsSet_of_mapClusterPt hs'
+  intros; simpa
 
 theorem IsCompact.tendsto_of_limitSet_inter_subset {s s' : Set E} (hs : IsCompact s)
     (hf : ∀ᶠ x in l, f x ∈ s) (h : l.limitSet f ∩ s ⊆ s') : Tendsto f l (𝓝ˢ s') := by
