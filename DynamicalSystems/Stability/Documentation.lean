@@ -102,3 +102,30 @@ Lyapunov's theorem can be stated as
 {docstring IsLyapunovOn.isStableOn_nhds}
 {docstring IsLyapunov.isStableOn_nhdsSet}
 {docstring IsLyapunov.isStableOn_nhds}
+
+### LaSalle's invariance principle
+
+In order to prove asymptotic stability, one either needs to invoke a variant Lyapunov's theorem
+with the stronger assumption that the Lyapunov function is strictly decreasing along the flow or
+invoke LaSalle's invariance principle. The later has the advantage that one can prove asymptotic
+stability even when the Lyapunov function is not strictly decreasing, but with the caveat that
+it only applies to autonomous systems.
+
+The condition to conclude asymptotic stability becomes that there exist no trajectory other than
+the trivial trajectory in the zero set of $`\dot{V}(x)`. This condition has an obvious
+generalization to convergence to sets:
+
+{docstring IsLyapunovOn.tendsto_nhdsSet}
+{docstring IsLyapunovOn.tendsto_nhds}
+{docstring IsLyapunov.tendsto_nhdsSet}
+{docstring IsLyapunov.tendsto_nhds}
+
+Note that we formulate the condition as its contrapositive.
+
+This version of LaSalle's invariance principle can be specialized to the case that $`V` is strictly
+decreasing along the flow:
+
+{docstring IsLyapunovOn.tendsto_nhdsSet_of_hasDerivAt_neg}
+{docstring IsLyapunovOn.tendsto_nhds_of_hasDerivAt_neg}
+{docstring IsLyapunov.tendsto_nhdsSet_of_hasDerivAt_neg}
+{docstring IsLyapunov.tendsto_nhds_of_hasDerivAt_neg}

@@ -64,7 +64,7 @@ theorem isStableOn_smulFlow (hr : 0 ≤ r) : (𝓝 0).IsStableOn (smulFlow (-r))
 
 /-- The origin is globally asymptotic stable under the forward flow of `d/dt x = r x` -/
 theorem tendsto_smulFlow (hr : 0 < r) (x : ℝ) : Tendsto (smulFlow (-r) · x) atTop (𝓝 0) := by
-  apply (isLyapunov_sq_smulFlow hr.le).tendsto_of_fderiv_nonpos (isCompact_closedBall 0 ‖x‖)
+  apply (isLyapunov_sq_smulFlow hr.le).tendsto_of_fderiv_neg (isCompact_closedBall 0 ‖x‖)
   · intro y hy
     simp [sq_le_sq.mp hy]
   · fun_prop
