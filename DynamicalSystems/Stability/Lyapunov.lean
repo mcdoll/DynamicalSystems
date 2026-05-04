@@ -30,8 +30,12 @@ Note that we assume that `v` is non-negative and continuous everywhere, but only
 `s`. -/
 @[fun_prop]
 structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Set E) : Prop where
+  /-- A Lyapunov function is non-negative everywhere -/
   pos : ∀ x, 0 ≤ v x
+  /-- A Lyapunov function is continuous everywhere -/
   cont : Continuous v
+  /-- A Lyapunov function is monotonically decreasing along the flow for all values `t` such that
+  `Φ t x` is contained in `s`. -/
   antitone : ∀ ⦃x t₀ t₁⦄ (_ht₀ : Φ t₀ x ∈ s) (_ht₁ : Φ t₁ x ∈ s) (_ht : t₀ ≤ t₁),
     v (Φ t₁ x) ≤ v (Φ t₀ x)
 
@@ -39,8 +43,11 @@ structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Se
 to a given flow. -/
 @[fun_prop]
 structure IsLyapunov [Preorder ι] (v : E → F) (Φ : ι → E → E) : Prop where
+  /-- A Lyapunov function is non-negative everywhere -/
   pos : ∀ x, 0 ≤ v x
+  /-- A Lyapunov function is continuous everywhere -/
   cont : Continuous v
+  /-- A Lyapunov function is monotonically decreasing along the flow. -/
   antitone : ∀ x ⦃t₀ t₁⦄ (_ht : t₀ ≤ t₁), v (Φ t₁ x) ≤ v (Φ t₀ x)
 
 attribute [fun_prop] IsLyapunov.cont

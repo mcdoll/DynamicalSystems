@@ -1,6 +1,5 @@
 import VersoManual
 
-import DynamicalSystems.Mathlib.Analysis.ODE.Basic
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall

@@ -2,7 +2,6 @@ import DynamicalSystems.Autonomous
 import DynamicalSystems.ComparisonFunctions
 import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Mathlib.Analysis.Calculus
-import DynamicalSystems.Mathlib.Analysis.ODE.Basic
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall

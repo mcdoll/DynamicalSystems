@@ -50,6 +50,9 @@ variable {l' : Filter ι}
 to `l` along `l'`. The main case is that `l = 𝓝 x₀` and `l' = atTop`, then the condition becomes
 that for all `x` sufficiently close to `x₀`, `t ↦ Φ t x` converges to `x₀` as `t → +∞`.
 
+This condition is usually called local attractiveness. Global attractiveness means that for every
+`x`, `Φ · x` converges to `l` along `l'`.
+
 For non-autonomous systems with flow `Φ : ℝ → ℝ → E → E` the forward attractiveness becomes
 `∀ t₀ ∈ Set.Ici t₀, l.IsAttractive (Φ t₀) atTop`. -/
 def IsAttractive : Prop :=
