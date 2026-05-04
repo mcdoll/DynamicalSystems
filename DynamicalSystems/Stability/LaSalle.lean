@@ -287,7 +287,9 @@ variable [T2Space E]
 /-! ## LaSalle's invariance principle  -/
 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
-derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
+derivative of the Lyapunov function, then `Φ · y` converges to the subset.
+
+Version for local Lyapunov functions -/
 theorem IsLyapunovOn.tendsto_nhdsSet (hs : IsCompact s)
     (h_lya : IsLyapunovOn v Φ s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
@@ -298,7 +300,9 @@ theorem IsLyapunovOn.tendsto_nhdsSet (hs : IsCompact s)
   exact h_lya.limitSet_subset_notMem hs.isClosed hf' (by fun_prop) hΦ_mem h
 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
-derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
+derivative of the Lyapunov function, then `Φ · y` converges to the fixed point.
+
+Version for local Lyapunov functions -/
 theorem IsLyapunovOn.tendsto_nhds (hs : IsCompact s)
     (h_lya : IsLyapunovOn v Φ s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
@@ -309,7 +313,9 @@ theorem IsLyapunovOn.tendsto_nhds (hs : IsCompact s)
   exact h_lya.tendsto_nhdsSet hs hΦ_mem hf' h
 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
-derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
+derivative of the Lyapunov function, then `Φ · y` converges to the subset.
+
+Version for global Lyapunov functions -/
 theorem IsLyapunov.tendsto_nhdsSet (hs : IsCompact s)
     (h_lya : IsLyapunov v Φ)
     (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
@@ -325,7 +331,9 @@ theorem IsLyapunov.tendsto_nhdsSet (hs : IsCompact s)
   rw [Φ.map_zero']
 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
-derivative of the Lyapunov function, then `Φ · y` converges to the fixed point. -/
+derivative of the Lyapunov function, then `Φ · y` converges to the fixed point.
+
+Version for global Lyapunov functions -/
 theorem IsLyapunov.tendsto_nhds (hs : IsCompact s)
     (h_lya : IsLyapunov v Φ)
     (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
@@ -338,7 +346,7 @@ theorem IsLyapunov.tendsto_nhds (hs : IsCompact s)
 
 /-! ## Lyapunov's theorem for strictly decreasing Lyapunov function -/
 
-/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
+/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the subset. -/
 theorem IsLyapunovOn.tendsto_nhdsSet_of_hasDerivAt_neg (hs : IsCompact s)
     (h_lya : IsLyapunovOn v Φ s)
     (hΦ_mem : ∀ᶠ t in atTop, Φ t y ∈ s)
@@ -361,7 +369,7 @@ theorem IsLyapunovOn.tendsto_nhds_of_hasDerivAt_neg (hs : IsCompact s)
   rw [← nhdsSet_singleton]
   exact h_lya.tendsto_nhdsSet_of_hasDerivAt_neg hs hΦ_mem hf' h
 
-/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
+/-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the subset. -/
 theorem IsLyapunov.tendsto_nhdsSet_of_hasDerivAt_neg (hs : IsCompact s)
     (h_lya : IsLyapunov v Φ) (hs' : ∀ ⦃x⦄ (_hx : v x ≤ v y), x ∈ s)
     {f' : E → ℝ} (hf' : ∀ x ∈ s, HasDerivAt (v <| Φ · x) (f' x) 0)
