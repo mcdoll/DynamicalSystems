@@ -18,6 +18,8 @@ set_option linter.missingDocs false
 In this section, we will recall the required theory of ordinary differential equations.
 Most of this should end up in mathlib.
 
-- local existence and uniqueness
+- local existence and uniqueness (already in mathlib)
 - global existence
 - fundamental solution
+- Peano existence result
+- Caratheodory existence result

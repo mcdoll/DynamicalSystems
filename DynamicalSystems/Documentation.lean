@@ -1,4 +1,6 @@
 import VersoManual
+import DynamicalSystems.Basic.Documentation
+import DynamicalSystems.InputOutput.Documentation
 import DynamicalSystems.Stability.Documentation
 import DynamicalSystems.Mathlib.Analysis.ODE.Documentation
 
@@ -21,4 +23,6 @@ This repository develops the mathematical foundations of nonlinear dynamical sys
 theory.
 
 {include 1 DynamicalSystems.Mathlib.Analysis.ODE.Documentation}
+{include 1 DynamicalSystems.Basic.Documentation}
 {include 1 DynamicalSystems.Stability.Documentation}
+{include 1 DynamicalSystems.InputOutput.Documentation}
