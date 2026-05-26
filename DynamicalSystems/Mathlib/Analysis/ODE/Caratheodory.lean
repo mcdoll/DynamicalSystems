@@ -15,12 +15,12 @@ open MeasureTheory
 
 variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E]
 
+/-- A function satisfying the Caratheodory conditions on a set `s`. -/
 structure IsCaratheodoryOn (f : ℝ → E → E) (s : Set ℝ × Set E) where
   cont : ∀ᵐ t ∂volume.restrict s.1, Continuous (f t)
   meas : ∀ x ∈ s.2, Measurable (f · x)
 
-
-
+/-- A function satisfying the Caratheodory conditions. -/
 structure IsCaratheodory (f : ℝ → E → E) where
   cont : ∀ᵐ t, Continuous (f t)
   meas : ∀ x, Measurable (f · x)

@@ -33,6 +33,7 @@ instance Function.instFunLike : FunLike (ι → α) ι α where
   coe := id
   coe_injective' _ _ := by simp
 
+/-- The map between `ℝ≥0` and the subtype. -/
 def NNReal.toSubtype (x : ℝ≥0) : {x : ℝ // x ≥ 0} := x
 
 instance : MeasureSpace ℝ≥0 where
@@ -76,16 +77,19 @@ namespace StateSystem
 
 variable [TopologicalSpace E₁] [TopologicalSpace E₂] (h : StateSystem E E₁ E₂)
 
+/-- The associated vector field -/
 def vectorfield (u : C(ℝ, E₁)) (t : ℝ) (x : E) : E := h.f x + h.input (u t)
 
 theorem isCompleteVectorfield (u : C(ℝ, E₁)) : IsCompleteVectorField (h.vectorfield u) :=
   globalExistence h.f_lip (h.input.continuous.comp u.continuous) h.f_est
 
+/-- The map from inputs to the state. -/
 def stateMap (u : C(ℝ, E₁)) : C(ℝ, E) where
   toFun := (h.isCompleteVectorfield u).flowAt 0 h.x₀
   continuous_toFun :=
     ((h.isCompleteVectorfield u).differentiable_flowAt _ _).continuous
 
+/-- The map from inputs to outputs. -/
 def ioMap (u : C(ℝ, E₁)) : C(ℝ, E₂) := h.output.comp (h.stateMap u)
 
 end StateSystem
@@ -152,8 +156,11 @@ structure IsFiniteGainStableWith (k β : ℝ≥0) (f : (α → E) → α → F) 
 
 section ClosedLoop
 
+/-- a closed loop -/
 structure closedLoop (f₁ : (α → E) → α → F) (f₂ : (α → F) → α → E) (p : ℝ≥0∞) (μ : Measure α) where
+  /-- foo -/
   e₁ : (α → E) → (α → F) → α → E
+  /-- foo -/
   e₂ : (α → E) → (α → F) → α → F
   memLpLoc : ∀ u₁ u₂, MemLpLoc u₁ p μ ∧ MemLpLoc u₂ p μ →
     MemLpLoc (e₁ u₁ u₂) p μ ∧ MemLpLoc (e₂ u₁ u₂) p μ
@@ -164,6 +171,7 @@ structure closedLoop (f₁ : (α → E) → α → F) (f₂ : (α → F) → α 
 variable {β₁ β₂ k₁ k₂} {f₁ : (α → E) → α → F} {f₂ : (α → F) → α → E} {s : ι → Set α} {p : ℝ≥0∞}
   {μ : Measure α}
 
+/-- output of a closed loop -/
 def closedLoop.out (l : closedLoop f₁ f₂ p μ) (u : α → E × F) (x : α) : F × E :=
   (f₁ (l.e₁ (Prod.fst ∘ u) (Prod.snd ∘ u)) x, f₂ (l.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u)) x)
 
@@ -189,8 +197,10 @@ theorem closedLoop.isCausal (l : closedLoop f₁ f₂ p μ) (hf₁ : IsCausal f�
   · intro t u hu
     sorry
 
+/-- foo -/
 def closedLoopBias (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 := sorry
 
+/-- foo -/
 def closedLoopGain (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 := sorry
 
 theorem closedLoop.isFiniteGainStable (l : closedLoop f₁ f₂ p μ)

@@ -35,6 +35,8 @@ In this section we define local `Lp` functions and prove elementary properties
 
 -/
 
+/-- A function `u` is locally in `Lp` if for every bounded measurable set `s`, `u` is in `Lp` with
+respect to measure `μ` restricted to `s`. -/
 @[fun_prop]
 def MemLpLoc [Bornology α] (u : α → E) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : Prop :=
   ∀ s : Set α, MeasurableSet s ∧ IsBounded s → MemLp u p (μ.restrict s)

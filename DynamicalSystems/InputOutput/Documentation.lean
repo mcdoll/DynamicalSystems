@@ -12,4 +12,5 @@ set_option linter.missingDocs false
 #doc (Manual) "Input-output analysis" =>
 
 In the previous section, we investigated stability of dynamical systems. In applications however,
-we are interested in the following setting: we have
+we are interested in the following setting: we have have an input function that feeds into the ODE
+and we extract an output from the state.
