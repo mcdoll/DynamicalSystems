@@ -6,7 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Stability.Lyapunov
-public import DynamicalSystems.ComparisonFunctions
+public import DynamicalSystems.Basic.ComparisonFunctions
 
 variable {E : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E]

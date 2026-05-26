@@ -5,7 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Autonomous
+public import DynamicalSystems.Basic.Autonomous
 public import DynamicalSystems.Stability.Lyapunov
 
 /-! # LaSalle's invariance principle

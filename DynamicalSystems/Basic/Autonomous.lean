@@ -32,12 +32,10 @@ end Filter
 
 section Semigroup
 
-/-- Deprecated in favour of Flow -/
 structure IsSemigroupOn [Add ι] [Zero ι] (Φ : ι → E → E) (s : Set E) : Prop where
   zero : ∀ x ∈ s, Φ 0 x = x
   add : ∀ t₀ t₁, ∀ x ∈ s, Φ (t₀ + t₁) x = Φ t₀ (Φ t₁ x)
 
-/-- Deprecated in favour of Flow -/
 structure IsSemigroup [Add ι] [Zero ι] (Φ : ι → E → E) : Prop where
   zero : ∀ x, Φ 0 x = x
   add : ∀ t₀ t₁ x, Φ (t₀ + t₁) x = Φ t₀ (Φ t₁ x)
@@ -50,7 +48,11 @@ theorem IsSemigroupOn.mono [Add ι] [Zero ι] {s₁ s₂ : Set E}
 
 @[simp]
 theorem isSemigroup_univ [Add ι] [Zero ι] : IsSemigroupOn Φ Set.univ ↔ IsSemigroup Φ := by
-  sorry
+  constructor
+  · intro h
+    exact ⟨fun x ↦ h.zero x (Set.mem_univ x), fun t₀ t₁ x ↦ h.add t₀ t₁ x (Set.mem_univ x)⟩
+  · intro h
+    exact ⟨fun x _ ↦ h.zero x, fun t₀ t₁ x _ ↦ h.add t₀ t₁ x⟩
 
 theorem IsSemigroupOn.comm [AddCommMagma ι] [Zero ι] (hΦ : IsSemigroupOn Φ s) {x : E} (hx : x ∈ s)
     (t₀ t₁ : ι) :

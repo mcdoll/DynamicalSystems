@@ -1,7 +1,12 @@
-import DynamicalSystems.Autonomous
-import DynamicalSystems.ComparisonFunctions
+import DynamicalSystems.Basic.Autonomous
+import DynamicalSystems.Basic.ComparisonFunctions
+import DynamicalSystems.Basic.LpLoc
+import DynamicalSystems.Basic.NonAutonomous
+import DynamicalSystems.InputOutput.Dissipative
+import DynamicalSystems.InputOutput.FiniteGain
 import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Mathlib.Analysis.Calculus
+import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
