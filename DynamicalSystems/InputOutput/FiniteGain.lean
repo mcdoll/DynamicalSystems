@@ -66,11 +66,15 @@ More precisely, let `u : ℝ → E₁` be the input, then we solve the ODE `d/dt
 initial condition `x(0) = x₀`. The output is then given by `y(t) = h(x(t))` for some continuous
 function `h`. -/
 structure StateSystem [TopologicalSpace E₁] [TopologicalSpace E₂] where
+  /-- The unforced dynamics -/
   f : E → E
+  /-- The input function -/
   input : C(E₁, E)
+  /-- The output function -/
   output : C(E, E₂)
   f_lip : LocallyLipschitz f
   f_est : ∃ a b, ∀ x, ‖f x‖ ≤ a + b * ‖x‖
+  /-- The base point -/
   x₀ : E
 
 namespace StateSystem
@@ -114,30 +118,13 @@ is continuous (then it is also locally in `Lp` ) also `h` has to be continuous f
 
 end StateSystem
 
-section IsCausal
-
-variable [NormedAddCommGroup E₁] [NormedAddCommGroup E₂] [FunLike F₁ α E₁] [FunLike F₂ α E₂]
-  [Bornology α]
-
-/- A (nonlinear) operator `f` is called *causal* if it maps local `Lp` functions
-to local `Lp` functions and if `(f u)_t` is equal to `(f u_t)_t` where `u_t` denotes the restriction
-of `u` to `s t`.
-
-The traditional definition of causality uses `α := ℝ≥0` and `s := Set.Ici`. -/
-structure IsCausal' (f : F₁ → F₂) (s : ι → Set α) (p : ℝ≥0∞) (μ : Measure α) where
-  memLpLoc : ∀ u : F₁, MemLpLoc u p μ → MemLpLoc (f u) p μ
-  causal : ∀ /- t -/ (u : F₁), MemLpLoc u p μ → sorry
-    --(s t).indicator (f <| (s t).indicator u) = (s t).indicator (f u)
-
-end IsCausal
-
 
 
 variable [NormedAddCommGroup F] [Bornology α]
 
 variable (f : (α → E) → α → E)
 
-/- A (nonlinear) operator `f` is called *causal* if it maps local `Lp` functions
+/-- A (nonlinear) operator `f` is called *causal* if it maps local `Lp` functions
 to local `Lp` functions and if `(f u)_t` is equal to `(f u_t)_t` where `u_t` denotes the restriction
 of `u` to `s t`.
 
