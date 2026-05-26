@@ -41,7 +41,11 @@ respect to measure `μ` restricted to `s`. -/
 def MemLpLoc [Bornology α] (u : α → E) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : Prop :=
   ∀ s : Set α, MeasurableSet s ∧ IsBounded s → MemLp u p (μ.restrict s)
 
-theorem memLpLoc_prod_iff [Bornology α] {u : α → E × F} :
+section Bornology
+
+variable [Bornology α]
+
+theorem memLpLoc_prod_iff {u : α → E × F} :
     MemLpLoc u p μ ↔ MemLpLoc (fun x ↦ (u x).1) p μ ∧ MemLpLoc (fun x ↦ (u x).2) p μ := by
   constructor
   · intro h
@@ -49,11 +53,60 @@ theorem memLpLoc_prod_iff [Bornology α] {u : α → E × F} :
   · intro ⟨h₁, h₂⟩ s hs
     exact MemLp.of_fst_snd ⟨h₁ s hs, h₂ s hs⟩
 
+variable {u v : α → E}
+
+@[fun_prop]
+theorem MemLpLoc.add (hu : MemLpLoc u p μ) (hv : MemLpLoc v p μ) : MemLpLoc (u + v) p μ := by
+  intro s hs
+  exact (hu s hs).add (hv s hs)
+
+@[fun_prop]
+theorem MemLpLoc.sub (hu : MemLpLoc u p μ) (hv : MemLpLoc v p μ) : MemLpLoc (u - v) p μ := by
+  intro s hs
+  exact (hu s hs).sub (hv s hs)
+
+@[fun_prop]
+theorem MemLpLoc.neg (hu : MemLpLoc u p μ) : MemLpLoc (-u) p μ := by
+  intro s hs
+  exact (hu s hs).neg
+
+variable {𝕜 : Type*} [NormedRing 𝕜] [MulActionWithZero 𝕜 E] [IsBoundedSMul 𝕜 E] {c : 𝕜}
+
+@[fun_prop]
+theorem MemLpLoc.const_smul (hu : MemLpLoc u p μ) : MemLpLoc (c • u) p μ := by
+  intro s hs
+  exact (hu s hs).const_smul c
+
+@[fun_prop]
+theorem MemLpLoc.indicator {s₀ : Set α} (hs₀ : MeasurableSet s₀) (hu : MemLpLoc u p μ) :
+    MemLpLoc (s₀.indicator u) p μ := by
+  intro s hs
+  exact (hu s hs).indicator hs₀
+
+theorem MemLp.memLpLoc (hu : MemLp u p μ) : MemLpLoc u p μ := by
+  intro s _
+  exact hu.restrict s
+
+/-- In a bounded space, local `Lp` functions are in `Lp`. -/
+@[simp]
+theorem memLpLoc_iff_memLp [BoundedSpace α] : MemLpLoc u p μ ↔ MemLp u p μ := by
+  constructor
+  · intro h
+    rw [← MeasureTheory.Measure.restrict_univ (μ := μ)]
+    exact h Set.univ ⟨MeasurableSet.univ, BoundedSpace.bounded_univ⟩
+  · apply MemLp.memLpLoc
+
+end Bornology
+
+section MetricSpace
+
+variable [PseudoMetricSpace α] [ProperSpace α] [OpensMeasurableSpace α]
+  [IsFiniteMeasureOnCompacts μ]
+
 variable {u : α → E}
 
 /-- Every continuous function is locally `Lp` -/
-theorem Continuous.memLpLoc [PseudoMetricSpace α] [ProperSpace α] [OpensMeasurableSpace α]
-    [IsFiniteMeasureOnCompacts μ] (hp : p ≠ 0) (h : Continuous u) :
+theorem Continuous.memLpLoc (hp : p ≠ 0) (h : Continuous u) :
     MemLpLoc u p μ := by
   intro s ⟨hs₁, hs₂⟩
   by_cases hp₂ : p = ∞
@@ -74,19 +127,7 @@ theorem Continuous.memLpLoc [PseudoMetricSpace α] [ProperSpace α] [OpensMeasur
     · rw [← lt_top_iff_ne_top]
       exact IsBounded.measure_lt_top hs₂
 
-theorem MemLp.memLpLoc [Bornology α] (hu : MemLp u p μ) : MemLpLoc u p μ := by
-  intro s _
-  exact hu.restrict s
-
-/-- In a bounded space, local `Lp` functions are in `Lp`. -/
-@[simp]
-theorem memLpLoc_iff_memLp [Bornology α] [BoundedSpace α] :
-    MemLpLoc u p μ ↔ MemLp u p μ := by
-  constructor
-  · intro h
-    rw [← MeasureTheory.Measure.restrict_univ (μ := μ)]
-    exact h Set.univ ⟨MeasurableSet.univ, BoundedSpace.bounded_univ⟩
-  · apply MemLp.memLpLoc
+end MetricSpace
 
 end MemLpLoc
 

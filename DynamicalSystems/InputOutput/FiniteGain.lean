@@ -5,7 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Basic.LpLoc
+public import DynamicalSystems.InputOutput.Stability
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 
@@ -124,22 +124,6 @@ variable [NormedAddCommGroup F] [Bornology α]
 
 variable (f : (α → E) → α → E)
 
-/-- A (nonlinear) operator `f` is called *causal* if it maps local `Lp` functions
-to local `Lp` functions and if `(f u)_t` is equal to `(f u_t)_t` where `u_t` denotes the restriction
-of `u` to `s t`.
-
-The traditional definition of causality uses `α := ℝ≥0` and `s := Set.Ici`. -/
-structure IsCausal (f : (α → E) → α → F) (s : ι → Set α) (p : ℝ≥0∞) (μ : Measure α) where
-  memLpLoc : ∀ u, MemLpLoc u p μ → MemLpLoc (f u) p μ
-  causal : ∀ t u, MemLpLoc u p μ → (s t).indicator (f <| (s t).indicator u) = (s t).indicator (f u)
-
-/-- Not clear what is the right definition, Sastry and Khalil don't agree on whether causality
-is part of finite gain stability. -/
-structure IsFiniteGainStableWith (k β : ℝ≥0) (f : (α → E) → α → F) (s : ι → Set α) (p : ℝ≥0∞)
-    (μ : Measure α) where
-  memLpLoc : ∀ u, MemLpLoc u p μ → MemLpLoc (f u) p μ
-  stableWith : ∀ t u, eLpNorm (f u) p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
-
 
 section ClosedLoop
 
@@ -193,10 +177,10 @@ def closedLoopGain (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 := sorry
 theorem closedLoop.isFiniteGainStable (l : closedLoop f₁ f₂ p μ)
   (hf₁_causal : IsCausal f₁ s p μ)
   (hf₂_causal : IsCausal f₂ s p μ)
-  (hf₁ : IsFiniteGainStableWith k₁ β₁ f₁ s p μ)
-  (hf₂ : IsFiniteGainStableWith k₂ β₂ f₂ s p μ) (hk : k₁ * k₂ < 1) :
-    IsFiniteGainStableWith (closedLoopGain k₁ k₂ β₁ β₂) (closedLoopBias k₁ k₂ β₁ β₂)
-      (closedLoop.out l) s p μ := by
+  (hf₁ : IsFiniteGainStableWith f₁ k₁ β₁ s p μ)
+  (hf₂ : IsFiniteGainStableWith f₂ k₂ β₂ s p μ) (hk : k₁ * k₂ < 1) :
+    IsFiniteGainStableWith (closedLoop.out l)  (closedLoopGain k₁ k₂ β₁ β₂)
+      (closedLoopBias k₁ k₂ β₁ β₂) s p μ := by
   constructor
   · intro u hu
     rw [memLpLoc_prod_iff] at hu ⊢

@@ -1,7 +1,9 @@
 import VersoManual
 
+import DynamicalSystems.InputOutput.Causal
 import DynamicalSystems.InputOutput.Dissipative
 import DynamicalSystems.InputOutput.FiniteGain
+import DynamicalSystems.InputOutput.Stability
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -14,3 +16,6 @@ set_option linter.missingDocs false
 In the previous section, we investigated stability of dynamical systems. In applications however,
 we are interested in the following setting: we have have an input function that feeds into the ODE
 and we extract an output from the state.
+
+This section follows the book "L2-gain and Passivity Techniques in Nonlinear Control" by Arjen van
+der Schaft.

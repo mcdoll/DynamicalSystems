@@ -2,8 +2,10 @@ import DynamicalSystems.Basic.Autonomous
 import DynamicalSystems.Basic.ComparisonFunctions
 import DynamicalSystems.Basic.LpLoc
 import DynamicalSystems.Basic.NonAutonomous
+import DynamicalSystems.InputOutput.Causal
 import DynamicalSystems.InputOutput.Dissipative
 import DynamicalSystems.InputOutput.FiniteGain
+import DynamicalSystems.InputOutput.Stability
 import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Mathlib.Analysis.Calculus
 import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
