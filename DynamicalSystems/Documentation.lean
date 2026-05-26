@@ -1,4 +1,6 @@
 import VersoManual
+import DynamicalSystems.Basic.Documentation
+import DynamicalSystems.InputOutput.Documentation
 import DynamicalSystems.Stability.Documentation
 import DynamicalSystems.Mathlib.Analysis.ODE.Documentation
 
