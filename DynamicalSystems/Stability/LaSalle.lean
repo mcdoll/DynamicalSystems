@@ -98,7 +98,7 @@ vanishes for all `x ∈ s`.
 This is an easy consequence of the chain rule, but with the twist that we can only calculate
 one-sided derivatives. -/
 theorem deriv_eq_zero {x : E} {s : Set E} (hx : x ∈ s)
-    (hs : IsInvariantSetOn Φ s (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c) :
+    (hs : IsInvariantOn Φ s (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c) :
     deriv (v <| Φ · x) 0 = 0 := by
   by_cases h : DifferentiableAt ℝ (v <| Φ · x) 0
   · calc
@@ -107,14 +107,14 @@ theorem deriv_eq_zero {x : E} {s : Set E} (hx : x ∈ s)
         (h.derivWithin (uniqueDiffWithinAt_Ici _)).symm
       _ = derivWithin (fun (t : ℝ) ↦ c) {t | 0 ≤ t} 0 :=
         -- the function is constant for `t ≥ 0`
-        derivWithin_congr (hsv _ <| hs x hx · ·) (hsv _ (hs x hx 0 (by simp)))
+        derivWithin_congr (fun _ ht ↦ hsv _ <| hs ht hx) (hsv _ (hs Set.self_mem_Ici hx))
       _ = 0 := by
         -- a constant function has vanishing derivative
         rw [derivWithin_fun_const, Pi.zero_apply]
   · exact deriv_zero_of_not_differentiableAt h
 
 theorem hasDerivAt_eq_zero {x : E} {s : Set E} {f' : ℝ} (hx : x ∈ s)
-    (hs : IsInvariantSetOn Φ s (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c)
+    (hs : IsInvariantOn Φ s (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c)
     (hf : HasDerivAt (v <| Φ · x) f' 0) : f' = 0 := by
   rw [← hf.deriv, deriv_eq_zero hx hs c hsv]
 
@@ -227,11 +227,11 @@ theorem limitSet_subset_of_notMem (hs : IsClosed s)
   have h_lim : atTop.limitSet (Φ · y) ⊆ s := by
       intro x hx
       apply hs.mem_of_mapClusterPt hx hΦ_mem
-  have h_inv : IsInvariantSetOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) :=
+  have h_inv : IsInvariantOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) :=
       isInvariantSet_limitSet h_lim hΦ_cont
   by_cases! hx' : x ∈ s
   · obtain ⟨t, ht, h⟩ := h x hx' hx
-    have h'' : Φ t x ∈ atTop.limitSet (Φ · y) := h_inv x h' t ht
+    have h'' : Φ t x ∈ atTop.limitSet (Φ · y) := h_inv ht h'
     apply h
     apply limitSet_subset hv_diff h_tendsto.choose_spec hf' h_lim hΦ_cont h''
   · apply hx'
