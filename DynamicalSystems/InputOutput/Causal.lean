@@ -23,7 +23,9 @@ namespace SetRel
 /-- A relation is causal if `uₜ = u'ₜ` implies `yₜ = y'ₜ` for `(u, y) ∈ R` and `(u', y') ∈ R`. -/
 structure IsCausal (R : SetRel (α → E) (α → F)) (s : ι → Set α) (p : ℝ≥0∞)
     (μ : Measure α := by volume_tac) where
+  /-- The relation `R` maps local `Lp` functions to local `Lp` functions -/
   memLpLoc : ∀ ⦃u y⦄, (u, y) ∈ R → MemLpLoc u p μ → MemLpLoc y p μ
+  /-- If `(u, y) ∈ R` and `(u', y') ∈ R`, then `uₜ = u'ₜ` implies that `yₜ = y'ₜ`. -/
   causal : ∀ t ⦃u y u' y'⦄, (u, y) ∈ R → (u', y') ∈ R → MemLpLoc u p μ → MemLpLoc y p μ →
     MemLpLoc u' p μ → MemLpLoc y' p μ → (s t).indicator u = (s t).indicator u' →
     (s t).indicator y = (s t).indicator y'
@@ -41,7 +43,9 @@ The traditional definition of causality uses `α := ℝ≥0` and `s := Set.Ici`.
 @[fun_prop]
 structure IsCausal (f : (α → E) → α → F) (s : ι → Set α) (p : ℝ≥0∞) (μ : Measure α := by volume_tac)
     where
+  /-- The operator `f` maps local `Lp` functions to local `Lp` functions -/
   memLpLoc : ∀ ⦃u⦄, MemLpLoc u p μ → MemLpLoc (f u) p μ
+  /-- For each `t` and locally `Lp` `u`, we have that `(f uₜ)ₜ = (f u)ₜ`. -/
   causal : ∀ t u, MemLpLoc u p μ → (s t).indicator (f <| (s t).indicator u) = (s t).indicator (f u)
 
 @[fun_prop]
@@ -75,6 +79,7 @@ theorem isCausal_of_eq_of_eq (h_memLpLoc : ∀ u, MemLpLoc u p μ → MemLpLoc (
   intro t u hu
   exact (h t u ((s t).indicator u) hu (hu.indicator (hs t)) (by symm; simp)).symm
 
+/-- The graph of a function is causal if and only if the function is causal. -/
 theorem graph_isCausal_iff_isCausal (hs : ∀ t, MeasurableSet (s t)) :
     f.graph.IsCausal s p μ ↔ f.IsCausal s p μ := by
   constructor

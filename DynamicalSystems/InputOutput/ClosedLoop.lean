@@ -176,11 +176,11 @@ variable (f : α → E × F)
 
 variable (α E F) in
 /-- A closed loop -/
-structure closedLoop where
+structure Function.closedLoop where
   /-- foo -/
   topFun : (α → E) → α → F
   /-- bar -/
   botFun : (α → F) → α → E
 
 /-- The relation from inputs to outputs -/
-def inputOutputRel (loop : closedLoop α E F) : SetRel (α → E × F) (α → E × F) := sorry
+def inputOutputRel (loop : Function.closedLoop α E F) : SetRel (α → E × F) (α → E × F) := sorry

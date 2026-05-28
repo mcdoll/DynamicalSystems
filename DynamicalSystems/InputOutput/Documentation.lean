@@ -1,6 +1,7 @@
 import VersoManual
 
 import DynamicalSystems.InputOutput.Causal
+import DynamicalSystems.InputOutput.ClosedLoop
 import DynamicalSystems.InputOutput.Dissipative
 import DynamicalSystems.InputOutput.FiniteGain
 import DynamicalSystems.InputOutput.Stability
@@ -18,4 +19,29 @@ we are interested in the following setting: we have have an input function that 
 and we extract an output from the state.
 
 This section follows the book "L2-gain and Passivity Techniques in Nonlinear Control" by Arjen van
-der Schaft.
+der Schaft, in particular Chapter 1 and Chapter 2.
+
+# Input-output maps
+
+In {ref "Basics"}[Basics] we recalled the fundamentals of `Lp` spaces.
+
+## Technical preliminaries
+
+### Relations
+
+
+
+### Unbundled functions
+
+## Causal maps
+
+We have two definitions for causal maps: one for relations and one for functions:
+
+{docstring Function.IsCausal}
+{docstring SetRel.IsCausal}
+
+and if a relation is induced by a function, then these definitions agree:
+
+{docstring Function.graph_isCausal_iff_isCausal}
+
+## Finite gain stability

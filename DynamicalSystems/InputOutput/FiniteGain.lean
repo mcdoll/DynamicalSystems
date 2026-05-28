@@ -154,9 +154,9 @@ theorem closedLoop.out_fst (l : closedLoop f₁ f₂ p μ) (u : α → E × F) (
 theorem closedLoop.out_snd (l : closedLoop f₁ f₂ p μ) (u : α → E × F) (x : α) :
   (closedLoop.out l u x).2 = f₂ (l.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u)) x := rfl
 
-theorem closedLoop.isCausal (l : closedLoop f₁ f₂ p μ) (hf₁ : IsCausal f₁ s p μ)
-  (hf₂ : IsCausal f₂ s p μ) :
-    IsCausal (closedLoop.out l) s p μ := by
+theorem closedLoop.isCausal (l : closedLoop f₁ f₂ p μ) (hf₁ : f₁.IsCausal s p μ)
+  (hf₂ : f₂.IsCausal s p μ) :
+    (closedLoop.out l).IsCausal s p μ := by
   constructor
   · intro u hu
     rw [memLpLoc_prod_iff] at hu ⊢
@@ -175,11 +175,11 @@ def closedLoopBias (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 := sorry
 def closedLoopGain (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 := sorry
 
 theorem closedLoop.isFiniteGainStable (l : closedLoop f₁ f₂ p μ)
-  (hf₁_causal : IsCausal f₁ s p μ)
-  (hf₂_causal : IsCausal f₂ s p μ)
-  (hf₁ : IsFiniteGainStableWith f₁ k₁ β₁ s p μ)
-  (hf₂ : IsFiniteGainStableWith f₂ k₂ β₂ s p μ) (hk : k₁ * k₂ < 1) :
-    IsFiniteGainStableWith (closedLoop.out l)  (closedLoopGain k₁ k₂ β₁ β₂)
+  (hf₁_causal : f₁.IsCausal s p μ)
+  (hf₂_causal : f₂.IsCausal s p μ)
+  (hf₁ : f₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+  (hf₂ : f₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hk : k₁ * k₂ < 1) :
+    (closedLoop.out l).IsFiniteGainStableWith (closedLoopGain k₁ k₂ β₁ β₂)
       (closedLoopBias k₁ k₂ β₁ β₂) s p μ := by
   constructor
   · intro u hu

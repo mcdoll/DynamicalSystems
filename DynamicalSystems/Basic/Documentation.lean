@@ -11,8 +11,18 @@ open Verso.Genre.Manual.InlineLean
 set_option linter.hashCommand false
 set_option linter.missingDocs false
 
-#doc (Manual) "Prerequirements" =>
+#doc (Manual) "Basics" =>
+
+# Basics
 
 In this section, we collect definitions and results needed for the abstract treatment of dynamical
 systems, which are not yet in mathlib. The previous section was concerned with properties of
 differential equations, but here we take the view that a
+
+## Local `Lp` spaces
+
+
+
+## Abstract solution operators
+
+## Comparison functions
