@@ -23,6 +23,7 @@ variable (τ E) in
 
 We do not impose any continuity property. -/
 structure NonautonomousFlow where
+  /-- The underlying map -/
   toFun : τ → τ → E → E
   map_id (t₀ : τ) (x : E) : toFun t₀ t₀ x = x
   map_comp (t₀ t₁ t₂ : τ) (x : E) : toFun t₀ t₁ (toFun t₁ t₂ x) = toFun t₀ t₂ x
