@@ -9,7 +9,7 @@ public import DynamicalSystems.InputOutput.Stability
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 
-/- # Causal operators and finite gain
+/-! # Causal operators and finite gain
 
 -/
 

@@ -7,6 +7,8 @@ module
 
 public import Mathlib.Analysis.ODE.Basic
 
+/-! # Comparison functions -/
+
 @[expose] public noncomputable section
 
 open NNReal Filter Topology

@@ -8,6 +8,8 @@ module
 public import Mathlib.Analysis.Calculus.Deriv.Comp
 public import Mathlib.Analysis.Calculus.FDeriv.Prod
 
+/-! # Missing calculus lemmas -/
+
 @[expose] public noncomputable section
 
 variable {E E' F : Type*}

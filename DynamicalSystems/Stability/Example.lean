@@ -8,10 +8,6 @@ module
 public import DynamicalSystems.Stability.LaSalle
 public import DynamicalSystems.Stability.Lyapunov
 
-@[expose] public noncomputable section
-
-variable {r : ℝ}
-
 /-! # Stability of the system `d/dt x = r x`
 
 In this file we prove that the system `d/dt x = r x` is asymptotically stable using
@@ -24,6 +20,10 @@ While it is easy to deduce this from the explicit solution operator `Φ t x = x 
 will prove the theorem using Lyapunov's theorem and LaSalle's theorem as a test that these results
 are usable. -/
 
+@[expose] public noncomputable section
+
+variable {r : ℝ}
+
 variable (r) in
 theorem isLinearlyBddVectorField_smul : IsLinearlyBddVectorField (fun x : ℝ ↦ r • x) where
   differentiable := by fun_prop
@@ -31,7 +31,7 @@ theorem isLinearlyBddVectorField_smul : IsLinearlyBddVectorField (fun x : ℝ �
     use |r|
     intro x
     rw [fderiv_fun_const_smul (by fun_prop)]
-    simp only [fderiv_id', norm_smul, Real.norm_eq_abs]
+    simp only [fderiv_fun_id, norm_smul, Real.norm_eq_abs]
     exact mul_le_of_le_one_right (by positivity) ContinuousLinearMap.norm_id_le
 
 variable (r) in

@@ -8,6 +8,8 @@ module
 public import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
 public import DynamicalSystems.Mathlib.Analysis.ODE.Transform
 
+/-! # Global existence of ODEs -/
+
 @[expose] public noncomputable section
 
 variable {E E' F : Type*}
