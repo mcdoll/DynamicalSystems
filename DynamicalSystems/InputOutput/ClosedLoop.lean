@@ -156,6 +156,7 @@ theorem foo' (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
 variable [Bornology α]
 variable {s : ι → Set α} {p : ℝ≥0∞}
 
+/-- Proposition 1.2.9 in van der Schaft -/
 theorem isCausal (h_topRel : loop.topRel.IsCausal s p μ) (h_botRel : loop.botRel.IsCausal s p μ) :
     loop.inputOutputRel.IsCausal s p μ := by
   constructor
@@ -165,7 +166,8 @@ theorem isCausal (h_topRel : loop.topRel.IsCausal s p μ) (h_botRel : loop.botRe
     have := h_topRel.memLpLoc hey.1
     sorry
   · intro t e y e' y' hey hey' he hy he' hy' hee'
-    have := h_topRel.causal t
+    have htop := h_topRel.causal t
+    have hbot := h_botRel.causal t
     sorry
 
 end closedLoopRel
