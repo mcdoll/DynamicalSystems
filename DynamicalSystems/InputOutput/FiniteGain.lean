@@ -36,7 +36,7 @@ instance Function.instFunLike : FunLike (ι → α) ι α where
 /-- The map between `ℝ≥0` and the subtype. -/
 def NNReal.toSubtype (x : ℝ≥0) : {x : ℝ // x ≥ 0} := x
 
-instance : MeasureSpace ℝ≥0 where
+instance instMeasureSpaceNNReal : MeasureSpace ℝ≥0 where
   volume := (volume : Measure {x : ℝ // x ≥ 0}).comap NNReal.toSubtype
 
 end funlike_instance
