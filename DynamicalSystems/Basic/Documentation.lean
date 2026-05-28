@@ -12,6 +12,10 @@ set_option linter.hashCommand false
 set_option linter.missingDocs false
 
 #doc (Manual) "Basics" =>
+%%%
+tag := "basics"
+htmlSplit := .never
+%%%
 
 # Basics
 
@@ -20,6 +24,9 @@ systems, which are not yet in mathlib. The previous section was concerned with p
 differential equations, but here we take the view that a
 
 ## Local `Lp` spaces
+%%%
+tag := "lploc"
+%%%
 
 
 

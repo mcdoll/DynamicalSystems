@@ -23,7 +23,7 @@ der Schaft, in particular Chapter 1 and Chapter 2.
 
 # Input-output maps
 
-In {ref "Basics"}[Basics] we recalled the fundamentals of `Lp` spaces.
+{ref "lploc"}[Previously] we recalled the fundamentals of `Lp` spaces.
 
 ## Technical preliminaries
 
