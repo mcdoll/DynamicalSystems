@@ -9,12 +9,11 @@ public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 public import Mathlib.MeasureTheory.SpecificCodomains.Pi
 public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
+public import DynamicalSystems.InputOutput.Causal
 
-/- # Dissipative maps
+/-! # Dissipative maps
 
 -/
-
-public import DynamicalSystems.InputOutput.Causal
 
 public section
 

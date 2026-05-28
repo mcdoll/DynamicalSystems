@@ -8,6 +8,8 @@ module
 public import DynamicalSystems.InputOutput.Stability
 public import Mathlib.Analysis.Normed.Lp.ProdLp
 
+/-! # Closed loops -/
+
 public section
 
 open MeasureTheory Filter Bornology Set

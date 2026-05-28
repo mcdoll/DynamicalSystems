@@ -6,7 +6,8 @@ Authors: Moritz Doll
 module
 
 public import Mathlib.Topology.Compactness.Compact
-public import DynamicalSystems.Mathlib.Topology.NhdsSet
+
+/-! # Limit sets -/
 
 @[expose] public section
 

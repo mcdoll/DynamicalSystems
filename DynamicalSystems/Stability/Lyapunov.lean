@@ -6,9 +6,10 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Mathlib.Topology.Antitone
-public import DynamicalSystems.Mathlib.Topology.NhdsSet
 public import DynamicalSystems.Stability.Basic
 public import DynamicalSystems.Mathlib.Dynamics.Basic
+
+/-! # Lyapunov functions and stability -/
 
 @[expose] public section
 

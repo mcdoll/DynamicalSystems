@@ -7,6 +7,8 @@ module
 
 public import DynamicalSystems.InputOutput.Causal
 
+/-! # Stability of input-output maps -/
+
 public section
 
 open MeasureTheory Filter Bornology Set

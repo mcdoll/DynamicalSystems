@@ -8,5 +8,7 @@ module
 public import DynamicalSystems.Stability.Lyapunov
 public import DynamicalSystems.Basic.ComparisonFunctions
 
+/-! # Input to state stability -/
+
 variable {E : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E]

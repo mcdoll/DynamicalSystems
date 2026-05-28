@@ -76,7 +76,7 @@ theorem fderiv_energy (hg : Continuous g) (x) :
     fderiv ℝ (RLCCircuit.energy g) x = x.2 • .snd ℝ ℝ ℝ + g x.1 • .fst ℝ ℝ ℝ := by
   unfold RLCCircuit.energy
   rw [fderiv_fun_add (by fun_prop) (by fun_prop)]
-  rw [fderiv_const_mul (by fun_prop), fderiv_pow _ (by fun_prop), fderiv_snd]
+  rw [fderiv_const_mul (by fun_prop), fderiv_fun_pow _ (by fun_prop), fderiv_snd]
   --rw [smul_eq_mul]
   simp only [Nat.add_one_sub_one, pow_one, nsmul_eq_mul, Nat.cast_ofNat, ← smul_assoc, smul_eq_mul,
     ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, inv_mul_cancel_left₀, add_right_inj]

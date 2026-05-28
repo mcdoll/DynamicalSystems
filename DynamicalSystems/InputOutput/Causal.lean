@@ -7,6 +7,8 @@ module
 
 public import DynamicalSystems.Basic.LpLoc
 
+/-! # Causal maps -/
+
 public section
 
 open MeasureTheory Filter Bornology Set

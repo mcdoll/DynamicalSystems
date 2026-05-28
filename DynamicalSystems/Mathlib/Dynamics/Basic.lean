@@ -8,9 +8,8 @@ module
 public import Mathlib.Dynamics.Flow
 public import Mathlib.Dynamics.OmegaLimit
 public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
---public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
---public import Mathlib.Topology.Order.MonotoneConvergence
 
+/-! # Basics of dynamical systems -/
 
 @[expose] public noncomputable section
 
@@ -53,77 +52,10 @@ example : f ^ 0 = Equiv.refl _ := by
 
 namespace Homeomorph
 
-variable [TopologicalSpace α] {f : α ≃ₜ α}
-
-instance instOne : One (α ≃ₜ α) where one := Homeomorph.refl _
-instance instMul : Mul (α ≃ₜ α) where mul f g := g.trans f
-instance instInv : Inv (α ≃ₜ α) where inv := Homeomorph.symm
-instance : Pow (α ≃ₜ α) ℕ where
-  pow f n := {
-    toEquiv := f ^ n
-    continuous_toFun := f.continuous_toFun.iterate _
-    continuous_invFun := f.continuous_invFun.iterate _ }
-
-instance instGroup : Group (α ≃ₜ α) where
-  mul_assoc _ _ _ := rfl
-  one_mul _ := rfl
-  mul_one _ := rfl
-  inv_mul_cancel := self_trans_symm
-  npow n f := f ^ n
-  npow_succ _ _ := DFunLike.coe_injective <| Function.iterate_succ _ _
-  zpow := zpowRec fun n f ↦ f ^ n
-  zpow_succ' _ _ := DFunLike.coe_injective <| Function.iterate_succ _ _
-
-instance : Pow (Homeomorph α α) ℕ where
-  pow f n := {
-    toEquiv := f ^ n
-    continuous_toFun := f.continuous_toFun.iterate _
-    continuous_invFun := f.continuous_invFun.iterate _ }
-
-variable {n : ℕ}
-
-@[simp]
-theorem npow_zero : f ^ 0 = Homeomorph.refl α := rfl
-
-@[simp]
-theorem npow_one : f ^ 1 = f := rfl
-
-variable {n : ℤ}
-
-variable {f g : Homeomorph α α}
-
-@[simp]
-theorem mul_apply (x) : (f * g) x = f (g x) :=
-  rfl
-
-@[simp]
-theorem one_apply (x) : (1 : α ≃ₜ α) x = x :=
-  rfl
-
-theorem one_def : (1 : α ≃ₜ α) = Equiv.refl α :=
-  rfl
-
-theorem mul_def (f g : α ≃ₜ α) : f * g = g.trans f :=
-  rfl
-
-theorem inv_def (f : α ≃ₜ α) : f⁻¹ = f.symm :=
-  rfl
-
-@[simp]
-theorem zpow_zero : f ^ (0 : ℤ) = Homeomorph.refl α := rfl
-
-@[simp, norm_cast]
-theorem zpow_coe {n : ℕ} : f ^ (n : ℤ) = f ^ n := rfl
-
-theorem zpow_add_apply {n m : ℤ} : (f ^ (n + m)) x = (f ^ n) ((f ^ m) x) := by
-  rw [← mul_apply, zpow_add]
-
-end Homeomorph
-
 variable [TopologicalSpace α] (f : Homeomorph α α)
 
 /-- The discrete flow `ℤ → α → α` induced by a homeomorphism `f : α → α`. -/
-def Homeomorph.toFlow (f : Homeomorph α α) : Flow ℤ α where
+def flow (f : Homeomorph α α) : Flow ℤ α where
   toFun n x := (f ^ n) x
   cont' := by
     rw [continuous_prod_of_discrete_left]
@@ -134,6 +66,7 @@ def Homeomorph.toFlow (f : Homeomorph α α) : Flow ℤ α where
     simp_rw [← mul_apply, ← Homeomorph.ext_iff, zpow_add]
   map_zero' x := by simp
 
+end Homeomorph
 
 end Discrete
 

@@ -7,7 +7,9 @@ module
 
 public import Mathlib.Topology.Order.MonotoneConvergence
 
-@[expose] public section
+/-! # Antitone functions -/
+
+public section
 
 variable {ι α : Type*}
   [Preorder ι] [TopologicalSpace α]
