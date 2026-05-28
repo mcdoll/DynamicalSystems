@@ -18,6 +18,10 @@ set_option linter.missingDocs false
 In this section, we will recall the required theory of ordinary differential equations.
 Most of this should end up in mathlib.
 
+We consider the initial value problem
+$$`\dot{x} &= f(x, t)\\x(0) &= x_0`
+with various assumptions on the regularity of `f`.
+
 - local existence and uniqueness (already in mathlib)
 - global existence
 - fundamental solution

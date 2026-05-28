@@ -25,8 +25,37 @@ namespace Filter
 variable (Φ : ι → E → E)
 
 /-- A set `s` is invariant under the (positive) flow if for all `x ∈ s` we have that `Φ t x ∈ s`. -/
-def IsInvariantSetOn (s : Set E) (I : Set ι) : Prop :=
-  ∀ x ∈ s, ∀ t ∈ I, Φ t x ∈ s
+@[fun_prop]
+def IsInvariantOn (s : Set E) (I : Set ι) : Prop :=
+  ∀ ⦃t⦄, t ∈ I → Set.MapsTo (Φ t) s s
+
+@[fun_prop]
+theorem IsInvariant.isInvariantOn {s : Set E} (h : IsInvariant Φ s) (I : Set ι) :
+    IsInvariantOn Φ s I :=
+  fun t _ _ hx ↦ h t hx
+
+theorem isInvariantOn_univ {s : Set E} (h : IsInvariantOn Φ s Set.univ) :
+    IsInvariant Φ s := by
+  intro t x hx
+  exact h (Set.mem_univ t) hx
+
+namespace IsInvariantOn
+
+variable {s : Set E} {I₁ I₂ : Set ι}
+
+@[fun_prop]
+theorem union_right (h₁ : IsInvariantOn Φ s I₁) (h₂ : IsInvariantOn Φ s I₂) :
+    IsInvariantOn Φ s (I₁ ∪ I₂) := by
+  intro x hx
+  cases hx with
+  | inl hx => exact h₁ hx
+  | inr hx => exact h₂ hx
+
+@[fun_prop, simp]
+theorem emptyset_right : IsInvariantOn Φ s ∅ := by
+  intro; simp
+
+end IsInvariantOn
 
 end Filter
 
@@ -88,8 +117,8 @@ theorem limitSet_mono {t : ι} (ht : 0 ≤ t) :
 /-- If `Φ` is a semigroup and `Φ t` is continuous for every `t`, then the limit set is invariant. -/
 theorem isInvariantSet_limitSet {y : E} {s : Set E} (hs' : atTop.limitSet (Φ · y) ⊆ s)
     (hΦ₂ : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
-    IsInvariantSetOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) := by
-  intro x hx t (ht : 0 ≤ t)
+    IsInvariantOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) := by
+  intro t (ht : 0 ≤ t) x hx
   have hx' : x ∈ s := hs' hx
   apply limitSet_mono ht
   rw [mem_limitSet_iff] at *
