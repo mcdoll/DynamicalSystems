@@ -1,0 +1,27 @@
+{
+  "object": "MINIMAL_LYAPUNOV_CERTIFICATE_EXAMPLE",
+  "timestamp_utc": "2026_06_03T210544Z",
+  "repository": "mcdoll/DynamicalSystems fork",
+  "status": "MINIMAL_EXAMPLE_REEXPORT_ONLY",
+  "lean_module": "DynamicalSystems.Stability.MinimalCertificate",
+  "closed_objects": [
+    "DynamicalSystems.minimalLyapunovCertificate_linear_decay",
+    "DynamicalSystems.minimalLyapunovCertificate_linear_decay_stable"
+  ],
+  "proves": [
+    "For r >= 0, x ↦ x^2 is an IsLyapunov function for the existing one-dimensional flow smulFlow (-r).",
+    "For r >= 0, the origin is forward stable for the existing one-dimensional flow smulFlow (-r)."
+  ],
+  "not_proven": [
+    "new stability theorem",
+    "global stability for arbitrary nonlinear systems",
+    "global asymptotic stability for arbitrary nonlinear systems",
+    "exponential stability",
+    "converse Lyapunov theorem",
+    "LaSalle theorem generalization",
+    "mathlib upstream acceptance",
+    "control-theory maintainership resolution",
+    "new applied-dynamics result"
+  ],
+  "minimal_next_object": "MaintainerFeedbackOrConcreteNonlinearCertificateExample"
+}

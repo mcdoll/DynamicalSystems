@@ -23,3 +23,4 @@ import DynamicalSystems.Stability.InputToState
 import DynamicalSystems.Stability.Example
 import DynamicalSystems.Stability.LaSalle
 import DynamicalSystems.Stability.Lyapunov
+import DynamicalSystems.Stability.MinimalCertificate
