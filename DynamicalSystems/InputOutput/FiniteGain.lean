@@ -154,6 +154,155 @@ theorem closedLoop.out_fst (l : closedLoop f₁ f₂ p μ) (u : α → E × F) (
 theorem closedLoop.out_snd (l : closedLoop f₁ f₂ p μ) (u : α → E × F) (x : α) :
   (closedLoop.out l u x).2 = f₂ (l.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u)) x := rfl
 
+
+/-- A closed loop whose selected internal signals depend causally on the external input.
+
+This is intentionally separate from `closedLoop`: the base object remains an
+existence witness, while this strengthened layer supplies the missing
+well-posed/causal selector data needed for closed-loop causality. -/
+structure wellPosedClosedLoop
+    (f₁ : (α → E) → α → F)
+    (f₂ : (α → F) → α → E)
+    (s : ι → Set α)
+    (p : ℝ≥0∞)
+    (μ : Measure α) where
+  toClosedLoop : closedLoop f₁ f₂ p μ
+  e₁_isCausal :
+    (fun u : α → E × F =>
+      toClosedLoop.e₁ (Prod.fst ∘ u) (Prod.snd ∘ u)).IsCausal s p μ
+  e₂_isCausal :
+    (fun u : α → E × F =>
+      toClosedLoop.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u)).IsCausal s p μ
+
+
+namespace wellPosedClosedLoop
+/-- A well-posed closed loop of causal components has a causal output map. -/
+theorem isCausal
+    (l : wellPosedClosedLoop f₁ f₂ s p μ)
+    (hs : ∀ t, MeasurableSet (s t))
+    (hf₁ : f₁.IsCausal s p μ)
+    (hf₂ : f₂.IsCausal s p μ) :
+    (closedLoop.out l.toClosedLoop).IsCausal s p μ := by
+  constructor
+  · intro u hu
+    rw [memLpLoc_prod_iff] at hu ⊢
+    constructor
+    · apply hf₁.memLpLoc
+      exact (l.toClosedLoop.memLpLoc
+        (Prod.fst ∘ u)
+        (Prod.snd ∘ u)
+        hu).1
+    · apply hf₂.memLpLoc
+      exact (l.toClosedLoop.memLpLoc
+        (Prod.fst ∘ u)
+        (Prod.snd ∘ u)
+        hu).2
+  · intro t u hu
+    have hu_ind : MemLpLoc ((s t).indicator u) p μ :=
+      hu.indicator (hs t)
+    have hu_comp :
+        MemLpLoc (Prod.fst ∘ u) p μ ∧
+        MemLpLoc (Prod.snd ∘ u) p μ :=
+      memLpLoc_prod_iff.mp hu
+    have hu_ind_comp :
+        MemLpLoc (Prod.fst ∘ ((s t).indicator u)) p μ ∧
+        MemLpLoc (Prod.snd ∘ ((s t).indicator u)) p μ :=
+      memLpLoc_prod_iff.mp hu_ind
+    have he₁ :
+        MemLpLoc
+          (l.toClosedLoop.e₁
+            (Prod.fst ∘ u)
+            (Prod.snd ∘ u))
+          p μ :=
+      (l.toClosedLoop.memLpLoc
+        (Prod.fst ∘ u)
+        (Prod.snd ∘ u)
+        hu_comp).1
+    have he₂ :
+        MemLpLoc
+          (l.toClosedLoop.e₂
+            (Prod.fst ∘ u)
+            (Prod.snd ∘ u))
+          p μ :=
+      (l.toClosedLoop.memLpLoc
+        (Prod.fst ∘ u)
+        (Prod.snd ∘ u)
+        hu_comp).2
+    have he₁_ind :
+        MemLpLoc
+          (l.toClosedLoop.e₁
+            (Prod.fst ∘ ((s t).indicator u))
+            (Prod.snd ∘ ((s t).indicator u)))
+          p μ :=
+      (l.toClosedLoop.memLpLoc
+        (Prod.fst ∘ ((s t).indicator u))
+        (Prod.snd ∘ ((s t).indicator u))
+        hu_ind_comp).1
+    have he₂_ind :
+        MemLpLoc
+          (l.toClosedLoop.e₂
+            (Prod.fst ∘ ((s t).indicator u))
+            (Prod.snd ∘ ((s t).indicator u)))
+          p μ :=
+      (l.toClosedLoop.memLpLoc
+        (Prod.fst ∘ ((s t).indicator u))
+        (Prod.snd ∘ ((s t).indicator u))
+        hu_ind_comp).2
+    have he₁_eq :
+        (s t).indicator
+            (l.toClosedLoop.e₁
+              (Prod.fst ∘ ((s t).indicator u))
+              (Prod.snd ∘ ((s t).indicator u)))
+          =
+        (s t).indicator
+            (l.toClosedLoop.e₁
+              (Prod.fst ∘ u)
+              (Prod.snd ∘ u)) := by
+      simpa using l.e₁_isCausal.causal t u hu
+    have he₂_eq :
+        (s t).indicator
+            (l.toClosedLoop.e₂
+              (Prod.fst ∘ ((s t).indicator u))
+              (Prod.snd ∘ ((s t).indicator u)))
+          =
+        (s t).indicator
+            (l.toClosedLoop.e₂
+              (Prod.fst ∘ u)
+              (Prod.snd ∘ u)) := by
+      simpa using l.e₂_isCausal.causal t u hu
+    have hf₁_eq :
+        (s t).indicator
+            (f₁
+              (l.toClosedLoop.e₁
+                (Prod.fst ∘ ((s t).indicator u))
+                (Prod.snd ∘ ((s t).indicator u))))
+          =
+        (s t).indicator
+            (f₁
+              (l.toClosedLoop.e₁
+                (Prod.fst ∘ u)
+                (Prod.snd ∘ u))) :=
+      hf₁.eq_of_eq he₁_ind he₁ he₁_eq
+    have hf₂_eq :
+        (s t).indicator
+            (f₂
+              (l.toClosedLoop.e₂
+                (Prod.fst ∘ ((s t).indicator u))
+                (Prod.snd ∘ ((s t).indicator u))))
+          =
+        (s t).indicator
+            (f₂
+              (l.toClosedLoop.e₂
+                (Prod.fst ∘ u)
+                (Prod.snd ∘ u))) :=
+      hf₂.eq_of_eq he₂_ind he₂ he₂_eq
+    ext x <;> by_cases hx : x ∈ s t
+    · simpa [closedLoop.out, hx] using congrFun hf₁_eq x
+    · simp [hx]
+    · simpa [closedLoop.out, hx] using congrFun hf₂_eq x
+    · simp [hx]
+end wellPosedClosedLoop
+
 theorem closedLoop.isCausal (l : closedLoop f₁ f₂ p μ) (hf₁ : f₁.IsCausal s p μ)
   (hf₂ : f₂.IsCausal s p μ) :
     (closedLoop.out l).IsCausal s p μ := by
