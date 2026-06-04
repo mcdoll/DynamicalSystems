@@ -19,7 +19,10 @@ In this section, we will recall the required theory of ordinary differential equ
 Most of this should end up in mathlib.
 
 We consider the initial value problem
-$$`\dot{x} &= f(x, t)\\x(0) &= x_0`
+$$`\begin{aligned}
+  \dot{x} &= f(x, t)\\
+  x(0) &= x_0
+\end{aligned}`
 with various assumptions on the regularity of `f`.
 
 - local existence and uniqueness (already in mathlib)

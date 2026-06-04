@@ -44,6 +44,17 @@ theorem HasBasis.isStableOn {ι' : Sort*} {p : ι' → Prop} {s : ι' → Set E}
   use s i', h.mem_of_mem hpi'
   apply (hsi <| hsi' · · · ·)
 
+theorem HasBasis.isStableOn_iff {ι' : Sort*} {p : ι' → Prop} {s : ι' → Set E} {l : Filter E}
+    (h : l.HasBasis p s) :
+    l.IsStableOn Φ I ↔ ∀ i (_hi : p i), ∃ i', p i' ∧ ∀ t ∈ I, ∀ x ∈ s i', Φ t x ∈ s i := by
+  refine ⟨fun hl i hi ↦ ?_, h.isStableOn⟩
+  obtain ⟨s', hs', hl'⟩ := hl (s i) (h.mem_of_mem hi)
+  rw [h.mem_iff] at hs'
+  obtain ⟨i', hpi', hsi'⟩ := hs'
+  use i', hpi'
+  intro t ht x hx
+  exact hl' t ht x (hsi' hx)
+
 variable {l' : Filter ι}
 
 /-- A filter `l` is attractive with respect to a filter `l'` if `l`-eventually `t ↦ Φ t x` converges

@@ -43,17 +43,22 @@ The typical case is that `l` is given by the neighbourhood filter {lean}`nhds x�
 the usual definition:
 ```lean
 example (x₀ : E) : (𝓝 x₀).IsStableOn Φ (Ici 0) ↔
-    ∀ ε > 0, ∀ t₀ ≥ 0, ∃ δ > 0, ∀ x,
-    ‖x - x₀‖ < δ → ∀ t ≥ t₀, dist ‖Φ t x - x₀‖ < ε := by
-  sorry
+    ∀ ε > 0, ∃ δ > 0, ∀ t ≥ 0, ∀ x,
+    ‖x - x₀‖ < δ → ‖Φ t x - x₀‖ < ε := by
+  rw [nhds_basis_ball.isStableOn_iff]
+  congrm (∀ ε hε, ∃ δ, 0 < δ ∧ ?_)
+  simp [dist_eq_norm]
 ```
 
 More generally, we can take the set neighbourhood filter {lean}`nhdsSet s`, then we have
 ```lean
-example (s : Set E) : (𝓝ˢ s).IsStableOn Φ (Ici 0) ↔
-    ∀ ε > 0, ∀ t₀ ≥ 0, ∃ δ > 0, ∀ x,
-    infDist x s < δ → ∀ t ≥ t₀, infDist (Φ t x) s < ε := by
-  sorry
+example (hs : IsCompact s) (hs' : s.Nonempty) :
+    (𝓝ˢ s).IsStableOn Φ (Ici 0) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀ t ≥ 0, ∀ x,
+    infDist x s < δ → infDist (Φ t x) s < ε := by
+  rw [(hasBasis_nhdsSet_thickening hs).isStableOn_iff]
+  congrm (∀ ε hε, ∃ δ, 0 < δ ∧ ?_)
+  simp [Metric.mem_thickening_iff_infDist_lt hs']
 ```
 
 ## Asymptotic stability
@@ -103,7 +108,7 @@ Lyapunov's theorem can be stated as
 {docstring IsLyapunov.isStableOn_nhdsSet}
 {docstring IsLyapunov.isStableOn_nhds}
 
-### LaSalle's invariance principle
+## LaSalle's invariance principle
 
 In order to prove asymptotic stability, one either needs to invoke a variant Lyapunov's theorem
 with the stronger assumption that the Lyapunov function is strictly decreasing along the flow or
@@ -129,3 +134,20 @@ decreasing along the flow:
 {docstring IsLyapunovOn.tendsto_nhds_of_hasDerivAt_neg}
 {docstring IsLyapunov.tendsto_nhdsSet_of_hasDerivAt_neg}
 {docstring IsLyapunov.tendsto_nhds_of_hasDerivAt_neg}
+
+## A trivial example
+
+We consider the flow of the vector field $`f : ℝ → ℝ` given by
+$$`f(x) = r x` for some fixed $`r : ℝ`.
+
+{docstring smulFlow}
+
+Even without knowing the explicit solution of the ODE, it is easy to see that the function
+$`V(x) = x ^ 2` is Lyapunov function if $`r ≤ 0`.
+
+{docstring isLyapunov_sq_smulFlow}
+
+From this it follows that the origin is globally asymptotic stable:
+
+{docstring isStableOn_smulFlow}
+{docstring tendsto_smulFlow}
