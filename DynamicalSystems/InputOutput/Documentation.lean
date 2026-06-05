@@ -40,10 +40,20 @@ A relation is simply a subset of the cartesian product of two sets.
 
 Every function defines a relation via its graph {name}`Function.graph`.
 
-
 ## Unbundled functions
 
-## Causal maps
+There are different ways of writing $`L^p` functions in mathlib. The space of $`L^p` functions is
+given by {name}`MeasureTheory.Lp` and consists of all _equivalence classes_ of functions together
+with the property that their $`L^p` norm is finite. Proving theorems with equivalence classes
+can be rather tedious, because all equalities only hold almost everywhere and one has to use
+{tactic}`filter_upwards` to prove equalities such as `(f + g) x = f x + g x`.
+
+To circumvent these issues, we use functions directly and also we do not bundle in the property
+that we are dealing with (local) $`L^p` functions, but rather assume these properties separately.
+So a nonlinear operator is just a map `f : (α → E) → (α → F)` and implicitly we use junk values for
+`f u` in the case that `u : α → E` is not a local $`L^p` function.
+
+# Causality
 
 We have two definitions for causal maps: one for relations and one for functions:
 
@@ -54,8 +64,22 @@ and if a relation is induced by a function, then these definitions agree:
 
 {docstring Function.graph_isCausal_iff_isCausal}
 
-## Finite gain stability
+# Stability
 
-## Dissipation inequalities
+We have two notions of stability, `Lp`-stability and finite gain stability.
+
+A nonlinear operator `f` is called `Lp` stable if for every `u : Lp` the output is again in
+`Lp`. We use unbundled `Lp` functions using `MemLp`.
+
+{docstring SetRel.IsLpStable}
+{docstring Function.IsLpStable}
+
+The second notion is _finite gain stability_. A map `f` is finite gain stable if there exist
+`k` and `β` such that  `‖(f u)ₜ‖ ≤ k * ‖uₜ‖ + β` for all local `Lp` functions `u`.
+
+{docstring SetRel.IsFiniteGainStableWith}
+{docstring Function.IsFiniteGainStableWith}
+
+# Dissipation inequalities
 
 {docstring IsDissipativeWith}
