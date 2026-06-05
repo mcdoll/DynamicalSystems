@@ -25,7 +25,9 @@ We do not impose any continuity property. -/
 structure NonautonomousFlow where
   /-- The underlying map -/
   toFun : τ → τ → E → E
+  /-- Consistency: the solution operator acts as the identity at initial time -/
   map_id (t₀ : τ) (x : E) : toFun t₀ t₀ x = x
+  /-- Semigroup property: the solution operator satisfies `Φ t₀ t₁ (Φ t₁ t₂ x) = Φ t₀ t₂ x` -/
   map_comp (t₀ t₁ t₂ : τ) (x : E) : toFun t₀ t₁ (toFun t₁ t₂ x) = toFun t₀ t₂ x
 
 namespace NonautonomousFlow

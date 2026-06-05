@@ -16,20 +16,27 @@ open NNReal Filter Topology
 /-- A function of class `K`. -/
 @[fun_prop]
 structure MemKOn (f : ℝ≥0 → ℝ≥0) (a : ℝ≥0) : Prop where
+  /-- The function `f` is continuous on the interval `[0, a]`. -/
   contOn : ContinuousOn f (Set.Icc 0 a)
+  /-- The function `f` is strictly increasing on the interval `[0, a]`. -/
   strictMonoOn : StrictMonoOn f (Set.Icc 0 a)
+  /-- The function`f` maps `0` to `0`. -/
   zero : f 0 = 0
 
 /-- A function of class `K`. -/
 @[fun_prop]
 structure MemK (f : ℝ≥0 → ℝ≥0) : Prop where
+  /-- The function `f` is continuous. -/
   cont : Continuous f
+  /-- The function `f` is strictly increasing. -/
   strictMono : StrictMono f
+  /-- The function`f` maps `0` to `0`. -/
   zero : f 0 = 0
 
 /-- A function of class `K_∞`. -/
 @[fun_prop]
 structure MemKI (f : ℝ≥0 → ℝ≥0) : Prop extends MemK f where
+  /-- The function `f x` converges to `∞` as `x → ∞`. -/
   tendsto : Tendsto f atTop atTop
 
 /-- A function of class `KL`. -/

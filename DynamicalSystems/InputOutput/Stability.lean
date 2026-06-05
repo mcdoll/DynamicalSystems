@@ -26,6 +26,7 @@ namespace SetRel
 
 /-- A relation is called `Lp`-stable if it maps `Lp` to `Lp`. -/
 structure IsLpStable (f : SetRel (α → E) (α → F)) (p : ℝ≥0∞) (μ : Measure α) where
+  /-- For every pair `(u, y) ∈ f` if `u` is in `Lp` then `y` is also in `Lp`. -/
   memLp : ∀ ⦃u⦄, MemLp u p μ → ∀ y, (u, y) ∈ f → MemLp y p μ
 
 variable {f : SetRel (α → E) (α → E)} {s : ι → Set α} {p : ℝ≥0∞} {μ : Measure α}
@@ -37,6 +38,7 @@ namespace Function
 /-- A map is called `Lp`-stable if it maps `Lp` to `Lp`. -/
 @[fun_prop]
 structure IsLpStable (f : (α → E) → α → F) (p : ℝ≥0∞) (μ : Measure α) where
+  /-- Every `u` in `Lp` gets mapped to `Lp`. -/
   memLp : ∀ ⦃u⦄, MemLp u p μ → MemLp (f u) p μ
 
 variable {f : (α → E) → α → E} {s : ι → Set α} {p : ℝ≥0∞} {μ : Measure α}
@@ -67,11 +69,15 @@ namespace SetRel
 
 variable (f : SetRel (α → E) (α → E))
 
-/-- Not clear what is the right definition, Sastry and Khalil don't agree on whether causality
-is part of finite gain stability. -/
+/-- A map is called finite gain stable with gain less than `k` if there exists `β` such that
+for all local `Lp` functions `u`, we have the `Lp`-norm estimate `‖(f u)ₜ‖ ≤ k * ‖uₜ‖ + β`.
+
+Version for relations. -/
 structure IsFiniteGainStableWith (f : SetRel (α → E) (α → E)) (k β : ℝ≥0) (s : ι → Set α) (p : ℝ≥0∞)
     (μ : Measure α) where
+  /-- For every pair `(u, y) ∈ f` if `u` is in `LpLoc` then `y` is also in `LpLoc`. -/
   memLpLoc : ∀ u, MemLpLoc u p μ → ∀ y, (u, y) ∈ f → MemLpLoc y p μ
+  /-- For every pair `(u, y) ∈ f` with `u` in `LpLoc`, we have `‖yₜ‖ ≤ k * ‖uₜ‖ + β`. -/
   stableWith : ∀ t u y (_hu : MemLpLoc u p μ) (_hy : MemLpLoc y p μ) (_h : (u, y) ∈ f),
     eLpNorm y p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
 
@@ -82,11 +88,13 @@ namespace Function
 variable {f : (α → E) → α → E}
 variable {k β : ℝ≥0} {s : ι → Set α} {p : ℝ≥0∞} {μ : Measure α}
 
-/-- Not clear what is the right definition, Sastry and Khalil don't agree on whether causality
-is part of finite gain stability. -/
+/-- A map is called finite gain stable with gain less than `k` if there exists `β` such that
+for all local `Lp` functions `u`, we have the `Lp`-norm estimate `‖(f u)ₜ‖ ≤ k * ‖uₜ‖ + β`. -/
 structure IsFiniteGainStableWith (f : (α → E) → α → F) (k β : ℝ≥0) (s : ι → Set α) (p : ℝ≥0∞)
     (μ : Measure α) where
+  /-- Every `u` in `Lp` gets mapped to `Lp`. -/
   memLpLoc : ∀ ⦃u⦄, MemLpLoc u p μ → MemLpLoc (f u) p μ
+  /-- For every `u` in `LpLoc`, we have `‖yₜ‖ ≤ k * ‖(f u)ₜ‖ + β`. -/
   stableWith : ∀ t u (_hu : MemLpLoc u p μ),
     eLpNorm (f u) p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
 

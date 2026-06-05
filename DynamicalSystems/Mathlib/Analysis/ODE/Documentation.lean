@@ -1,5 +1,6 @@
 import VersoManual
 
+import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
@@ -25,8 +26,27 @@ $$`\begin{aligned}
 \end{aligned}`
 with various assumptions on the regularity of `f`.
 
-- local existence and uniqueness (already in mathlib)
-- global existence
-- fundamental solution
-- Peano existence result
-- Caratheodory existence result
+# Local existence and uniqueness
+
+{docstring IsPicardLindelof.exists_forall_mem_closedBall_eq_isIntegralCurveOn}
+
+{docstring IsIntegralCurveOn.eqOn_inter}
+
+## Uniformly locally Lipschitz maps
+
+We define functions `f : ℝ → E → E` that are locally uniformly Lipschitz.
+
+{docstring UniformlyLocallyLipschitzOn}
+{docstring UniformlyLocallyLipschitz}
+
+We prove that locally uniformly Lipschitz functions satisfy the Picard--Lindelöf conditions
+
+{docstring UniformlyLocallyLipschitzOn.isPicardLindelof}
+
+# Global existence
+
+# Peano existence
+
+# Caratheodory existence
+
+{docstring IsAEIntegralCurve}

@@ -14,8 +14,6 @@ set_option linter.hashCommand false
 
 #doc (Manual) "Stability" =>
 
-# Basic stability
-
 We start by introducing the most basic notions of stability and how to use them in Lean.
 This will include Lyapunov stability and asymptotic stability. We will illustrate how to
 employ LaSalle's invariance principle to prove asymptotic stability even if the Lyapunov
@@ -32,7 +30,7 @@ variable {Φ : ℝ → E → E} {x₀ : E} {s : Set E}
 Throughout this document, we will assume that `E` is a normed space over `ℝ`.
 
 
-## Lyapunov stability
+# Lyapunov stability
 Consider a dynamical system $`\dot{x} = f(x)` a subset $`s` is called stable if all trajectories
 that are close to $`s` stay close to $`s`. This condition can be naturally phrased in terms of
 {lean}`Filter`:
@@ -61,7 +59,7 @@ example (hs : IsCompact s) (hs' : s.Nonempty) :
   simp [Metric.mem_thickening_iff_infDist_lt hs']
 ```
 
-## Asymptotic stability
+# Asymptotic stability
 Global asymptotic stability requires that an equilibrium point is Lyapunov stable and all
 trajectories converge to the equilibrium point. In Lean, we are not defining a predicate for this,
 so to state that a point is asymptotic stable, one simply writes that it is stable and all
@@ -81,7 +79,7 @@ means that the flow of points close to the set converge to the set:
 
 {docstring Filter.IsAttractive}
 
-## Lyapunov functions
+# Lyapunov functions
 The most common way to prove stability of equilibrium points (or limit cycles) is to employ
 _Lyapunov's direct method_, also known as the method of Lyapunov functions. A Lyapunov function
 is a continuous function that is
@@ -108,7 +106,7 @@ Lyapunov's theorem can be stated as
 {docstring IsLyapunov.isStableOn_nhdsSet}
 {docstring IsLyapunov.isStableOn_nhds}
 
-## LaSalle's invariance principle
+# LaSalle's invariance principle
 
 In order to prove asymptotic stability, one either needs to invoke a variant Lyapunov's theorem
 with the stronger assumption that the Lyapunov function is strictly decreasing along the flow or
@@ -135,7 +133,7 @@ decreasing along the flow:
 {docstring IsLyapunov.tendsto_nhdsSet_of_hasDerivAt_neg}
 {docstring IsLyapunov.tendsto_nhds_of_hasDerivAt_neg}
 
-## A trivial example
+# The exponential contraction flow in 1-d
 
 We consider the flow of the vector field $`f : ℝ → ℝ` given by
 $$`f(x) = r x` for some fixed $`r : ℝ`.
