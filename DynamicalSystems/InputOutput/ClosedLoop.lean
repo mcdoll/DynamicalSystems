@@ -21,6 +21,8 @@ section SetRel
 
 variable {α β : Type*}
 
+/-- A set relation `R` is a graph of a function if for every `a` there exists a unique `b` such that
+`(a, b) ∈ R`. -/
 def SetRel.IsGraph (R : SetRel α β) : Prop :=
   ∀ a, ∃! b, (a, b) ∈ R
 
@@ -42,20 +44,18 @@ end SetRel
 
 variable [NormedAddCommGroup E] [NormedAddCommGroup F]
 
-variable {f : (α → E) → α → F} {g : (α → F) → α → E}
-
 variable (α E F) in
 /-- A closed loop defined via relations. -/
-structure closedLoopRel where
+structure SetRel.closedLoop where
   /-- foo -/
   topRel : SetRel (α → E) (α → F)
   /-- bar -/
   botRel : SetRel (α → F) (α → E)
 
-namespace closedLoopRel
+namespace SetRel.closedLoop
 
 /-- The relation from inputs to outputs -/
-def inputOutputRel (loop : closedLoopRel α E F) : SetRel (α → E × F) (α → F × E) :=
+protected def inputOutput (loop : SetRel.closedLoop α E F) : SetRel (α → E × F) (α → F × E) :=
   {f | (Prod.fst ∘ f.1 - Prod.snd ∘ f.2, Prod.fst ∘ f.2) ∈ loop.topRel ∧
     (Prod.snd ∘ f.1 + Prod.fst ∘ f.2, Prod.snd ∘ f.2) ∈ loop.botRel }
 
@@ -64,38 +64,34 @@ def inputOutputRel (loop : closedLoopRel α E F) : SetRel (α → E × F) (α �
 This relation is given in terms of the functions `G₁, G₂` by
 `u₂ - e₂ = G₁(u₁)` and `e₁ - u₁ = G₂(u₂)`
 -/
-def inputStateRel (loop : closedLoopRel α E F) : SetRel (α → E × F) (α → E × F) :=
+protected def inputState (loop : SetRel.closedLoop α E F) : SetRel (α → E × F) (α → E × F) :=
   {f | (Prod.fst ∘ f.2, Prod.snd ∘ f.2 - Prod.snd ∘ f.1) ∈ loop.topRel ∧
     (Prod.snd ∘ f.2, Prod.fst ∘ f.1 - Prod.fst ∘ f.2) ∈ loop.botRel }
 
-variable {p : ℝ≥0∞} {loop : closedLoopRel α E F}
+variable {p : ℝ≥0∞} {loop : SetRel.closedLoop α E F}
 variable {e : α → E × F} {u : α → E × F} {y : α → F × E} {y₁ : α → F} {y₂ : α → E}
 
-@[simp]
-theorem mem_inputOutputRel : (e, y) ∈ loop.inputOutputRel ↔
+theorem mem_inputOutput : (e, y) ∈ loop.inputOutput ↔
     (Prod.fst ∘ e - Prod.snd ∘ y, Prod.fst ∘ y) ∈ loop.topRel ∧
     (Prod.snd ∘ e + Prod.fst ∘ y, Prod.snd ∘ y) ∈ loop.botRel := by rfl
 
-@[simp]
-theorem mem_inputStateRel : (e, u) ∈ loop.inputStateRel ↔
+theorem mem_inputState : (e, u) ∈ loop.inputState ↔
     (Prod.fst ∘ u, Prod.snd ∘ u - Prod.snd ∘ e) ∈ loop.topRel ∧
     (Prod.snd ∘ u, Prod.fst ∘ e - Prod.fst ∘ u) ∈ loop.botRel := by rfl
 
-theorem blubb (h : (e, y) ∈ loop.inputOutputRel) :
-    (e, e - (fun x ↦ (x.2, -x.1)) ∘ y) ∈ loop.inputStateRel := by
-  --simp only [mem_inputStateRel, mem_inputOutputRel] at h ⊢
+theorem mem_inputState_of_mem_inputOutput (h : (e, y) ∈ loop.inputOutput) :
+    (e, e - (fun x ↦ (x.2, -x.1)) ∘ y) ∈ loop.inputState := by
   constructor
   · convert h.1 using 2
     all_goals { ext; simp }
   · convert h.2 using 2
     all_goals { ext; simp }
 
-theorem blubb' (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
-    (h : (e, u) ∈ loop.inputStateRel)
+theorem mem_inputOutput_of_mem_inputState (h : (e, u) ∈ loop.inputState)
+    (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
     (h_top : (Prod.fst ∘ u, Prod.fst ∘ y) ∈ loop.topRel)
     (h_bot : (Prod.snd ∘ u, Prod.snd ∘ y) ∈ loop.botRel) :
-    (e, y) ∈ loop.inputOutputRel := by
-  --simp only [mem_inputStateRel, mem_inputOutputRel] at h ⊢
+    (e, y) ∈ loop.inputOutput := by
   constructor
   · convert h_top using 2
     rw [sub_eq_iff_comm]
@@ -106,21 +102,21 @@ theorem blubb' (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
 
 theorem blubb'' {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
     {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
-    (h : (e, u) ∈ loop.inputStateRel) :
+    (h : (e, u) ∈ loop.inputState) :
     u = e - (fun x : α ↦ (G₂ (Prod.snd ∘ u) x, -G₁ (Prod.fst ∘ u) x)) := by
-  simp only [mem_inputStateRel, ← hG₂, ← hG₁, Function.mem_graph] at h
+  simp only [mem_inputState, ← hG₂, ← hG₁, Function.mem_graph] at h
   ext x
   · simp [h.2]
   · simp [h.1]
-
 
 variable [MeasurableSpace α] {μ : Measure α}
 
 /-- If the map from inputs to outputs is `Lp` stable, then the map from inputs to states is also
 `Lp` stable. -/
-theorem foo (h : loop.inputStateRel.IsLpStable p μ) : loop.inputOutputRel.IsLpStable p μ := by
+theorem isLpStable_inputOutput (h : loop.inputState.IsLpStable p μ) :
+    loop.inputOutput.IsLpStable p μ := by
   refine ⟨fun e he y hy ↦ ?_⟩
-  have := (h.memLp he _ (blubb hy)).sub he
+  have := (h.memLp he _ (mem_inputState_of_mem_inputOutput hy)).sub he
   simp only [sub_sub_cancel_left] at this
   rw [memLp_prod_iff] at this ⊢
   simp only [Pi.neg_apply, Function.comp_apply, Prod.neg_mk, neg_neg] at this
@@ -130,20 +126,20 @@ theorem foo (h : loop.inputStateRel.IsLpStable p μ) : loop.inputOutputRel.IsLpS
 
 /-- If the map from inputs to states is `Lp` stable, then the map from inputs to outputs is also
 `Lp` stable provided that the inner relations are graphs. -/
-theorem foo' (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
-    (h : loop.inputOutputRel.IsLpStable p μ) : loop.inputStateRel.IsLpStable p μ := by
+theorem isLpStable_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h : loop.inputOutput.IsLpStable p μ) : loop.inputState.IsLpStable p μ := by
   refine ⟨fun e he u hu ↦ ?_⟩
   obtain ⟨G₁, hG₁⟩ := h_topRel.exists_graph_eq
   obtain ⟨G₂, hG₂⟩ := h_botRel.exists_graph_eq
   let y x := (G₁ (Prod.fst ∘ u) x, G₂ (Prod.snd ∘ u) x)
-  have : (e, y) ∈ loop.inputOutputRel := by
-    apply blubb' h_topRel h_botRel hu
+  have : (e, y) ∈ loop.inputOutput := by
+    apply mem_inputOutput_of_mem_inputState hu h_topRel h_botRel
     · rw [← hG₁]
+      ext x
       simp [y]
-      rfl
     · rw [← hG₂]
+      ext x
       simp [y]
-      rfl
   have memLp' := h.memLp he y this
   rw [blubb'' hG₁ hG₂ hu]
   apply he.sub
@@ -160,10 +156,10 @@ variable {s : ι → Set α} {p : ℝ≥0∞}
 
 /-- Proposition 1.2.9 in van der Schaft -/
 theorem isCausal (h_topRel : loop.topRel.IsCausal s p μ) (h_botRel : loop.botRel.IsCausal s p μ) :
-    loop.inputOutputRel.IsCausal s p μ := by
+    loop.inputOutput.IsCausal s p μ := by
   constructor
   · intro e y hey he
-    simp only [mem_inputOutputRel] at hey
+    simp only [mem_inputOutput] at hey
     -- seems like we have to assume something here
     have := h_topRel.memLpLoc hey.1
     sorry
@@ -172,7 +168,7 @@ theorem isCausal (h_topRel : loop.topRel.IsCausal s p μ) (h_botRel : loop.botRe
     have hbot := h_botRel.causal t
     sorry
 
-end closedLoopRel
+end SetRel.closedLoop
 
 variable (f : α → E × F)
 
