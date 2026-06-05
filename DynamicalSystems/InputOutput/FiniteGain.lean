@@ -303,6 +303,57 @@ theorem isCausal
     · simp [hx]
 end wellPosedClosedLoop
 
+/-- A well-posed closed loop carrying an explicit finite-gain certificate for
+the closed-loop output map.
+
+This is a certified layer above `wellPosedClosedLoop`: it does not derive the
+small-gain theorem, uniqueness of internal signals, or component-gain closure. -/
+structure certifiedFiniteGainClosedLoop
+    (f₁ : (α → E) → α → F)
+    (f₂ : (α → F) → α → E)
+    (s : ι → Set α)
+    (p : ℝ≥0∞)
+    (μ : Measure α)
+    (k bias : ℝ≥0) where
+  toWellPosedClosedLoop : wellPosedClosedLoop f₁ f₂ s p μ
+  out_isFiniteGainStableWith :
+    (closedLoop.out toWellPosedClosedLoop.toClosedLoop).IsFiniteGainStableWith
+      k bias s p μ
+
+namespace certifiedFiniteGainClosedLoop
+
+variable {k bias : ℝ≥0}
+
+/-- The certified finite-gain layer still exposes closed-loop causality. -/
+theorem isCausal
+    (l : certifiedFiniteGainClosedLoop f₁ f₂ s p μ k bias)
+    (hs : ∀ t, MeasurableSet (s t))
+    (hf₁ : f₁.IsCausal s p μ)
+    (hf₂ : f₂.IsCausal s p μ) :
+    (closedLoop.out l.toWellPosedClosedLoop.toClosedLoop).IsCausal s p μ :=
+  wellPosedClosedLoop.isCausal l.toWellPosedClosedLoop hs hf₁ hf₂
+
+/-- The certified finite-gain layer exposes its supplied finite-gain certificate. -/
+theorem isFiniteGainStableWith
+    (l : certifiedFiniteGainClosedLoop f₁ f₂ s p μ k bias) :
+    (closedLoop.out l.toWellPosedClosedLoop.toClosedLoop).IsFiniteGainStableWith
+      k bias s p μ :=
+  l.out_isFiniteGainStableWith
+
+/-- Bundled causal and finite-gain facts for the certified closed-loop output. -/
+theorem isCausal_and_isFiniteGainStableWith
+    (l : certifiedFiniteGainClosedLoop f₁ f₂ s p μ k bias)
+    (hs : ∀ t, MeasurableSet (s t))
+    (hf₁ : f₁.IsCausal s p μ)
+    (hf₂ : f₂.IsCausal s p μ) :
+    (closedLoop.out l.toWellPosedClosedLoop.toClosedLoop).IsCausal s p μ ∧
+      (closedLoop.out l.toWellPosedClosedLoop.toClosedLoop).IsFiniteGainStableWith
+        k bias s p μ :=
+  ⟨l.isCausal hs hf₁ hf₂, l.isFiniteGainStableWith⟩
+
+end certifiedFiniteGainClosedLoop
+
+
 theorem closedLoop.isCausal (l : closedLoop f₁ f₂ p μ) (hf₁ : f₁.IsCausal s p μ)
   (hf₂ : f₂.IsCausal s p μ) :
     (closedLoop.out l).IsCausal s p μ := by
