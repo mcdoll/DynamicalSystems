@@ -1254,3 +1254,105 @@ theorem isFiniteGainStable
     l.internal_signal_to_external_eLpNorm_bound
 
 end certifiedSmallGainClosedLoop
+
+/-- Direct closed-loop finite-gain theorem using the contractive small-gain
+solver, without requiring the `certifiedSmallGainClosedLoop` convenience wrapper.
+
+The boundedness hypothesis turns `MemLpLoc` into the `MemLp` finiteness witnesses
+required by the raw ENNReal solver on each restricted set `s t`. -/
+theorem closedLoop.isFiniteGainStable_from_contract_solver_direct
+    {ι : Type u_1}
+    {α : Type u_2}
+    {E : Type u_5}
+    {F : Type u_8}
+    {m : MeasurableSpace α}
+    [NormedAddCommGroup E]
+    [NormedAddCommGroup F]
+    [Bornology α]
+    {β₁ β₂ k₁ k₂ : NNReal}
+    {f₁ : (α → E) → α → F}
+    {f₂ : (α → F) → α → E}
+    {s : ι → Set α}
+    {p : ENNReal}
+    {μ : Measure α}
+    (l : closedLoop f₁ f₂ p μ)
+    (hs : ∀ t, MeasurableSet (s t))
+    (hs_bounded : ∀ t, Bornology.IsBounded (s t))
+    (he₁ :
+      (fun u : α → E × F =>
+        l.e₁ (Prod.fst ∘ u) (Prod.snd ∘ u)).IsCausal s p μ)
+    (he₂ :
+      (fun u : α → E × F =>
+        l.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u)).IsCausal s p μ)
+    (hf₁_causal : f₁.IsCausal s p μ)
+    (hf₂_causal : f₂.IsCausal s p μ)
+    (hf₁ : f₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+    (hf₂ : f₂.IsFiniteGainStableWith k₂ β₂ s p μ)
+    (hout₁ :
+      ∀ t (u : α → E × F),
+        AEStronglyMeasurable
+          ((fun x => ((closedLoop.out l u x).1, (0 : E))) : α → F × E)
+          (μ.restrict (s t)))
+    (hout₂ :
+      ∀ t (u : α → E × F),
+        AEStronglyMeasurable
+          ((fun x => ((0 : F), (closedLoop.out l u x).2)) : α → F × E)
+          (μ.restrict (s t)))
+    (hu₁_aestronglyMeasurable :
+      ∀ t (u : α → E × F), MemLpLoc u p μ →
+        AEStronglyMeasurable (Prod.fst ∘ u) (μ.restrict (s t)))
+    (hu₂_aestronglyMeasurable :
+      ∀ t (u : α → E × F), MemLpLoc u p μ →
+        AEStronglyMeasurable (Prod.snd ∘ u) (μ.restrict (s t)))
+    (hf₁_e₁_aestronglyMeasurable :
+      ∀ t (u : α → E × F), MemLpLoc u p μ →
+        AEStronglyMeasurable
+          (f₁ (l.e₁ (Prod.fst ∘ u) (Prod.snd ∘ u)))
+          (μ.restrict (s t)))
+    (hf₂_e₂_aestronglyMeasurable :
+      ∀ t (u : α → E × F), MemLpLoc u p μ →
+        AEStronglyMeasurable
+          (f₂ (l.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u)))
+          (μ.restrict (s t)))
+    (hp : 1 ≤ p)
+    (h_small : SmallGainCondition k₁ k₂) :
+    (closedLoop.out l).IsFiniteGainStableWith
+      (closedLoopGain k₁ k₂ β₁ β₂)
+      (closedLoopBias k₁ k₂ β₁ β₂) s p μ :=
+  closedLoop.isFiniteGainStable l
+    hs he₁ he₂ hf₁_causal hf₂_causal hf₁ hf₂ hout₁ hout₂ hp h_small
+    (fun t u hu =>
+      have hu_components :
+          MemLpLoc (Prod.fst ∘ u) p μ ∧
+          MemLpLoc (Prod.snd ∘ u) p μ := by
+        simpa [memLpLoc_prod_iff] using hu
+      have hinternal :=
+        l.memLpLoc (Prod.fst ∘ u) (Prod.snd ∘ u) hu_components
+      contractive_ennreal_small_gain_solver
+        (E₁ := eLpNorm (l.e₁ (Prod.fst ∘ u) (Prod.snd ∘ u))
+          p (μ.restrict (s t)))
+        (E₂ := eLpNorm (l.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u))
+          p (μ.restrict (s t)))
+        (U₁ := eLpNorm (Prod.fst ∘ u) p (μ.restrict (s t)))
+        (U₂ := eLpNorm (Prod.snd ∘ u) p (μ.restrict (s t)))
+        (U := eLpNorm u p (μ.restrict (s t)))
+        (k₁ := k₁)
+        (k₂ := k₂)
+        (β₁ := β₁)
+        (β₂ := β₂)
+        h_small
+        (l.internal_e₁_bound_from_loop
+          t u hu
+          (hu₁_aestronglyMeasurable t u hu)
+          (hf₂_e₂_aestronglyMeasurable t u hu)
+          hp hf₂)
+        (l.internal_e₂_bound_from_loop
+          t u hu
+          (hu₂_aestronglyMeasurable t u hu)
+          (hf₁_e₁_aestronglyMeasurable t u hu)
+          hp hf₁)
+        (eLpNorm_mono (fun x => norm_fst_le (u x)))
+        (eLpNorm_mono (fun x => norm_snd_le (u x)))
+        ((hinternal.1 (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top)
+        ((hinternal.2 (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top)
+        ((hu (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top))
