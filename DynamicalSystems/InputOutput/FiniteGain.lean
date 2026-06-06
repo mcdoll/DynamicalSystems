@@ -1357,6 +1357,37 @@ theorem closedLoop.isFiniteGainStable_from_contract_solver_direct
         ((hinternal.2 (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top)
         ((hu (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top))
 
+/-- Conditional uniqueness surface for internal closed-loop signals.
+
+This does not assert that closed-loop internal equations are uniquely solvable.
+It isolates the exact missing hypothesis: for every external input `u`, the
+chosen internal equation has a unique solution. -/
+theorem closedLoop.internalSignals_unique_of_unique_internal_equation
+    {α : Type u_2}
+    {E : Type u_5}
+    {F : Type u_8}
+    {_m : MeasurableSpace α}
+    [NormedAddCommGroup E]
+    [NormedAddCommGroup F]
+    [Bornology α]
+    {p : ENNReal}
+    {μ : Measure α}
+    {f₁ : (α → E) → α → F}
+    {f₂ : (α → F) → α → E}
+    (_l : closedLoop f₁ f₂ p μ)
+    (ClosedLoopInternalEquation :
+      (α → E × F) → ((α → F) × (α → E)) → Prop)
+    (hunique :
+      ∀ u, ∃! z : (α → F) × (α → E),
+        ClosedLoopInternalEquation u z)
+    (u : α → E × F)
+    {z z' : (α → F) × (α → E)}
+    (hz : ClosedLoopInternalEquation u z)
+    (hz' : ClosedLoopInternalEquation u z') :
+    z = z' := by
+  obtain ⟨_, _, huniq⟩ := hunique u
+  exact (huniq z hz).trans ((huniq z' hz').symm)
+
 /-- Sharper direct closed-loop finite-gain theorem: derives the four internal
 AEStronglyMeasurable witnesses from `MemLpLoc`, component finite-gain stability,
 and bounded local windows. -/
