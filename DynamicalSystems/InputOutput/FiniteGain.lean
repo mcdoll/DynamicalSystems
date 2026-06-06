@@ -1356,3 +1356,81 @@ theorem closedLoop.isFiniteGainStable_from_contract_solver_direct
         ((hinternal.1 (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top)
         ((hinternal.2 (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top)
         ((hu (s t) ⟨hs t, hs_bounded t⟩).eLpNorm_ne_top))
+
+/-- Sharper direct closed-loop finite-gain theorem: derives the four internal
+AEStronglyMeasurable witnesses from `MemLpLoc`, component finite-gain stability,
+and bounded local windows. -/
+theorem closedLoop.isFiniteGainStable_from_contract_solver_direct_derived_meas
+    {ι : Type u_1}
+    {α : Type u_2}
+    {E : Type u_5}
+    {F : Type u_8}
+    {m : MeasurableSpace α}
+    [NormedAddCommGroup E]
+    [NormedAddCommGroup F]
+    [Bornology α]
+    {β₁ β₂ k₁ k₂ : NNReal}
+    {f₁ : (α → E) → α → F}
+    {f₂ : (α → F) → α → E}
+    {s : ι → Set α}
+    {p : ENNReal}
+    {μ : Measure α}
+    (l : closedLoop f₁ f₂ p μ)
+    (hs : ∀ t, MeasurableSet (s t))
+    (hs_bounded : ∀ t, Bornology.IsBounded (s t))
+    (he₁ :
+      (fun u : α → E × F =>
+        l.e₁ (Prod.fst ∘ u) (Prod.snd ∘ u)).IsCausal s p μ)
+    (he₂ :
+      (fun u : α → E × F =>
+        l.e₂ (Prod.fst ∘ u) (Prod.snd ∘ u)).IsCausal s p μ)
+    (hf₁_causal : f₁.IsCausal s p μ)
+    (hf₂_causal : f₂.IsCausal s p μ)
+    (hf₁ : f₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+    (hf₂ : f₂.IsFiniteGainStableWith k₂ β₂ s p μ)
+    (hout₁ :
+      ∀ t (u : α → E × F),
+        AEStronglyMeasurable
+          ((fun x => ((closedLoop.out l u x).1, (0 : E))) : α → F × E)
+          (μ.restrict (s t)))
+    (hout₂ :
+      ∀ t (u : α → E × F),
+        AEStronglyMeasurable
+          ((fun x => ((0 : F), (closedLoop.out l u x).2)) : α → F × E)
+          (μ.restrict (s t)))
+    (hp : 1 ≤ p)
+    (h_small : SmallGainCondition k₁ k₂) :
+    (closedLoop.out l).IsFiniteGainStableWith
+      (closedLoopGain k₁ k₂ β₁ β₂)
+      (closedLoopBias k₁ k₂ β₁ β₂) s p μ :=
+  closedLoop.isFiniteGainStable_from_contract_solver_direct l
+    hs hs_bounded he₁ he₂ hf₁_causal hf₂_causal hf₁ hf₂ hout₁ hout₂
+    (fun t u hu => by
+      have hu_components :
+          MemLpLoc (Prod.fst ∘ u) p μ ∧
+          MemLpLoc (Prod.snd ∘ u) p μ := by
+        simpa [memLpLoc_prod_iff] using hu
+      exact (hu_components.1 (s t) ⟨hs t, hs_bounded t⟩).aestronglyMeasurable)
+    (fun t u hu => by
+      have hu_components :
+          MemLpLoc (Prod.fst ∘ u) p μ ∧
+          MemLpLoc (Prod.snd ∘ u) p μ := by
+        simpa [memLpLoc_prod_iff] using hu
+      exact (hu_components.2 (s t) ⟨hs t, hs_bounded t⟩).aestronglyMeasurable)
+    (fun t u hu => by
+      have hu_components :
+          MemLpLoc (Prod.fst ∘ u) p μ ∧
+          MemLpLoc (Prod.snd ∘ u) p μ := by
+        simpa [memLpLoc_prod_iff] using hu
+      have hinternal :=
+        l.memLpLoc (Prod.fst ∘ u) (Prod.snd ∘ u) hu_components
+      exact ((hf₁.memLpLoc hinternal.1) (s t) ⟨hs t, hs_bounded t⟩).aestronglyMeasurable)
+    (fun t u hu => by
+      have hu_components :
+          MemLpLoc (Prod.fst ∘ u) p μ ∧
+          MemLpLoc (Prod.snd ∘ u) p μ := by
+        simpa [memLpLoc_prod_iff] using hu
+      have hinternal :=
+        l.memLpLoc (Prod.fst ∘ u) (Prod.snd ∘ u) hu_components
+      exact ((hf₂.memLpLoc hinternal.2) (s t) ⟨hs t, hs_bounded t⟩).aestronglyMeasurable)
+    hp h_small
