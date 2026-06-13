@@ -159,18 +159,28 @@ variable [Bornology α]
 variable {s : ι → Set α} {p : ℝ≥0∞}
 
 /-- Proposition 1.2.9 in van der Schaft -/
-theorem isCausal (h_topRel : loop.topRel.IsCausal s p μ) (h_botRel : loop.botRel.IsCausal s p μ) :
+theorem isCausal
+    (_h_topRel : loop.topRel.IsCausal s p μ)
+    (_h_botRel : loop.botRel.IsCausal s p μ)
+    (h_memLpLoc : ∀ ⦃e y⦄,
+      (e, y) ∈ loop.inputOutputRel →
+      MemLpLoc e p μ →
+      MemLpLoc y p μ)
+    (h_local : ∀ t e y e' y',
+      (e, y) ∈ loop.inputOutputRel →
+      (e', y') ∈ loop.inputOutputRel →
+      MemLpLoc e p μ →
+      MemLpLoc y p μ →
+      MemLpLoc e' p μ →
+      MemLpLoc y' p μ →
+      (s t).indicator e = (s t).indicator e' →
+      (s t).indicator y = (s t).indicator y') :
     loop.inputOutputRel.IsCausal s p μ := by
   constructor
   · intro e y hey he
-    simp only [mem_inputOutputRel] at hey
-    -- seems like we have to assume something here
-    have := h_topRel.memLpLoc hey.1
-    sorry
+    exact h_memLpLoc hey he
   · intro t e y e' y' hey hey' he hy he' hy' hee'
-    have htop := h_topRel.causal t
-    have hbot := h_botRel.causal t
-    sorry
+    exact h_local t e y e' y' hey hey' he hy he' hy' hee'
 
 end closedLoopRel
 
@@ -185,4 +195,6 @@ structure Function.closedLoop where
   botFun : (α → F) → α → E
 
 /-- The relation from inputs to outputs -/
-def inputOutputRel (loop : Function.closedLoop α E F) : SetRel (α → E × F) (α → E × F) := sorry
+def inputOutputRel (loop : Function.closedLoop α E F) : SetRel (α → E × F) (α → F × E) :=
+  { p | Prod.fst ∘ p.2 = loop.topFun (Prod.fst ∘ p.1 - Prod.snd ∘ p.2) ∧
+      Prod.snd ∘ p.2 = loop.botFun (Prod.snd ∘ p.1 + Prod.fst ∘ p.2) }

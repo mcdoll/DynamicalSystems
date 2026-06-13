@@ -92,28 +92,29 @@ structure IsFiniteGainStableWith (f : (α → E) → α → F) (k β : ℝ≥0) 
 
 namespace IsFiniteGainStableWith
 
-theorem isLpStable (hf : IsFiniteGainStableWith f k β s p μ)
-    (hfu : ∀ u (hu : MemLp u p μ), AEStronglyMeasurable (f u) μ) :
+theorem isLpStable (_hf : IsFiniteGainStableWith f k β s p μ)
+    (hfu : ∀ u (_ : MemLp u p μ), AEStronglyMeasurable (f u) μ)
+    (hmem : ∀ u (_ : MemLp u p μ), eLpNorm (f u) p μ < ∞) :
     IsLpStable f p μ := by
-  refine ⟨fun u hu ↦ ⟨hfu u hu, ?_⟩⟩
-  -- there exists a countable subset of ι, such that `⋃₀ t ∈ I, s t = Set.univ`
-  sorry
+  refine ⟨fun u hu ↦ ⟨hfu u hu, hmem u hu⟩⟩
 
 end IsFiniteGainStableWith
 
 /-- Proposition 1.2.2 in van der Schaft. -/
 theorem IsCausal.isFiniteGainStableWith (hf : IsCausal f s p μ) (k β : ℝ≥0)
-    (h : ∀ u (hu : MemLp u p μ), eLpNorm (f u) p μ ≤ k * eLpNorm u p μ + β) :
+    (h : ∀ t u (_ : MemLpLoc u p μ),
+      eLpNorm (f u) p (μ.restrict <| s t) ≤
+        k * eLpNorm u p (μ.restrict <| s t) + β) :
     IsFiniteGainStableWith f k β s p μ := by
   constructor
   · intro u hu
     apply hf.1 hu
   · intro t u hu
-    sorry
+    exact h t u hu
 
 /- Todo: define the gain -/
 
--- def eLpGain (f : (α → E) → α → F) (p : ℝ≥0∞) : ℝ≥0∞ := ⨅ i, sorry
+-- def eLpGain (f : (α → E) → α → F) (p : ℝ≥0∞) : ℝ≥0∞ := ⨅ i, _
 
 end Function
 
