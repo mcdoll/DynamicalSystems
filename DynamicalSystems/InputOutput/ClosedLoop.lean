@@ -109,6 +109,36 @@ theorem blubb'' {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = 
   · simp [h.2]
   · simp [h.1]
 
+theorem blubb₁ {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
+    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+    {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F}
+    (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) :
+    u₁ = e₁ - G₂ u₂ := by
+  have := blubb'' hG₁ hG₂ h
+  ext x
+  simp [funext_iff] at this
+  simp [(this x).1]
+  congr
+
+theorem blubb₂ {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
+    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+    {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F}
+    (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) :
+    u₂ = e₂ + G₁ u₁ := by
+  have := blubb'' hG₁ hG₂ h
+  ext x
+  simp [funext_iff] at this
+  simp [(this x).2]
+  congr
+
+theorem isGraph_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h : loop.inputState.IsGraph) : loop.inputOutput.IsGraph := by
+  sorry
+
+theorem isGraph_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h : loop.inputOutput.IsGraph) : loop.inputState.IsGraph := by
+  sorry
+
 variable [MeasurableSpace α] {μ : Measure α}
 
 /-- If the map from inputs to outputs is `Lp` stable, then the map from inputs to states is also
@@ -155,18 +185,218 @@ variable [Bornology α]
 variable {s : ι → Set α} {p : ℝ≥0∞}
 
 /-- Proposition 1.2.9 in van der Schaft -/
-theorem isCausal (h_topRel : loop.topRel.IsCausal s p μ) (h_botRel : loop.botRel.IsCausal s p μ) :
+theorem isCausal_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h_topRel' : loop.topRel.IsCausal s p μ) (h_botRel' : loop.botRel.IsCausal s p μ)
+    (h : loop.inputState.IsGraph) :
+    loop.inputState.IsCausal s p μ := by
+  /-
+  informal proof:
+  have : (G₁ uₜ)ₜ = (G₁ u)ₜ
+  have : (G₂ uₜ)ₜ = (G₂ u)ₜ
+
+  inputState has graph given by (e, u + FG u)
+  Let e arbitrary, then there exists a unique u satisfying `G e = u`
+  Take `eₜ`, again there exists a unique `uᵗ`, have to show that `(uᵗ)ₜ = uₜ`, because then
+  `(G eₜ)ₜ = (uᵗ)ₜ = uₜ = (G e)ₜ`.
+
+  The rest follows if we assume that the *truncated* feedback connection is well-posed:
+  `(eₜ, uᵗ)` satisfies `(eₜ, uᵗ + FG uᵗ) ∈ inputState`
+  We have that `(u + FG u)ₜ = (uₜ + (FG uₜ)ₜ)`
+  -/
+  constructor
+  · intro e y hey he
+    simp only [mem_inputState] at hey
+    -- seems like we have to assume something here
+    have := h_topRel'.memLpLoc hey.1
+    sorry
+  · intro t e y e' y' hey hey' he hy he' hy' hee'
+    have htop := h_topRel'.causal t
+    have hbot := h_botRel'.causal t
+    sorry
+
+/-- Proposition 1.2.9 in van der Schaft -/
+theorem isCausal_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h_topRel' : loop.topRel.IsCausal s p μ) (h_botRel' : loop.botRel.IsCausal s p μ)
+    (h : loop.inputOutput.IsGraph) :
     loop.inputOutput.IsCausal s p μ := by
   constructor
   · intro e y hey he
     simp only [mem_inputOutput] at hey
     -- seems like we have to assume something here
-    have := h_topRel.memLpLoc hey.1
+    have := h_topRel'.memLpLoc hey.1
     sorry
   · intro t e y e' y' hey hey' he hy he' hy' hee'
-    have htop := h_topRel.causal t
-    have hbot := h_botRel.causal t
+    have htop := h_topRel'.causal t
+    have hbot := h_botRel'.causal t
     sorry
+
+variable {k₁ k₂ β₁ β₂ : ℝ≥0}
+
+noncomputable def loopGain (k₁ k₂ : ℝ≥0) : ℝ≥0 := (k₁ + k₂ + 2 * k₁ * k₂) / (1 - k₁ * k₂)
+
+noncomputable def loopBias (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 :=
+  (β₁ + k₁ * β₂ + β₂ + k₂ * β₁) / (1 - k₁ * k₂)
+
+theorem smallGainsThm_part1₁
+    {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
+    {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
+    (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hp : 1 ≤ p)
+    {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F} (hu₂ : MemLpLoc u₂ p μ)
+    (he₁ : MemLpLoc e₁ p μ)
+    (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) {t : ι}
+    (ht : MeasurableSet (s t) ∧ IsBounded (s t)) :
+    eLpNorm u₁ p (μ.restrict (s t)) ≤
+      eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm u₂ p (μ.restrict (s t)) + β₂ := by
+  calc
+    _ = eLpNorm (e₁ - G₂ u₂) p (μ.restrict (s t)) := by
+      rw [blubb₁ hG₁ hG₂ h]
+    _ ≤ eLpNorm e₁ p (μ.restrict (s t)) + eLpNorm (G₂ u₂) p (μ.restrict (s t)) := by
+      apply MeasureTheory.eLpNorm_sub_le
+      · apply (he₁ (s t) ht).aestronglyMeasurable
+      · apply (hG₂'.memLpLoc hu₂ (s t) ht).aestronglyMeasurable
+      · exact hp
+    _ ≤ _ := by
+      rw [add_assoc]
+      gcongr
+      apply hG₂'.stableWith _ _ hu₂
+
+theorem smallGainsThm_part1₂
+    {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
+    (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+    {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel) (hp : 1 ≤ p)
+    {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F}
+    (hu₁ : MemLpLoc u₁ p μ) (he₂ : MemLpLoc e₂ p μ)
+    (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) {t : ι}
+    (ht : MeasurableSet (s t) ∧ IsBounded (s t)) :
+    eLpNorm u₂ p (μ.restrict (s t)) ≤
+      eLpNorm e₂ p (μ.restrict (s t)) + k₁ * eLpNorm u₁ p (μ.restrict (s t)) + β₁ := by
+  calc
+    _ = eLpNorm (e₂ + G₁ u₁) p (μ.restrict (s t)) := by
+      rw [blubb₂ hG₁ hG₂ h]
+    _ ≤ eLpNorm e₂ p (μ.restrict (s t)) + eLpNorm (G₁ u₁) p (μ.restrict (s t)) := by
+      apply MeasureTheory.eLpNorm_add_le
+      · apply (he₂ (s t) ht).aestronglyMeasurable
+      · apply (hG₁'.memLpLoc hu₁ (s t) ht).aestronglyMeasurable
+      · exact hp
+    _ ≤ _ := by
+      rw [add_assoc]
+      gcongr
+      apply hG₁'.stableWith _ _ hu₁
+
+theorem smallGainsThm_part2₁
+    {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
+    (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+    {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
+    (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hp : 1 ≤ p) (hk : k₁ * k₂ < 1)
+    {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F}
+    (hu₁ : MemLpLoc u₁ p μ) (hu₂ : MemLpLoc u₂ p μ) (he₁ : MemLpLoc e₁ p μ) (he₂ : MemLpLoc e₂ p μ)
+    (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) {t : ι}
+    (ht : MeasurableSet (s t) ∧ IsBounded (s t)) :
+    eLpNorm u₁ p (μ.restrict (s t)) ≤
+      (eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm e₂ p (μ.restrict (s t)) + β₂ + k₂ * β₁) /
+      (1 - k₁ * k₂) := by
+  have hk' : 0 < 1 - k₁ * k₂ := by simp [hk]
+  norm_cast
+  nth_rw 1 [ENNReal.le_div_iff_mul_le ?_ (by simp)]; swap
+  · left
+    rw [ENNReal.coe_ne_zero]
+    apply hk'.ne'
+  simp only [ENNReal.coe_sub, ENNReal.coe_one, ENNReal.coe_mul]
+  rw [ENNReal.mul_sub (fun _ _ ↦ (hu₁ (s t) ht).eLpNorm_ne_top)]
+  simp only [mul_one, tsub_le_iff_right]
+  calc
+    _ ≤ eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm u₂ p (μ.restrict (s t)) + β₂ := by
+      exact smallGainsThm_part1₁ hG₁ hG₂ hG₂' hp hu₂ he₁ h ht
+    _ ≤ _ := by
+      grw [smallGainsThm_part1₂ hG₁ hG₁' hG₂ hp hu₁ he₂ h ht]
+      ring_nf
+      gcongr
+
+theorem smallGainsThm_part2₂
+    {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
+    (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+    {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
+    (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hp : 1 ≤ p) (hk : k₁ * k₂ < 1)
+    {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F}
+    (hu₁ : MemLpLoc u₁ p μ) (hu₂ : MemLpLoc u₂ p μ) (he₁ : MemLpLoc e₁ p μ) (he₂ : MemLpLoc e₂ p μ)
+    (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) {t : ι}
+    (ht : MeasurableSet (s t) ∧ IsBounded (s t)) :
+    eLpNorm u₂ p (μ.restrict (s t)) ≤
+      (eLpNorm e₂ p (μ.restrict (s t)) + k₁ * eLpNorm e₁ p (μ.restrict (s t)) + β₁ + k₁ * β₂) /
+      (1 - k₁ * k₂) := by
+  have hk' : 0 < 1 - k₁ * k₂ := by simp [hk]
+  norm_cast
+  nth_rw 1 [ENNReal.le_div_iff_mul_le ?_ (by simp)]; swap
+  · left
+    rw [ENNReal.coe_ne_zero]
+    apply hk'.ne'
+  simp only [ENNReal.coe_sub, ENNReal.coe_one, ENNReal.coe_mul]
+  rw [ENNReal.mul_sub (fun _ _ ↦ (hu₂ (s t) ht).eLpNorm_ne_top)]
+  simp only [mul_one, tsub_le_iff_right]
+  calc
+    _ ≤ eLpNorm e₂ p (μ.restrict (s t)) + k₁ * eLpNorm u₁ p (μ.restrict (s t)) + β₁ := by
+      exact smallGainsThm_part1₂ hG₁ hG₁' hG₂ hp hu₁ he₂ h ht
+    _ ≤ _ := by
+      grw [smallGainsThm_part1₁ hG₁ hG₂ hG₂' hp hu₂ he₁ h ht]
+      ring_nf
+      gcongr
+
+theorem smallGainsThm
+    {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
+    (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+    {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
+    (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hp : 1 ≤ p) (hk : k₁ * k₂ < 1)
+    (ht : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t)) :
+    loop.inputState.IsFiniteGainStableWith (loopGain k₁ k₂) (loopBias k₁ k₂ β₁ β₂) s p μ := by
+  intro t e u he hu heu
+  rw [memLpLoc_prod_iff] at he hu
+  let u₁ t := (u t).1
+  have hu₁ : MemLpLoc u₁ p μ := hu.1
+  let u₂ t := (u t).2
+  have hu₂ : MemLpLoc u₂ p μ := hu.2
+  have hu' : u = fun t ↦ (u₁ t, u₂ t) := rfl
+  let e₁ t := (e t).1
+  have he₁ : MemLpLoc e₁ p μ := he.1
+  let e₂ t := (e t).2
+  have he₂ : MemLpLoc e₂ p μ := he.2
+  calc
+    _ = max (eLpNorm u₁ p (μ.restrict (s t))) (eLpNorm u₂ p (μ.restrict (s t))) := by
+      rw [hu']
+      --simp
+      sorry
+    _ ≤ max ((loopGain k₁ k₂) * eLpNorm e₁ p (μ.restrict (s t)) + (loopBias k₁ k₂ β₁ β₂))
+        ((loopGain k₁ k₂) * eLpNorm e₂ p (μ.restrict (s t)) + (loopBias k₁ k₂ β₁ β₂)) := by
+      gcongr
+      · grw [smallGainsThm_part2₁ hG₁ hG₁' hG₂ hG₂' hp hk hu₁ hu₂ he₁ he₂ sorry (ht t)]
+        sorry
+      · sorry
+    _ ≤ _ := by
+      sorry
+  /-obtain ⟨G₁, hG₁⟩ := h_topRel.exists_graph_eq
+  obtain ⟨G₂, hG₂⟩ := h_botRel.exists_graph_eq
+  have := blubb'' hG₁ hG₂ heu
+  calc
+    _ ≤ eLpNorm e p (μ.restrict (s t)) +
+        eLpNorm (fun x ↦ (G₂ (Prod.snd ∘ u) x, -G₁ (Prod.fst ∘ u) x)) p (μ.restrict (s t)) := by
+      nth_rw 1 [this]
+      grw [MeasureTheory.eLpNorm_sub_le]
+      · sorry
+      · sorry
+      · exact hp
+  -- step one: reduce to functions e₁ e₂ and u₁ u₂
+  -- step two: prove the estimates, need `blubb''` here
+      --sorry
+    _ ≤ _ := by
+
+      sorry-/
+
+#exit
+
+theorem smallGains' (h₁ : loop.topRel.IsFiniteGainStableWith k₁ β₁ s p μ)
+    (h₂ : loop.botRel.IsFiniteGainStableWith k₂ β₂ s p μ) :
+    loop.inputOutput.IsFiniteGainStableWith sorry sorry s p μ := by
+  sorry
+
 
 end SetRel.closedLoop
 

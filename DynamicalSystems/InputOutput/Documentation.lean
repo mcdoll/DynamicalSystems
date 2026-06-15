@@ -57,8 +57,8 @@ So a nonlinear operator is just a map `f : (α → E) → (α → F)` and implic
 
 We have two definitions for causal maps: one for relations and one for functions:
 
-{docstring Function.IsCausal}
 {docstring SetRel.IsCausal}
+{docstring Function.IsCausal}
 
 and if a relation is induced by a function, then these definitions agree:
 
@@ -80,6 +80,19 @@ The second notion is _finite gain stability_. A map `f` is finite gain stable if
 {docstring SetRel.IsFiniteGainStableWith}
 {docstring Function.IsFiniteGainStableWith}
 
-# Dissipation inequalities
+It can easily be shown that every finite gain stable system is `Lp` stable
 
-{docstring IsDissipativeWith}
+{docstring Function.IsFiniteGainStableWith.isLpStable}
+
+and every causal system that satisfies for every $`u : L^p$` the estimate
+$$`‖f u‖ ≤ k * ‖u‖ + β`
+is finite gain stable:
+
+{docstring Function.IsCausal.isFiniteGainStableWith}
+
+## Small gains theorems
+
+# Dissipation inequalities and passivity
+
+{docstring SetRel.IsDissipativeWith}
+{docstring Function.IsDissipativeWith}
