@@ -6,7 +6,7 @@ Authors: Moritz Doll
 module
 
 public import Mathlib.MeasureTheory.Function.LpSpace.Basic
-public import Mathlib.MeasureTheory.SpecificCodomains.Pi
+public import Mathlib.MeasureTheory.SpecificCodomains.WithLp
 
 /-! # Local `Lp` functions
 - define restriction of Lp functions
@@ -52,6 +52,14 @@ theorem memLpLoc_prod_iff {u : α → E × F} :
     exact ⟨(h · · |>.fst), (h · · |>.snd)⟩
   · intro ⟨h₁, h₂⟩ s hs
     exact MemLp.of_fst_snd ⟨h₁ s hs, h₂ s hs⟩
+
+theorem memLpLoc_withLp_prod_iff {p : ℝ≥0∞} [Fact (1 ≤ p)] {u : α → WithLp p (E × F)} :
+    MemLpLoc u p μ ↔ MemLpLoc (WithLp.fst <| u ·) p μ ∧ MemLpLoc (WithLp.snd <| u ·) p μ := by
+  constructor
+  · intro h
+    exact ⟨(h · · |>.prodLp_fst), (h · · |>.prodLp_snd)⟩
+  · intro ⟨h₁, h₂⟩ s hs
+    exact MemLp.of_fst_of_snd_prodLp ⟨h₁ s hs, h₂ s hs⟩
 
 variable {u v : α → E}
 

@@ -6,6 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.InputOutput.Stability
+public import DynamicalSystems.Basic.WithLp
 public import Mathlib.Analysis.Normed.Lp.ProdLp
 
 /-! # Closed loops -/
@@ -67,6 +68,16 @@ This relation is given in terms of the functions `G₁, G₂` by
 protected def inputState (loop : SetRel.closedLoop α E F) : SetRel (α → E × F) (α → E × F) :=
   {f | (Prod.fst ∘ f.2, Prod.snd ∘ f.2 - Prod.snd ∘ f.1) ∈ loop.topRel ∧
     (Prod.snd ∘ f.2, Prod.fst ∘ f.1 - Prod.fst ∘ f.2) ∈ loop.botRel }
+
+/-- The relation from inputs to states
+
+This relation is given in terms of the functions `G₁, G₂` by
+`u₂ - e₂ = G₁(u₁)` and `e₁ - u₁ = G₂(u₂)`
+-/
+protected def inputStateLp (loop : SetRel.closedLoop α E F) (p : ℝ≥0∞) :
+    SetRel (α → WithLp p (E × F)) (α → WithLp p (E × F)) :=
+  {f | (WithLp.fst ∘ f.2, WithLp.snd ∘ f.2 - WithLp.snd ∘ f.1) ∈ loop.topRel ∧
+    (WithLp.snd ∘ f.2, WithLp.fst ∘ f.1 - WithLp.fst ∘ f.2) ∈ loop.botRel }
 
 variable {p : ℝ≥0∞} {loop : SetRel.closedLoop α E F}
 variable {e : α → E × F} {u : α → E × F} {y : α → F × E} {y₁ : α → F} {y₂ : α → E}
@@ -232,12 +243,15 @@ theorem isCausal_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.b
 
 variable {k₁ k₂ β₁ β₂ : ℝ≥0}
 
-noncomputable def loopGain (k₁ k₂ : ℝ≥0) : ℝ≥0 := (k₁ + k₂ + 2 * k₁ * k₂) / (1 - k₁ * k₂)
+/-- The loop gain of a `Lp` feedback system. -/
+noncomputable def loopGainLp (p : ℝ) (k₁ k₂ : ℝ≥0) : ℝ≥0 :=
+  (2 ^ ((p - 1) / p) * max (1 + k₁) (1 + k₂)) / (1 - k₁ * k₂)
 
+/-- The loop bias -/
 noncomputable def loopBias (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 :=
-  (β₁ + k₁ * β₂ + β₂ + k₂ * β₁) / (1 - k₁ * k₂)
+  (β₁ + β₂ + k₁ * β₂ + k₂ * β₁) / (1 - k₁ * k₂)
 
-theorem smallGainsThm_part1₁
+theorem smallGainThm_part1₁
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
     (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hp : 1 ≤ p)
@@ -260,7 +274,7 @@ theorem smallGainsThm_part1₁
       gcongr
       apply hG₂'.stableWith _ _ hu₂
 
-theorem smallGainsThm_part1₂
+theorem smallGainThm_part1₂
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel) (hp : 1 ≤ p)
@@ -283,7 +297,7 @@ theorem smallGainsThm_part1₂
       gcongr
       apply hG₁'.stableWith _ _ hu₁
 
-theorem smallGainsThm_part2₁
+theorem smallGainThm_part2₁
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
@@ -306,13 +320,13 @@ theorem smallGainsThm_part2₁
   simp only [mul_one, tsub_le_iff_right]
   calc
     _ ≤ eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm u₂ p (μ.restrict (s t)) + β₂ := by
-      exact smallGainsThm_part1₁ hG₁ hG₂ hG₂' hp hu₂ he₁ h ht
+      exact smallGainThm_part1₁ hG₁ hG₂ hG₂' hp hu₂ he₁ h ht
     _ ≤ _ := by
-      grw [smallGainsThm_part1₂ hG₁ hG₁' hG₂ hp hu₁ he₂ h ht]
+      grw [smallGainThm_part1₂ hG₁ hG₁' hG₂ hp hu₁ he₂ h ht]
       ring_nf
       gcongr
 
-theorem smallGainsThm_part2₂
+theorem smallGainThm_part2₂
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
@@ -335,68 +349,81 @@ theorem smallGainsThm_part2₂
   simp only [mul_one, tsub_le_iff_right]
   calc
     _ ≤ eLpNorm e₂ p (μ.restrict (s t)) + k₁ * eLpNorm u₁ p (μ.restrict (s t)) + β₁ := by
-      exact smallGainsThm_part1₂ hG₁ hG₁' hG₂ hp hu₁ he₂ h ht
+      exact smallGainThm_part1₂ hG₁ hG₁' hG₂ hp hu₁ he₂ h ht
     _ ≤ _ := by
-      grw [smallGainsThm_part1₁ hG₁ hG₂ hG₂' hp hu₂ he₁ h ht]
+      grw [smallGainThm_part1₁ hG₁ hG₂ hG₂' hp hu₂ he₁ h ht]
       ring_nf
       gcongr
 
-theorem smallGainsThm
+/-- The *finite-gain theorem* states that if two maps `G₁` and `G₂` are finite gain stable with
+gain less than `k₁` and `k₂`, respectively, and `k₁ * k₁ < 1`, then the closed feedback loop is
+finite gain stable as well.
+
+Version for the map from inputs to states. -/
+theorem inputStateLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞)
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
-    (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hp : 1 ≤ p) (hk : k₁ * k₂ < 1)
+    (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hk : k₁ * k₂ < 1)
     (ht : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t)) :
-    loop.inputState.IsFiniteGainStableWith (loopGain k₁ k₂) (loopBias k₁ k₂ β₁ β₂) s p μ := by
+    (loop.inputStateLp p).IsFiniteGainStableWith (loopGainLp p.toReal k₁ k₂) (loopBias k₁ k₂ β₁ β₂)
+      s p μ := by
   intro t e u he hu heu
-  rw [memLpLoc_prod_iff] at he hu
-  let u₁ t := (u t).1
+  rw [memLpLoc_withLp_prod_iff] at he hu
+  let u₁ t := WithLp.fst (u t)
   have hu₁ : MemLpLoc u₁ p μ := hu.1
-  let u₂ t := (u t).2
+  let u₂ t := WithLp.snd (u t)
   have hu₂ : MemLpLoc u₂ p μ := hu.2
-  have hu' : u = fun t ↦ (u₁ t, u₂ t) := rfl
-  let e₁ t := (e t).1
+  let e₁ t := WithLp.fst (e t)
   have he₁ : MemLpLoc e₁ p μ := he.1
-  let e₂ t := (e t).2
+  let e₂ t := WithLp.snd (e t)
   have he₂ : MemLpLoc e₂ p μ := he.2
   calc
-    _ = max (eLpNorm u₁ p (μ.restrict (s t))) (eLpNorm u₂ p (μ.restrict (s t))) := by
-      rw [hu']
-      --simp
-      sorry
-    _ ≤ max ((loopGain k₁ k₂) * eLpNorm e₁ p (μ.restrict (s t)) + (loopBias k₁ k₂ β₁ β₂))
-        ((loopGain k₁ k₂) * eLpNorm e₂ p (μ.restrict (s t)) + (loopBias k₁ k₂ β₁ β₂)) := by
+    _ ≤ eLpNorm u₁ p (μ.restrict (s t)) + eLpNorm u₂ p (μ.restrict (s t)) :=
+      eLpNorm_withLp_prod_le_add hp' (hu₁ (s t) (ht t)).aestronglyMeasurable
+    _ ≤ ((eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm e₂ p (μ.restrict (s t)) + β₂ + k₂ * β₁) /
+        (1 - k₁ * k₂)) +
+        ((eLpNorm e₂ p (μ.restrict (s t)) + k₁ * eLpNorm e₁ p (μ.restrict (s t)) + β₁ + k₁ * β₂) /
+        (1 - k₁ * k₂)) := by
       gcongr
-      · grw [smallGainsThm_part2₁ hG₁ hG₁' hG₂ hG₂' hp hk hu₁ hu₂ he₁ he₂ sorry (ht t)]
-        sorry
-      · sorry
-    _ ≤ _ := by
-      sorry
-  /-obtain ⟨G₁, hG₁⟩ := h_topRel.exists_graph_eq
-  obtain ⟨G₂, hG₂⟩ := h_botRel.exists_graph_eq
-  have := blubb'' hG₁ hG₂ heu
-  calc
-    _ ≤ eLpNorm e p (μ.restrict (s t)) +
-        eLpNorm (fun x ↦ (G₂ (Prod.snd ∘ u) x, -G₁ (Prod.fst ∘ u) x)) p (μ.restrict (s t)) := by
-      nth_rw 1 [this]
-      grw [MeasureTheory.eLpNorm_sub_le]
-      · sorry
-      · sorry
-      · exact hp
-  -- step one: reduce to functions e₁ e₂ and u₁ u₂
-  -- step two: prove the estimates, need `blubb''` here
-      --sorry
-    _ ≤ _ := by
-
-      sorry-/
-
-#exit
-
-theorem smallGains' (h₁ : loop.topRel.IsFiniteGainStableWith k₁ β₁ s p μ)
-    (h₂ : loop.botRel.IsFiniteGainStableWith k₂ β₂ s p μ) :
-    loop.inputOutput.IsFiniteGainStableWith sorry sorry s p μ := by
-  sorry
-
+      · apply smallGainThm_part2₁ hG₁ hG₁' hG₂ hG₂' hp.out hk hu₁ hu₂ he₁ he₂ heu (ht t)
+      · apply smallGainThm_part2₂ hG₁ hG₁' hG₂ hG₂' hp.out hk hu₁ hu₂ he₁ he₂ heu (ht t)
+    _ = ((1 + k₁) * eLpNorm e₁ p (μ.restrict (s t)) + (1 + k₂) * eLpNorm e₂ p (μ.restrict (s t)) +
+        (β₁ + β₂ + k₁ * β₂ + k₂ * β₁)) /
+        (1 - k₁ * k₂) := by
+      rw [ENNReal.div_add_div_same]
+      congr 1; ring
+    _ ≤ ((max (1 + k₁) (1 + k₂)) / (1 - k₁ * k₂)) *
+        (eLpNorm e₁ p (μ.restrict (s t)) + eLpNorm e₂ p (μ.restrict (s t))) +
+        (β₁ + β₂ + k₁ * β₂ + k₂ * β₁) / (1 - k₁ * k₂) := by
+      rw [← ENNReal.mul_div_right_comm]
+      rw [ENNReal.div_add_div_same]
+      rw [mul_add]
+      gcongr 4
+      · simp
+      · simp
+    _ ≤ ((max (1 + k₁) (1 + k₂)) / (1 - k₁ * k₂)) *
+        ((2 : ℝ≥0∞) ^ ((p.toReal - 1) / p.toReal) * eLpNorm e p (μ.restrict (s t))) +
+        (β₁ + β₂ + k₁ * β₂ + k₂ * β₁) / (1 - k₁ * k₂) := by
+      gcongr
+      exact add_le_eLpNorm_withLp_prod hp' (he₁ (s t) (ht t)).aestronglyMeasurable
+    _ = _ := by
+      have hk' : 0 < 1 - k₁ * k₂ := by simp [hk]
+      rw [← mul_assoc]
+      congr 2
+      · unfold loopGainLp
+        rw [ENNReal.coe_div hk'.ne']
+        rw [← ENNReal.mul_div_right_comm]
+        congr
+        rw [ENNReal.coe_max, ENNReal.coe_mul]
+        have : 0 ≤ (p.toReal - 1) := by
+          rw [sub_nonneg, ← ENNReal.ofReal_le_iff_le_toReal hp']
+          simp [hp.out]
+        rw [ENNReal.coe_rpow_of_nonneg 2 (by positivity)]
+        simp
+        ring
+      · unfold loopBias
+        simp [ENNReal.coe_div hk'.ne']
 
 end SetRel.closedLoop
 
@@ -409,6 +436,3 @@ structure Function.closedLoop where
   topFun : (α → E) → α → F
   /-- bar -/
   botFun : (α → F) → α → E
-
-/-- The relation from inputs to outputs -/
-def inputOutputRel (loop : Function.closedLoop α E F) : SetRel (α → E × F) (α → E × F) := sorry
