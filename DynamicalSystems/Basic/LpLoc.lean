@@ -6,7 +6,7 @@ Authors: Moritz Doll
 module
 
 public import Mathlib.MeasureTheory.Function.LpSpace.Basic
-public import Mathlib.MeasureTheory.SpecificCodomains.Pi
+public import Mathlib.MeasureTheory.SpecificCodomains.WithLp
 
 /-! # Local `Lp` functions
 - define restriction of Lp functions
@@ -53,22 +53,36 @@ theorem memLpLoc_prod_iff {u : α → E × F} :
   · intro ⟨h₁, h₂⟩ s hs
     exact MemLp.of_fst_snd ⟨h₁ s hs, h₂ s hs⟩
 
+theorem memLpLoc_withLp_prod_iff {p : ℝ≥0∞} [Fact (1 ≤ p)] {u : α → WithLp p (E × F)} :
+    MemLpLoc u p μ ↔ MemLpLoc (WithLp.fst <| u ·) p μ ∧ MemLpLoc (WithLp.snd <| u ·) p μ := by
+  constructor
+  · intro h
+    exact ⟨(h · · |>.prodLp_fst), (h · · |>.prodLp_snd)⟩
+  · intro ⟨h₁, h₂⟩ s hs
+    exact MemLp.of_fst_of_snd_prodLp ⟨h₁ s hs, h₂ s hs⟩
+
 variable {u v : α → E}
 
-@[fun_prop]
+@[to_fun (attr := fun_prop)]
 theorem MemLpLoc.add (hu : MemLpLoc u p μ) (hv : MemLpLoc v p μ) : MemLpLoc (u + v) p μ := by
   intro s hs
   exact (hu s hs).add (hv s hs)
 
-@[fun_prop]
+@[to_fun (attr := fun_prop)]
 theorem MemLpLoc.sub (hu : MemLpLoc u p μ) (hv : MemLpLoc v p μ) : MemLpLoc (u - v) p μ := by
   intro s hs
   exact (hu s hs).sub (hv s hs)
 
-@[fun_prop]
+@[to_fun (attr := fun_prop)]
 theorem MemLpLoc.neg (hu : MemLpLoc u p μ) : MemLpLoc (-u) p μ := by
   intro s hs
   exact (hu s hs).neg
+
+@[to_fun (attr := fun_prop)]
+theorem memLpLoc_finsetSum {ι} (s₀ : Finset ι) {u : ι → α → E} (hu : ∀ i ∈ s₀, MemLpLoc (u i) p μ) :
+    MemLpLoc (∑ i ∈ s₀, u i) p μ := by
+  intro s hs
+  exact memLp_finsetSum' s₀ (hu · · s hs)
 
 variable {𝕜 : Type*} [NormedRing 𝕜] [MulActionWithZero 𝕜 E] [IsBoundedSMul 𝕜 E] {c : 𝕜}
 
@@ -77,12 +91,23 @@ theorem MemLpLoc.const_smul (hu : MemLpLoc u p μ) : MemLpLoc (c • u) p μ := 
   intro s hs
   exact (hu s hs).const_smul c
 
+theorem memLpLoc_iff_memLp_indicator :
+    MemLpLoc u p μ ↔ ∀ s : Set α, MeasurableSet s ∧ IsBounded s → MemLp (s.indicator u) p μ := by
+  congrm (∀ s, (hs : _) → ?_)
+  rw [memLp_indicator_iff_restrict hs.1]
+
+theorem MemLpLoc.memLp_indicator {s₀ : Set α} (hs₀ : MeasurableSet s₀) (hs₀' : IsBounded s₀)
+    (hu : MemLpLoc u p μ) : MemLp (s₀.indicator u) p μ := by
+  rw [memLpLoc_iff_memLp_indicator] at hu
+  exact hu s₀ ⟨hs₀, hs₀'⟩
+
 @[fun_prop]
 theorem MemLpLoc.indicator {s₀ : Set α} (hs₀ : MeasurableSet s₀) (hu : MemLpLoc u p μ) :
     MemLpLoc (s₀.indicator u) p μ := by
   intro s hs
   exact (hu s hs).indicator hs₀
 
+@[fun_prop]
 theorem MemLp.memLpLoc (hu : MemLp u p μ) : MemLpLoc u p μ := by
   intro s _
   exact hu.restrict s

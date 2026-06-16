@@ -57,8 +57,8 @@ So a nonlinear operator is just a map `f : (α → E) → (α → F)` and implic
 
 We have two definitions for causal maps: one for relations and one for functions:
 
-{docstring Function.IsCausal}
 {docstring SetRel.IsCausal}
+{docstring Function.IsCausal}
 
 and if a relation is induced by a function, then these definitions agree:
 
@@ -80,6 +80,40 @@ The second notion is _finite gain stability_. A map `f` is finite gain stable if
 {docstring SetRel.IsFiniteGainStableWith}
 {docstring Function.IsFiniteGainStableWith}
 
-# Dissipation inequalities
+It can easily be shown that every finite gain stable system is `Lp` stable
 
-{docstring IsDissipativeWith}
+{docstring Function.IsFiniteGainStableWith.isLpStable}
+
+and every causal system that satisfies for every $`u : L^p$` the estimate
+$$`‖f u‖ ≤ k * ‖u‖ + β`
+is finite gain stable:
+
+{docstring Function.IsCausal.isFiniteGainStableWith}
+
+## Feedback systems and small-gain theorems
+
+We now consider the negative feedback connection of two maps $`f₁ : (α → E) → (α → F)` and
+$`f₂ : (α → F) → (α → E)`. The feedback connection is given by the equations
+$$`\begin{aligned}
+u₁ &= e₁ - y₂\,,\\
+u₂ &= e₂ + y₁\,,\\
+y₁ &= f₁(u₁)\,,\\
+y₂ &= f₂(u₂)\,.
+\end{aligned}`
+These equations determine two relations, the relation {name}`SetRel.closedLoop.inputState` mapping
+$`e` to $`u` and the relation {name}`SetRel.closedLoop.inputOutput` mapping $`e` to $`y`.
+
+In general, these relations do not define maps, but in all practical situations this is the case
+and it can usually proved directly.
+
+The well-known _small-gain theorem_ asserts that if $`f₁` and $`f₂` are finite gain stable
+and the product of the gains is less than one, then the feedback connection is finite gain stable
+as well.
+
+{docstring SetRel.closedLoop.inputStateLp_isFiniteGainStableWith}
+
+
+# Dissipation inequalities and passivity
+
+{docstring SetRel.IsDissipativeWith}
+{docstring Function.IsDissipativeWith}

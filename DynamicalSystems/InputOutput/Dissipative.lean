@@ -34,7 +34,19 @@ The most common choices for `B` are
 - `fun x y ↦ inner ℝ x y - δ • ‖x‖ ^ 2`: input strictly passive
 - `fun x y ↦ inner ℝ x y - ε • ‖y‖ ^ 2`: output strictly passive
 - `fun x y ↦ inner ℝ x y - δ • ‖x‖ ^ 2 - ε • ‖y‖ ^ 2`: very strictly passive -/
-def IsDissipativeWith (f : (α → E) → α → F) (β : ℝ) (P : (α → E) → Prop)
+def SetRel.IsDissipativeWith (f : SetRel (α → E) (α → F)) (β : ℝ) (P : (α → E) → (α → F) → Prop)
+    (μ : Measure α := by volume_tac) : Prop :=
+  ∀ ⦃t⦄, MeasurableSet (s t) → ∀ ⦃u y⦄, P u y ∧ (u, y) ∈ f → ∫ x in s t, B (u x) (y x) ∂μ ≤ - β
+
+/-- A map `f` is dissipative with bound `β` if for all admissible functions we have the bound
+`∫ x in s t, B (u x) (f u x) ∂μ ≤ - β`.
+
+The most common choices for `B` are
+- `inner ℝ`: passive
+- `fun x y ↦ inner ℝ x y - δ • ‖x‖ ^ 2`: input strictly passive
+- `fun x y ↦ inner ℝ x y - ε • ‖y‖ ^ 2`: output strictly passive
+- `fun x y ↦ inner ℝ x y - δ • ‖x‖ ^ 2 - ε • ‖y‖ ^ 2`: very strictly passive -/
+def Function.IsDissipativeWith (f : (α → E) → α → F) (β : ℝ) (P : (α → E) → Prop)
     (μ : Measure α := by volume_tac) : Prop :=
   ∀ ⦃t⦄, MeasurableSet (s t) → ∀ ⦃u⦄, P u → ∫ x in s t, B (u x) (f u x) ∂μ ≤ - β
 
