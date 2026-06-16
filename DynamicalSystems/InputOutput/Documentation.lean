@@ -90,7 +90,28 @@ is finite gain stable:
 
 {docstring Function.IsCausal.isFiniteGainStableWith}
 
-## Small gains theorems
+## Feedback systems and small-gain theorems
+
+We now consider the negative feedback connection of two maps $`f₁ : (α → E) → (α → F)` and
+$`f₂ : (α → F) → (α → E)`. The feedback connection is given by the equations
+$$`\begin{aligned}
+u₁ &= e₁ - y₂\,,\\
+u₂ &= e₂ + y₁\,,\\
+y₁ &= f₁(u₁)\,,\\
+y₂ &= f₂(u₂)\,.
+\end{aligned}`
+These equations determine two relations, the relation {name}`SetRel.closedLoop.inputState` mapping
+$`e` to $`u` and the relation {name}`SetRel.closedLoop.inputOutput` mapping $`e` to $`y`.
+
+In general, these relations do not define maps, but in all practical situations this is the case
+and it can usually proved directly.
+
+The well-known _small-gain theorem_ asserts that if $`f₁` and $`f₂` are finite gain stable
+and the product of the gains is less than one, then the feedback connection is finite gain stable
+as well.
+
+{docstring SetRel.closedLoop.inputStateLp_isFiniteGainStableWith}
+
 
 # Dissipation inequalities and passivity
 
