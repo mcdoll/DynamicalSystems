@@ -119,13 +119,13 @@ theorem graph (h : f.IsFiniteGainStableWith k β s p μ) :
   apply h.stableWith t u hu
 
 /-- The composition of two finite gain stable maps is finite gain stable. -/
-theorem comp (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
+theorem comp (hg : g.IsFiniteGainStableWith k' β' s p μ) (hf : f.IsFiniteGainStableWith k β s p μ) :
     (g ∘ f).IsFiniteGainStableWith (k * k') (β * k' + β') s p μ where
   memLpLoc u hu := hg.memLpLoc (hf.memLpLoc hu)
   stableWith t u hu := calc
-    _ ≤ k' * eLpNorm (f u) p (μ.restrict <| s t) + β' :=
+    _ ≤ k' * eLpNorm (f u) p _ + β' :=
       hg.stableWith t (f u) (hf.memLpLoc hu)
-    _ ≤ k' * (k * eLpNorm u p (μ.restrict <| s t) + β) + β' := by
+    _ ≤ k' * (k * eLpNorm u p _ + β) + β' := by
       gcongr; exact hf.stableWith t u hu
     _ = _ := by
       push_cast; ring
