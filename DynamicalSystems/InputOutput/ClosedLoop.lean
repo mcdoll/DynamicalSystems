@@ -355,7 +355,7 @@ theorem smallGainThm_part2₂
       ring_nf
       gcongr
 
-theorem smallGainThm_part3₁
+/-theorem smallGainThm_part3₁
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
@@ -373,7 +373,7 @@ theorem smallGainThm_part3₁
     _ ≤ k₁ * ((eLpNorm e₁ p _ + k₂ * eLpNorm e₂ p _ + β₂ + k₂ * β₁) / (1 - k₁ * k₂)) + β₁ := by
       sorry
     _ = (k₁ * eLpNorm e₁ p _ + k₁ * k₂ * eLpNorm e₂ p _ + k₁ * k₂ ) := by
-      sorry
+      sorry-/
 
 /-- The *small-gain theorem* states that if two maps `G₁` and `G₂` are finite gain stable with
 gain less than `k₁` and `k₂`, respectively, and `k₁ * k₁ < 1`, then the closed feedback loop is
