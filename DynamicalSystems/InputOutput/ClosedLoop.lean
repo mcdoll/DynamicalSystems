@@ -355,7 +355,27 @@ theorem smallGainThm_part2₂
       ring_nf
       gcongr
 
-/-- The *finite-gain theorem* states that if two maps `G₁` and `G₂` are finite gain stable with
+/-theorem smallGainThm_part3₁
+    {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
+    (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
+    {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
+    (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hp : 1 ≤ p) (hk : k₁ * k₂ < 1)
+    {y₁ : α → F} {y₂ : α → E} {e₁ : α → E} {e₂ : α → F}
+    (hu₁ : MemLpLoc y₁ p μ) (hu₂ : MemLpLoc y₂ p μ) (he₁ : MemLpLoc e₁ p μ) (he₂ : MemLpLoc e₂ p μ)
+    (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (y₁ x, y₂ x)) ∈ loop.inputOutput) {t : ι}
+    (ht : MeasurableSet (s t) ∧ IsBounded (s t)) :
+    eLpNorm y₁ p (μ.restrict (s t)) ≤
+      (eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm e₂ p (μ.restrict (s t)) + β₂ + k₂ * β₁) /
+      (1 - k₁ * k₂) := by
+  calc
+    _ ≤ k₁ * eLpNorm sorry p (μ.restrict (s t)) + β₁ := by
+      sorry
+    _ ≤ k₁ * ((eLpNorm e₁ p _ + k₂ * eLpNorm e₂ p _ + β₂ + k₂ * β₁) / (1 - k₁ * k₂)) + β₁ := by
+      sorry
+    _ = (k₁ * eLpNorm e₁ p _ + k₁ * k₂ * eLpNorm e₂ p _ + k₁ * k₂ ) := by
+      sorry-/
+
+/-- The *small-gain theorem* states that if two maps `G₁` and `G₂` are finite gain stable with
 gain less than `k₁` and `k₂`, respectively, and `k₁ * k₁ < 1`, then the closed feedback loop is
 finite gain stable as well.
 

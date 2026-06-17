@@ -6,7 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
-public import DynamicalSystems.Mathlib.Analysis.ODE.Transform
+public import Mathlib.Analysis.ODE.Transform
 
 /-! # Global existence of ODEs -/
 
@@ -141,7 +141,7 @@ theorem isFundamentalSolution_iff' :
   · intro h x
     exact ⟨by simpa using h.isIntegralCurve 0 x, by simpa using h.initial 0 x⟩
   · intro h
-    exact ⟨fun t₀ x₀ ↦ by simpa using (h x₀).1.comp_sub t₀, fun t₀ x₀ ↦ by simpa using (h x₀).2⟩
+    refine ⟨fun t₀ x₀ ↦ (h x₀).1.comp_sub t₀, fun t₀ x₀ ↦ by simpa using (h x₀).2⟩
 
 variable {K : NNReal}
 

@@ -6,8 +6,8 @@ Authors: Winston Yin
 module
 
 public import Mathlib.Analysis.ODE.Basic
-public import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
-public import DynamicalSystems.Mathlib.Analysis.ODE.PicardLindelof
+public import Mathlib.Analysis.ODE.Gronwall
+public import Mathlib.Analysis.ODE.PicardLindelof
 
 /-!
 # Existence and uniqueness of integral curves in normed spaces
@@ -126,7 +126,7 @@ theorem exists_forall_mem_closedBall_eq_isIntegralCurveOn
   have ⟨α, hα⟩ := exists_forall_mem_closedBall_eq_isIntegralCurveOn_lipschitzOnWith hf
   ⟨α, hα.1⟩
 
-@[deprecated (since := "2026-02-08")]
+/-@[deprecated (since := "2026-02-08")]
 alias exists_eq_forall_mem_Icc_hasDerivWithinAt := exists_eq_isIntegralCurveOn
 
 @[deprecated (since := "2026-02-08")]
@@ -142,7 +142,7 @@ alias exists_forall_mem_closedBall_eq_hasDerivWithinAt_continuousOn :=
 
 @[deprecated (since := "2026-02-08")]
 alias exists_forall_mem_closedBall_eq_forall_mem_Icc_hasDerivWithinAt :=
-  exists_forall_mem_closedBall_eq_isIntegralCurveOn
+  exists_forall_mem_closedBall_eq_isIntegralCurveOn-/
 
 end IsPicardLindelof
 
@@ -190,7 +190,7 @@ theorem exists_eventually_isIntegralCurveAt
   exact ⟨(hα x hx).1,
     (hα x hx).2.isIntegralCurveAt (Ioo_mem_nhds (by linarith) (by linarith))⟩
 
-@[deprecated (since := "2026-02-08")]
+/-@[deprecated (since := "2026-02-08")]
 alias exists_forall_mem_closedBall_exists_eq_forall_mem_Ioo_hasDerivAt :=
   exists_forall_mem_closedBall_exists_eq_isIntegralCurveOn
 
@@ -199,7 +199,7 @@ alias exists_forall_mem_closedBall_exists_eq_forall_mem_Ioo_hasDerivAt₀ :=
   exists_eq_isIntegralCurveAt
 
 @[deprecated (since := "2026-02-08")]
-alias exists_eventually_eq_hasDerivAt := exists_eventually_isIntegralCurveAt
+alias exists_eventually_eq_hasDerivAt := exists_eventually_isIntegralCurveAt-/
 
 end ContDiffAt
 
@@ -386,7 +386,7 @@ theorem IsIntegralCurveOn.eqOn_inter {I J : Set ℝ}
       (fun t' ht' ↦ hgs t' (hss (Ico_subset_Icc_self ht')))
       heq ⟨h, le_rfl⟩
 
-@[deprecated (since := "2026-02-08")]
+/-@[deprecated (since := "2026-02-08")]
 alias ODE_solution_unique_of_mem_Icc_right := IsIntegralCurveOn.eqOn_Icc_right
 
 @[deprecated (since := "2026-02-08")]
@@ -402,4 +402,4 @@ alias ODE_solution_unique_of_mem_Ioo := IsIntegralCurveOn.eqOn_Ioo
 alias ODE_solution_unique_of_eventually := IsIntegralCurveAt.eventuallyEq
 
 @[deprecated (since := "2026-02-08")]
-alias ODE_solution_unique_univ := IsIntegralCurve.eq
+alias ODE_solution_unique_univ := IsIntegralCurve.eq-/

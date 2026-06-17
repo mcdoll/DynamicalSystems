@@ -11,9 +11,6 @@ import DynamicalSystems.Mathlib.Analysis.Calculus
 import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
-import DynamicalSystems.Mathlib.Analysis.ODE.Gronwall
-import DynamicalSystems.Mathlib.Analysis.ODE.PicardLindelof
-import DynamicalSystems.Mathlib.Analysis.ODE.Transform
 import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
 import DynamicalSystems.Mathlib.Dynamics.Basic
 import DynamicalSystems.Mathlib.Topology.Antitone

@@ -149,7 +149,8 @@ theorem UniformlyLocallyLipschitzOn.isPicardLindelof (hf : UniformlyLocallyLipsc
     rw [Set.prod_subset_iff] at huv
     specialize huv t₀ (mem_of_mem_nhds hu)
     apply Filter.mem_of_superset hv
-    simpa using huv
+    intro y hy
+    simpa using huv y hy
   have h' : {t | LipschitzOnWith K (f t) (s' ∩ ((t, ·)) ⁻¹' s) } ×ˢ s' ∈ 𝓝 (t₀, x₀) := by
     apply prod_mem_nhds h (nhds_of_nhdsWithin_of_nhds hst₀ hs')
   have h_nhds :=
