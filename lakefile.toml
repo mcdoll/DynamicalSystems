@@ -14,12 +14,12 @@ warn.sorry = false
 [[require]]
 name = "verso"
 scope = "leanprover"
-rev = "v4.30.0"
+rev = "v4.31.0-rc1"
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "a694d6797b7137565ec8a361bf71e6e65dd2672c"
+rev = "v4.31.0-rc1"
 
 [[lean_lib]]
 name = "DynamicalSystems"

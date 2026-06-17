@@ -161,7 +161,7 @@ theorem Flow.isCompleteVectorField (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
   intro t₀ x
   use fun t ↦ Φ (t - t₀) x
   simp only [sub_self, map_zero, id_eq, true_and]
-  rw [isIntegralCurve_comp_add (dt := t₀)]
+  rw [← isIntegralCurve_comp_add (dt := t₀)]
   have : IsIntegralCurve (Φ · x) (fun _ x ↦ deriv (Φ · x) 0) := by
     intro t
     simp only [← map_add]
