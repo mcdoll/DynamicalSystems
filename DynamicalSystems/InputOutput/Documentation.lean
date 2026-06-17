@@ -90,6 +90,11 @@ is finite gain stable:
 
 {docstring Function.IsCausal.isFiniteGainStableWith}
 
+Moreover, it is easy to see that the composition of two finite gain stable systems is again finite
+gain stable:
+
+{docstring Function.IsFiniteGainStableWith.comp}
+
 ## Feedback systems and small-gain theorems
 
 We now consider the negative feedback connection of two maps $`f₁ : (α → E) → (α → F)` and

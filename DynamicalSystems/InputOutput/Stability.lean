@@ -15,9 +15,9 @@ public section
 open MeasureTheory Filter Bornology Set
 open scoped NNReal ENNReal
 
-variable {ι α E F : Type*}
+variable {ι α E F G : Type*}
 
-variable [NormedAddCommGroup E] [NormedAddCommGroup F] [MeasurableSpace α]
+variable [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedAddCommGroup G] [MeasurableSpace α]
 
 section IsLpStable
 
@@ -96,8 +96,8 @@ end SetRel
 
 namespace Function
 
-variable {f : (α → E) → α → E}
-variable {k β : ℝ≥0} {s : ι → Set α} {p : ℝ≥0∞} {μ : Measure α}
+variable {f : (α → E) → α → F} {g : (α → F) → (α → G)}
+variable {k k' β β' : ℝ≥0} {s : ι → Set α} {p : ℝ≥0∞} {μ : Measure α}
 
 /-- A map is called finite gain stable with gain less than `k` if there exists `β` such that
 for all local `Lp` functions `u`, we have the `Lp`-norm estimate `‖(f u)ₜ‖ ≤ k * ‖uₜ‖ + β`. -/
@@ -117,6 +117,18 @@ theorem graph (h : f.IsFiniteGainStableWith k β s p μ) :
   rw [mem_graph] at huy
   rw [← huy]
   apply h.stableWith t u hu
+
+/-- The composition of two finite gain stable maps is finite gain stable. -/
+theorem comp (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
+    (g ∘ f).IsFiniteGainStableWith (k * k') (β * k' + β') s p μ where
+  memLpLoc u hu := hg.memLpLoc (hf.memLpLoc hu)
+  stableWith t u hu := calc
+    _ ≤ k' * eLpNorm (f u) p (μ.restrict <| s t) + β' :=
+      hg.stableWith t (f u) (hf.memLpLoc hu)
+    _ ≤ k' * (k * eLpNorm u p (μ.restrict <| s t) + β) + β' := by
+      gcongr; exact hf.stableWith t u hu
+    _ = _ := by
+      push_cast; ring
 
 variable [Preorder ι] [Countable ι] [Nonempty ι] [IsDirectedOrder ι]
 
