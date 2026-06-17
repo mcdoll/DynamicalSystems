@@ -6,7 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
-public import DynamicalSystems.Mathlib.Analysis.ODE.Transform
+public import Mathlib.Analysis.ODE.Transform
 
 /-! # Global existence of ODEs -/
 
