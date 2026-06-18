@@ -168,7 +168,7 @@ theorem Flow.isCompleteVectorField (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
     convert (hΦ x t).hasDerivAt using 1
     convert deriv_comp_add_const (Φ · x) t 0
     simp
-  convert this
+  convert! this
   simp
 
 theorem flow_congr (hΦ : ∀ x, Differentiable ℝ (Φ · x)) (hΦ' : ∀ x, Differentiable ℝ (Φ' · x))

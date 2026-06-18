@@ -69,7 +69,7 @@ theorem isCompact_limitSet' (hf : TotallyBounded (Set.range (Φ · y))) :
   apply hf.mono
   intro s hs
   simp only [Filter.mem_principal] at hs
-  simp only [Filter.mem_map, Filter.mem_atTop_sets, ge_iff_le, Set.mem_preimage]
+  simp only [Filter.mem_map, Filter.mem_atTop_sets, Set.mem_preimage]
   use 0
   intro t ht
   apply hs
@@ -327,8 +327,8 @@ theorem IsLyapunov.tendsto_nhdsSet (hs : IsCompact s)
   use 0
   intro t ht
   apply hs'
-  convert h_lya.antitone y ht
-  rw [Φ.map_zero']
+  nth_rw 2 [← Φ.map_zero' y]
+  exact h_lya.antitone y ht
 
 /-- LaSalle's invariance principle: if no trajectory is fully contained in the zero set of the
 derivative of the Lyapunov function, then `Φ · y` converges to the fixed point.
@@ -380,8 +380,8 @@ theorem IsLyapunov.tendsto_nhdsSet_of_hasDerivAt_neg (hs : IsCompact s)
   use 0
   intro t ht
   apply hs'
-  convert h_lya.antitone y ht
-  rw [Φ.map_zero']
+  nth_rw 2 [← Φ.map_zero' y]
+  exact h_lya.antitone y ht
 
 /-- If `v` is a strict Lyapunov function, then `Φ · y` converges to the fixed point. -/
 theorem IsLyapunov.tendsto_nhds_of_hasDerivAt_neg (hs : IsCompact s)

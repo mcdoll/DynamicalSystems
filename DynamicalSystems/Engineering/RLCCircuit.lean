@@ -107,7 +107,7 @@ theorem isLinearlyBddVectorField {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f
     apply ContinuousLinearMap.opNorm_le_bound _ hC'
     rintro ⟨x', y'⟩
     simp only [ContinuousLinearMap.prod_apply, ContinuousLinearMap.coe_snd',
-      ContinuousLinearMap.coe_sub', Pi.sub_apply, ContinuousLinearMap.neg_apply, Prod.norm_mk,
+      sub_apply, neg_apply, Prod.norm_mk,
       Real.norm_eq_abs, sup_le_iff]
     constructor
     · grw [← Std.right_le_max]
@@ -118,17 +118,17 @@ theorem isLinearlyBddVectorField {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f
     · grw [abs_sub]
       rw [abs_neg, add_mul]
       gcongr
-      · rw [fderiv_comp' _ (by fun_prop) (by fun_prop)]
-        simp only [fderiv_snd, ContinuousLinearMap.coe_comp', ContinuousLinearMap.coe_snd',
-          Function.comp_apply, fderiv_eq_smul_deriv, smul_eq_mul, abs_mul]
+      · rw [fderiv_fun_comp _ (by fun_prop) (by fun_prop)]
+        simp only [fderiv_snd, ContinuousLinearMap.comp_apply, ContinuousLinearMap.coe_snd',
+          fderiv_eq_smul_deriv, smul_eq_mul, abs_mul]
         rw [mul_comm]
         gcongr
         · grw [hf₂ y]
           simp
         · simp
-      · rw [fderiv_comp' _ (by fun_prop) (by fun_prop)]
-        simp only [fderiv_fst, ContinuousLinearMap.coe_comp', ContinuousLinearMap.coe_fst',
-          Function.comp_apply, fderiv_eq_smul_deriv, smul_eq_mul, abs_mul]
+      · rw [fderiv_fun_comp _ (by fun_prop) (by fun_prop)]
+        simp only [fderiv_fst, ContinuousLinearMap.comp_apply, ContinuousLinearMap.coe_fst',
+          fderiv_eq_smul_deriv, smul_eq_mul, abs_mul]
         rw [mul_comm]
         gcongr
         · grw [hg₂ x]
@@ -176,8 +176,8 @@ theorem isLyapunov_energy_flow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) 
   intro x
   rw [deriv_flow hf₁ hf₂ hg₁ hg₂]
   rw [fderiv_energy hg₁.continuous]
-  simp only [Flow.map_zero, id_eq, ContinuousLinearMap.add_apply, ContinuousLinearMap.coe_smul',
-    ContinuousLinearMap.coe_snd', Pi.smul_apply, smul_eq_mul, ContinuousLinearMap.coe_fst']
+  simp only [Flow.map_zero, id_eq, add_apply, smul_apply, ContinuousLinearMap.coe_snd', smul_eq_mul,
+    ContinuousLinearMap.coe_fst']
   ring_nf
   exact neg_nonpos_of_nonneg (hf_pass x.2)
 
@@ -209,8 +209,8 @@ theorem tendsto_smulFlow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) (hf₂
   · fun_prop
   · intro y hy h
     simp_rw [deriv_flow hf₁ hf₂ hg₁ hg₂, fderiv_energy hg₁.continuous, Flow.map_zero_apply]
-    simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.coe_smul',
-      ContinuousLinearMap.coe_snd', Pi.smul_apply, smul_eq_mul, ContinuousLinearMap.coe_fst']
+    simp only [add_apply, smul_apply, ContinuousLinearMap.coe_snd', smul_eq_mul,
+      ContinuousLinearMap.coe_fst']
     ring_nf
     simp_rw [neg_eq_zero, hf', Set.mem_setOf_eq]
     by_contra!

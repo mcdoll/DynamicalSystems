@@ -56,7 +56,7 @@ theorem ContDiff.uniformlyLocallyLipschitz [NormedSpace ℝ E] {f : ℝ → E �
   rw [eventually_nhds_iff ]
   use Metric.ball t₀ ε, ?_, Metric.isOpen_ball, Metric.mem_ball_self hε
   intro t ht x hx y hy
-  convert h.mono hs (Set.mk_mem_prod ht hx) (Set.mk_mem_prod ht hy)
+  convert! h.mono hs (Set.mk_mem_prod ht hx) (Set.mk_mem_prod ht hy)
   rw [Prod.edist_eq]
   simp
 
