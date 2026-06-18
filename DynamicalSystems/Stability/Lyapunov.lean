@@ -175,7 +175,7 @@ theorem exists_setOf_fun_le_subset (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤
     intro n hn
     simp only [Set.mem_setOf_eq]
     grw [hb₁ n, ← hN, hn]
-    field_simp
+    field_simp [lt_of_lt_of_le hN₀ hn]
     simp
   obtain ⟨y, _hy, k, hk, h⟩ := h_cpt.tendsto_subseq' hb₃
   have hb₁' : Filter.Tendsto (fun n ↦ v (b (k n))) Filter.atTop (𝓝 0) := by

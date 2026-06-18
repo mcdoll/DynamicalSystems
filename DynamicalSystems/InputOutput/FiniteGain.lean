@@ -31,7 +31,7 @@ variable [FunLike F ι α]
 
 instance Function.instFunLike : FunLike (ι → α) ι α where
   coe := id
-  coe_injective' _ _ := by simp
+  coe_injective _ _ := by simp
 
 /-- The map between `ℝ≥0` and the subtype. -/
 def NNReal.toSubtype (x : ℝ≥0) : {x : ℝ // x ≥ 0} := x
