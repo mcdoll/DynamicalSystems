@@ -23,11 +23,6 @@ variable [NormedAddCommGroup E] [NormedSpace ℝ E]
   {x : E} {y : E'}
 
 
-theorem bar {f : E → E' → F} {f₁ : E →L[ℝ] F} {f₂ : E' →L[ℝ] F}
-    (hf₁ : HasFDerivAt (f · y) f₁ x) (hf₂ : HasFDerivAt (f x) f₂ y) :
-    HasFDerivAt f.uncurry (f₁.coprod f₂) (x, y) := by
-  sorry
-
 theorem foo₀ {f : E × E' → F} (hf : DifferentiableAt ℝ f (x, y)) (v : E') :
     fderiv ℝ f (x, y) (0, v) = fderiv ℝ (fun z ↦ f (x, z)) y v := by
   calc
@@ -50,11 +45,16 @@ theorem foo₀' {f : E × E' → F} (hf : DifferentiableAt ℝ f (x, y)) (v : E)
       rw [ContinuousLinearMap.ext_iff] at this
       apply (this v).symm
 
-theorem fderiv_uncurry (f : E → E' → F) (hf : DifferentiableAt ℝ f.uncurry (x, y)) :
-    fderiv ℝ f.uncurry (x, y) = (fderiv ℝ (f · y) x).coprod (fderiv ℝ (f x) y) := by
+theorem fderiv_prod (f : E × E' → F) (hf : DifferentiableAt ℝ f (x, y)) :
+    fderiv ℝ f (x, y) =
+      (fderiv ℝ (fun x ↦ f (x, y)) x).coprod (fderiv ℝ (fun y ↦ f (x, y)) y) := by
   ext z
   · simp [foo₀' hf]
   · simp [foo₀ hf]
+
+theorem fderiv_uncurry (f : E → E' → F) (hf : DifferentiableAt ℝ f.uncurry (x, y)) :
+    fderiv ℝ f.uncurry (x, y) = (fderiv ℝ (f · y) x).coprod (fderiv ℝ (f x) y) := by
+  apply fderiv_prod f.uncurry hf
 
 end uncurry
 

@@ -4,6 +4,7 @@ import DynamicalSystems.Basic.LpLoc
 import DynamicalSystems.Basic.NonAutonomous
 import DynamicalSystems.InputOutput.Causal
 import DynamicalSystems.InputOutput.Dissipative
+import DynamicalSystems.InputOutput.Example
 import DynamicalSystems.InputOutput.FiniteGain
 import DynamicalSystems.InputOutput.Stability
 import DynamicalSystems.Engineering.RLCCircuit
@@ -16,6 +17,7 @@ import DynamicalSystems.Mathlib.Dynamics.Basic
 import DynamicalSystems.Mathlib.Topology.Antitone
 import DynamicalSystems.Mathlib.Topology.LimitSet
 import DynamicalSystems.Stability.Basic
+import DynamicalSystems.Stability.Hamiltonian
 import DynamicalSystems.Stability.InputToState
 import DynamicalSystems.Stability.Example
 import DynamicalSystems.Stability.LaSalle
