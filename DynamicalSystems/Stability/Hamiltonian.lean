@@ -38,6 +38,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteS
 
 variable {H : WithLp 2 (E × E) → ℝ} (ζ : WithLp 2 (E × E))
 
+/-- The Hamilton vector field associated to a Hamiltonian. -/
 def hamiltonvf (H : WithLp 2 (E × E) → ℝ) (ζ : WithLp 2 (E × E)) : WithLp 2 (E × E) :=
   LinearEquiv.withLpCongr 2 (LinearEquiv.skewSwap ℝ E E) (gradient H ζ)
 
