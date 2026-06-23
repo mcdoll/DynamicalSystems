@@ -8,7 +8,6 @@ module
 public import DynamicalSystems.Stability.LaSalle
 public import DynamicalSystems.Stability.Lyapunov
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
---public import Mathlib.Analysis.Calculus.MeanValue
 
 /-! # Asymptotic stability of the RLC circuit
 

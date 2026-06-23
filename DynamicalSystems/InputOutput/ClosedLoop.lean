@@ -55,29 +55,32 @@ structure SetRel.closedLoop where
 
 namespace SetRel.closedLoop
 
-/-- The relation from inputs to outputs -/
+open Prod in
+/-- The relation from inputs to outputs
+
+This relation is given in terms of the functions `G₁, G₂` by
+`G₁(e₁ - y₂) = y₁` and `G₂(e₂ + y₁) = y₂`. -/
 protected def inputOutput (loop : SetRel.closedLoop α E F) : SetRel (α → E × F) (α → F × E) :=
-  {f | (Prod.fst ∘ f.1 - Prod.snd ∘ f.2, Prod.fst ∘ f.2) ∈ loop.topRel ∧
-    (Prod.snd ∘ f.1 + Prod.fst ∘ f.2, Prod.snd ∘ f.2) ∈ loop.botRel }
+  {(e, y) | (fst ∘ e - snd ∘ y, fst ∘ y) ∈ loop.topRel ∧
+    (snd ∘ e + fst ∘ y, snd ∘ y) ∈ loop.botRel }
 
+open Prod in
 /-- The relation from inputs to states
 
 This relation is given in terms of the functions `G₁, G₂` by
-`u₂ - e₂ = G₁(u₁)` and `e₁ - u₁ = G₂(u₂)`
--/
+`G₁(u₁) = u₂ - e₂` and `G₂(u₂) = e₁ - u₁`. -/
 protected def inputState (loop : SetRel.closedLoop α E F) : SetRel (α → E × F) (α → E × F) :=
-  {f | (Prod.fst ∘ f.2, Prod.snd ∘ f.2 - Prod.snd ∘ f.1) ∈ loop.topRel ∧
-    (Prod.snd ∘ f.2, Prod.fst ∘ f.1 - Prod.fst ∘ f.2) ∈ loop.botRel }
+  {(e, u) | (fst ∘ u, snd ∘ u - snd ∘ e) ∈ loop.topRel ∧
+    (snd ∘ u, fst ∘ e - fst ∘ u) ∈ loop.botRel }
 
 /-- The relation from inputs to states
 
 This relation is given in terms of the functions `G₁, G₂` by
-`u₂ - e₂ = G₁(u₁)` and `e₁ - u₁ = G₂(u₂)`
--/
+`G₁(u₁) = u₂ - e₂` and `G₂(u₂) = e₁ - u₁`. -/
 protected def inputStateLp (loop : SetRel.closedLoop α E F) (p : ℝ≥0∞) :
     SetRel (α → WithLp p (E × F)) (α → WithLp p (E × F)) :=
-  {f | (WithLp.fst ∘ f.2, WithLp.snd ∘ f.2 - WithLp.snd ∘ f.1) ∈ loop.topRel ∧
-    (WithLp.snd ∘ f.2, WithLp.fst ∘ f.1 - WithLp.fst ∘ f.2) ∈ loop.botRel }
+  {(e, u) | (WithLp.fst ∘ u, WithLp.snd ∘ u - WithLp.snd ∘ e) ∈ loop.topRel ∧
+    (WithLp.snd ∘ u, WithLp.fst ∘ e - WithLp.fst ∘ u) ∈ loop.botRel }
 
 variable {p : ℝ≥0∞} {loop : SetRel.closedLoop α E F}
 variable {e : α → E × F} {u : α → E × F} {y : α → F × E} {y₁ : α → F} {y₂ : α → E}
