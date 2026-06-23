@@ -10,9 +10,9 @@ public import DynamicalSystems.Mathlib.Analysis.Calculus
 public import Mathlib.Analysis.Calculus.Gradient.Basic
 public import Mathlib.Analysis.InnerProductSpace.ProdL2
 
-@[expose] public noncomputable section
-
 /-! # Stability of Hamiltonian systems -/
+
+@[expose] public noncomputable section
 
 
 section AutFundSoln

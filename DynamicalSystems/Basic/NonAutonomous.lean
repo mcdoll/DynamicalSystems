@@ -9,7 +9,7 @@ public import DynamicalSystems.Mathlib.Dynamics.Basic
 
 /-! # Abstract formulation of solution operators for non-autonomous ODEs
 
-In this file we define
+In this file we define an abstract version of the solution operator for a non-autonomous ODE.
 
 -/
 

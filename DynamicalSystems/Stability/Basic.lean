@@ -6,7 +6,7 @@ Authors: Moritz Doll
 module
 
 public import Mathlib.Order.Filter.Bases.Basic
-
+public import Mathlib.Tactic.Peel
 
 /-! # Stability
 
@@ -42,7 +42,7 @@ theorem HasBasis.isStableOn {ι' : Sort*} {p : ι' → Prop} {s : ι' → Set E}
   obtain ⟨i, hpi, hsi⟩ := hs'
   obtain ⟨i', hpi', hsi'⟩ := h' i hpi
   use s i', h.mem_of_mem hpi'
-  apply (hsi <| hsi' · · · ·)
+  exact (hsi <| hsi' · · · ·)
 
 theorem HasBasis.isStableOn_iff {ι' : Sort*} {p : ι' → Prop} {s : ι' → Set E} {l : Filter E}
     (h : l.HasBasis p s) :
@@ -54,6 +54,11 @@ theorem HasBasis.isStableOn_iff {ι' : Sort*} {p : ι' → Prop} {s : ι' → Se
   use i', hpi'
   intro t ht x hx
   exact hl' t ht x (hsi' hx)
+
+theorem IsStableOn.mono {I I'} (hl : l.IsStableOn Φ I) (h : I' ⊆ I) : l.IsStableOn Φ I' := by
+  unfold IsStableOn at hl ⊢
+  peel hl with s hs s' hs' hl
+  exact (hl · <| h ·)
 
 variable {l' : Filter ι}
 
