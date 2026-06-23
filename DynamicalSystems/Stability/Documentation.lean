@@ -54,9 +54,13 @@ example (hs : IsCompact s) (hs' : s.Nonempty) :
     (𝓝ˢ s).IsStableOn Φ (Ici 0) ↔
     ∀ ε > 0, ∃ δ > 0, ∀ t ≥ 0, ∀ x,
     infDist x s < δ → infDist (Φ t x) s < ε := by
-  rw [(hasBasis_nhdsSet_thickening hs).isStableOn_iff]
-  congrm (∀ ε hε, ∃ δ, 0 < δ ∧ ?_)
-  simp [Metric.mem_thickening_iff_infDist_lt hs']
+  by_cases! hs' : s.Nonempty
+  · rw [(hasBasis_nhdsSet_thickening hs).isStableOn_iff]
+    congrm (∀ ε hε, ∃ δ, 0 < δ ∧ ?_)
+    simp [Metric.mem_thickening_iff_infDist_lt hs']
+  · simp [hs']
+
+    sorry
 ```
 
 # Asymptotic stability
