@@ -22,6 +22,8 @@ authors := ["Moritz Doll", "Iman Shames"]
 This repository develops the mathematical foundations of nonlinear dynamical systems and control
 theory.
 
+The code is hosted on [Github](https://github.com/mcdoll/DynamicalSystems).
+
 {include 1 DynamicalSystems.Mathlib.Analysis.ODE.Documentation}
 {include 1 DynamicalSystems.Basic.Documentation}
 {include 1 DynamicalSystems.Stability.Documentation}
