@@ -29,6 +29,7 @@ theorem eLpNormEssSup_mono_enorm_ae' {f : α → ε} {g : α → ε'} (hfg : ∀
 
 namespace WithLp
 
+/-- Copy a `WithLp` function by replacing `p` with `p'`. -/
 def copy (f : WithLp p V) (p' : ℝ≥0∞) : WithLp p' V := toLp p' (ofLp f)
 
 @[simp]
@@ -125,6 +126,9 @@ theorem eLpNorm_withLp_prod_le_add [hp : Fact (1 ≤ p)] (hf : AEStronglyMeasura
       grw [hx]
       simp
 
+/-- The constant in the estimate `‖f‖ + ‖g‖ ≤ C ‖(f, g)‖` of `Lp` functions.
+
+For `p ≠ ∞` it is `2 ^ (p - 1)/p` and for `p = ∞` it is `2`. -/
 def addLEConst (p : ℝ≥0∞) : ℝ≥0∞ :=
   if p = ∞ then 2 else 2 ^ ((p.toReal - 1) / p.toReal)
 
