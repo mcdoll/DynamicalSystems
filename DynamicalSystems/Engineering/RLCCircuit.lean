@@ -39,7 +39,7 @@ theorem integral_differentiableAt (hf : Continuous f) (a) :
 variable {μ : MeasureTheory.Measure ℝ} {a b : ℝ}
 
 -- should be in mathlib
-theorem integral_nonneg_of_Ioo [MeasureTheory.NoAtoms μ] (hab : a ≤ b)
+theorem integral_nonneg_of_Ioo [MeasureTheory.NullSingletonClass μ] (hab : a ≤ b)
     (hf : IntervalIntegrable f μ a b) (h : ∀ x ∈ Set.Ioo a b, 0 ≤ f x) :
     0 ≤ ∫ u in a..b, f u ∂μ := by
   convert intervalIntegral.integral_mono_on_of_le_Ioo hab _ hf h

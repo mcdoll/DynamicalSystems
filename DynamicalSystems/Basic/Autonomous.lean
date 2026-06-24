@@ -91,7 +91,7 @@ theorem IsSemigroupOn.comm [AddCommMagma ι] [Zero ι] (hΦ : IsSemigroupOn Φ s
   rw [← hΦ.add t₀ t₁ x hx, ← hΦ.add t₁ t₀ x hx, add_comm]
 
 variable [TopologicalSpace E] [AddCommMonoid ι] [Preorder ι] [IsDirectedOrder ι] [AddLeftMono ι]
-  [TopologicalSpace ι] [ContinuousAdd ι]
+  [TopologicalSpace ι]
 
 
 open Filter
