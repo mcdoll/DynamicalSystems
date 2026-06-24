@@ -286,12 +286,12 @@ theorem isCausal_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.b
 variable {k₁ k₂ β₁ β₂ : ℝ≥0}
 
 /-- The input-state loop gain of a `Lp` feedback system. -/
-noncomputable def inputStateLoopGainLp (p : ℝ) (k₁ k₂ : ℝ≥0) : ℝ≥0 :=
-  (2 ^ ((p - 1) / p) * max (1 + k₁) (1 + k₂)) / (1 - k₁ * k₂)
+noncomputable def inputStateLoopGainLp (p : ℝ≥0∞) (k₁ k₂ : ℝ≥0∞) : ℝ≥0∞ :=
+  (addLEConst p * max (1 + k₁) (1 + k₂)) / (1 - k₁ * k₂)
 
 /-- The input-output loop gain of a `Lp` feedback system. -/
-noncomputable def inputOutputLoopGainLp (p : ℝ) (k₁ k₂ : ℝ≥0) : ℝ≥0 :=
-  (2 ^ ((p - 1) / p) * max (k₁ * (1 + k₂)) (k₂ * (1 + k₁))) / (1 - k₁ * k₂)
+noncomputable def inputOutputLoopGainLp (p : ℝ≥0∞) (k₁ k₂ : ℝ≥0∞) : ℝ≥0∞ :=
+  (addLEConst p * max (k₁ * (1 + k₂)) (k₂ * (1 + k₁))) / (1 - k₁ * k₂)
 
 /-- The loop bias -/
 noncomputable def loopBias (k₁ k₂ β₁ β₂ : ℝ≥0) : ℝ≥0 :=
@@ -406,13 +406,13 @@ gain less than `k₁` and `k₂`, respectively, and `k₁ * k₁ < 1`, then the 
 finite gain stable as well.
 
 Version for the map from inputs to states. -/
-theorem inputStateLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞)
+theorem inputStateLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)]
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
     (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hk : k₁ * k₂ < 1)
     (ht : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t)) :
-    (loop.inputStateLp p).IsFiniteGainStableWith (inputStateLoopGainLp p.toReal k₁ k₂)
+    (loop.inputStateLp p).IsFiniteGainStableWith (inputStateLoopGainLp p k₁ k₂).toNNReal
       (loopBias k₁ k₂ β₁ β₂) s p μ := by
   intro t e u he hu heu
   rw [memLpLoc_withLp_prod_iff] at he hu
@@ -426,7 +426,7 @@ theorem inputStateLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)] (hp' : p ≠ �
   have he₂ : MemLpLoc e₂ p μ := he.2
   calc
     _ ≤ eLpNorm u₁ p (μ.restrict (s t)) + eLpNorm u₂ p (μ.restrict (s t)) :=
-      eLpNorm_withLp_prod_le_add hp' (hu₁ (s t) (ht t)).aestronglyMeasurable
+      eLpNorm_withLp_prod_le_add (hu₁ (s t) (ht t)).aestronglyMeasurable
     _ ≤ ((eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm e₂ p (μ.restrict (s t)) + β₂ + k₂ * β₁) /
         (1 - k₁ * k₂)) +
         ((eLpNorm e₂ p (μ.restrict (s t)) + k₁ * eLpNorm e₁ p (μ.restrict (s t)) + β₁ + k₁ * β₂) /
@@ -442,34 +442,29 @@ theorem inputStateLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)] (hp' : p ≠ �
     _ ≤ ((max (1 + k₁) (1 + k₂)) / (1 - k₁ * k₂)) *
         (eLpNorm e₁ p (μ.restrict (s t)) + eLpNorm e₂ p (μ.restrict (s t))) +
         (β₁ + β₂ + k₁ * β₂ + k₂ * β₁) / (1 - k₁ * k₂) := by
-      rw [← ENNReal.mul_div_right_comm]
-      rw [ENNReal.div_add_div_same]
-      rw [mul_add]
+      rw [← ENNReal.mul_div_right_comm, ENNReal.div_add_div_same, mul_add]
       gcongr 4
       · simp
       · simp
     _ ≤ ((max (1 + k₁) (1 + k₂)) / (1 - k₁ * k₂)) *
-        ((2 : ℝ≥0∞) ^ ((p.toReal - 1) / p.toReal) * eLpNorm e p (μ.restrict (s t))) +
+        (addLEConst p * eLpNorm e p (μ.restrict (s t))) +
         (β₁ + β₂ + k₁ * β₂ + k₂ * β₁) / (1 - k₁ * k₂) := by
       gcongr
-      exact add_le_eLpNorm_withLp_prod hp' (he₁ (s t) (ht t)).aestronglyMeasurable
+      exact add_le_eLpNorm_withLp_prod (he₁ (s t) (ht t)).aestronglyMeasurable
     _ = _ := by
       have hk' : 0 < 1 - k₁ * k₂ := by simp [hk]
       rw [← mul_assoc]
       congr 2
       · unfold inputStateLoopGainLp
-        rw [ENNReal.coe_div hk'.ne']
-        rw [← ENNReal.mul_div_right_comm]
-        congr
-        rw [ENNReal.coe_max, ENNReal.coe_mul]
-        have : 0 ≤ (p.toReal - 1) := by
-          rw [sub_nonneg, ← ENNReal.ofReal_le_iff_le_toReal hp']
-          simp [hp.out]
-        rw [ENNReal.coe_rpow_of_nonneg 2 (by positivity)]
+        have : addLEConst p * max (1 + (k₁ : ℝ≥0∞)) (1 + k₂) / (1 - k₁ * k₂) ≠ ∞ := by
+          refine ENNReal.div_ne_top ?_ ?_
+          · apply ENNReal.mul_ne_top (by simp) (by simp)
+          · norm_cast
+            simp [hk'.ne']
+        rw [ENNReal.coe_toNNReal this]
+        rw [← ENNReal.mul_div_right_comm, mul_comm]
         simp
-        ring
-      · unfold loopBias
-        simp [ENNReal.coe_div hk'.ne']
+      · simp [loopBias, ENNReal.coe_div hk'.ne']
 
 theorem smallGainThm_part1₁'
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
@@ -491,9 +486,7 @@ theorem smallGainThm_part1₁'
       · apply (he₁ (s t) ht).aestronglyMeasurable
       · apply (hy₂ (s t) ht).aestronglyMeasurable
       · exact hp
-    _ ≤ _ := by
-      gcongr; apply le_of_eq
-      ring
+    _ = _ := by ring
 
 theorem smallGainThm_part1₂'
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
@@ -515,9 +508,7 @@ theorem smallGainThm_part1₂'
       · apply (he₂ (s t) ht).aestronglyMeasurable
       · apply (hy₁ (s t) ht).aestronglyMeasurable
       · exact hp
-    _ ≤ _ := by
-      gcongr; apply le_of_eq
-      ring
+    _ = _ := by ring
 
 theorem smallGainThm_part2₁'
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
@@ -538,8 +529,7 @@ theorem smallGainThm_part2₁'
     _ ≤ k₁ * eLpNorm e₁ p _ + k₁ * (k₂ * eLpNorm e₂ p _ + k₂ * eLpNorm y₁ p _ + β₂) + β₁ := by
       gcongr
       apply smallGainThm_part1₂' hG₁ hG₂ hG₂' hp hy₁ he₂ h ht
-    _ = _ := by
-      ring
+    _ = _ := by ring
 
 theorem smallGainThm_part2₂'
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
@@ -560,21 +550,20 @@ theorem smallGainThm_part2₂'
     _ ≤ k₂ * eLpNorm e₂ p _ + k₂ * (k₁ * eLpNorm e₁ p _ + k₁ * eLpNorm y₂ p _ + β₁) + β₂ := by
       gcongr
       apply smallGainThm_part1₁' hG₁ hG₂ hG₁' hp hy₂ he₁ h ht
-    _ = _ := by
-      ring
+    _ = _ := by ring
 
 /-- The *small-gain theorem* states that if two maps `G₁` and `G₂` are finite gain stable with
 gain less than `k₁` and `k₂`, respectively, and `k₁ * k₁ < 1`, then the closed feedback loop is
 finite gain stable as well.
 
 Version for the map from inputs to outputs. -/
-theorem inputOutputLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞)
+theorem inputOutputLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)]
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     (hG₁' : G₁.IsFiniteGainStableWith k₁ β₁ s p μ)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
     (hG₂' : G₂.IsFiniteGainStableWith k₂ β₂ s p μ) (hk : k₁ * k₂ < 1)
     (ht : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t)) :
-    (loop.inputOutputLp p).IsFiniteGainStableWith (inputOutputLoopGainLp p.toReal k₁ k₂)
+    (loop.inputOutputLp p).IsFiniteGainStableWith (inputOutputLoopGainLp p k₁ k₂).toNNReal
       (loopBias k₁ k₂ β₁ β₂) s p μ := by
   intro t e y he hy hey
   rw [memLpLoc_withLp_prod_iff] at he hy
@@ -589,13 +578,18 @@ theorem inputOutputLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)] (hp' : p ≠ 
   unfold loopBias inputOutputLoopGainLp
   have hk' : 0 < 1 - k₁ * k₂ := by simp [hk]
   have hk'' : (1 - k₁ * k₂ : ℝ≥0∞) ≠ 0 := by norm_cast; simp [hk'.ne']
+  have : ∀ (x y : ℝ≥0) (hy : y ≠ 0), addLEConst p * x / y ≠ ∞ := by
+    intro x y h
+    refine ENNReal.div_ne_top ?_ (by positivity)
+    exact ENNReal.mul_ne_top (by simp) (by simp)
   norm_cast
+  rw [ENNReal.coe_toNNReal (by apply this; simp [hk'.ne'])]
   simp_rw [ENNReal.coe_div hk'.ne', ← ENNReal.mul_div_right_comm, ENNReal.div_add_div_same]
   nth_rw 1 [ENNReal.le_div_iff_mul_le (by simp [hk'']) (by simp)]
   calc
     _ ≤ (eLpNorm y₁ p (μ.restrict (s t)) + eLpNorm y₂ p (μ.restrict (s t))) * (1 - k₁ * k₂) := by
       gcongr
-      · apply eLpNorm_withLp_prod_le_add hp' (hy₁ (s t) (ht t)).aestronglyMeasurable
+      · apply eLpNorm_withLp_prod_le_add (hy₁ (s t) (ht t)).aestronglyMeasurable
       · norm_cast
     _ = (1 - k₁ * k₂) * eLpNorm y₁ p _ + (1 - k₁ * k₂) * eLpNorm y₂ p _ := by ring
     _ ≤ (k₁ * eLpNorm e₁ p (μ.restrict (s t)) + (k₁ * k₂) * eLpNorm e₂ p (μ.restrict (s t)) +
@@ -622,13 +616,8 @@ theorem inputOutputLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)] (hp' : p ≠ 
       rw [mul_rotate, mul_assoc]
       gcongr 2
       · rw [mul_comm]
-        grw [add_le_eLpNorm_withLp_prod hp' (he₁ (s t) (ht t)).aestronglyMeasurable]
-        gcongr
-        · rw [ENNReal.coe_rpow_of_nonneg _ (div_nonneg _ _)]
-          · simp
-          · simp [← ENNReal.ofReal_le_iff_le_toReal hp', hp.out]
-          · simp
-        · rfl
+        grw [add_le_eLpNorm_withLp_prod (he₁ (s t) (ht t)).aestronglyMeasurable]
+        rfl
       · apply le_of_eq
         ring
 
