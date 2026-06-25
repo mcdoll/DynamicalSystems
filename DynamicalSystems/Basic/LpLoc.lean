@@ -30,10 +30,7 @@ open Bornology
 
 section MemLpLoc
 
-/-! ## Local `Lp` functions
-In this section we define local `Lp` functions and prove elementary properties
-
--/
+attribute [fun_prop] MemLp MemLp.add MemLp.sub MemLp.neg
 
 /-- A function `u` is locally in `Lp` if for every bounded measurable set `s`, `u` is in `Lp` with
 respect to measure `μ` restricted to `s`. -/
@@ -44,6 +41,17 @@ def MemLpLoc [Bornology α] (u : α → E) (p : ℝ≥0∞) (μ : Measure α := 
 section Bornology
 
 variable [Bornology α]
+
+variable {u v : α → E}
+
+@[fun_prop]
+theorem MemLpLoc.memLp {s : Set α} (hs : MeasurableSet s) (hs' : IsBounded s)
+    (hu : MemLpLoc u p μ) : MemLp u p (μ.restrict s) := hu s ⟨hs, hs'⟩
+
+@[fun_prop]
+theorem MemLpLoc.aestronglyMeasurable {s : Set α} (hs : MeasurableSet s) (hs' : IsBounded s)
+    (hu : MemLpLoc u p μ) : AEStronglyMeasurable u (μ.restrict s) :=
+  (hu s ⟨hs, hs'⟩).aestronglyMeasurable
 
 theorem memLpLoc_prod_iff {u : α → E × F} :
     MemLpLoc u p μ ↔ MemLpLoc (fun x ↦ (u x).1) p μ ∧ MemLpLoc (fun x ↦ (u x).2) p μ := by
@@ -61,22 +69,20 @@ theorem memLpLoc_withLp_prod_iff {p : ℝ≥0∞} [Fact (1 ≤ p)] {u : α → W
   · intro ⟨h₁, h₂⟩ s hs
     exact MemLp.of_fst_of_snd_prodLp ⟨h₁ s hs, h₂ s hs⟩
 
-variable {u v : α → E}
-
 @[to_fun (attr := fun_prop)]
 theorem MemLpLoc.add (hu : MemLpLoc u p μ) (hv : MemLpLoc v p μ) : MemLpLoc (u + v) p μ := by
-  intro s hs
-  exact (hu s hs).add (hv s hs)
+  intro s ⟨hs, hs'⟩
+  fun_prop
 
 @[to_fun (attr := fun_prop)]
 theorem MemLpLoc.sub (hu : MemLpLoc u p μ) (hv : MemLpLoc v p μ) : MemLpLoc (u - v) p μ := by
-  intro s hs
-  exact (hu s hs).sub (hv s hs)
+  intro s ⟨hs, hs'⟩
+  fun_prop
 
 @[to_fun (attr := fun_prop)]
 theorem MemLpLoc.neg (hu : MemLpLoc u p μ) : MemLpLoc (-u) p μ := by
-  intro s hs
-  exact (hu s hs).neg
+  intro s ⟨hs, hs'⟩
+  fun_prop
 
 @[to_fun (attr := fun_prop)]
 theorem memLpLoc_finsetSum {ι} (s₀ : Finset ι) {u : ι → α → E} (hu : ∀ i ∈ s₀, MemLpLoc (u i) p μ) :
@@ -131,16 +137,18 @@ variable [PseudoMetricSpace α] [ProperSpace α] [OpensMeasurableSpace α]
 variable {u : α → E}
 
 /-- Every continuous function is locally `Lp` -/
-theorem Continuous.memLpLoc (hp : p ≠ 0) (h : Continuous u) :
+@[fun_prop]
+theorem Continuous.memLpLoc (h : Continuous u) :
     MemLpLoc u p μ := by
   intro s ⟨hs₁, hs₂⟩
-  by_cases hp₂ : p = ∞
-  · rw [hp₂]
-    obtain ⟨C, hC⟩ := hs₂.isCompact_closure.exists_bound_of_continuousOn (f := u) (by fun_prop)
+  rcases p.trichotomy with (rfl | rfl | hp)
+  · simp [h.aestronglyMeasurable]
+  · obtain ⟨C, hC⟩ := hs₂.isCompact_closure.exists_bound_of_continuousOn (f := u) (by fun_prop)
     apply memLp_top_of_bound (by fun_prop) C (ae_restrict_of_forall_mem hs₁ ?_)
     intro x hx
     exact hC _ (subset_closure hx)
-  · rw [← MeasureTheory.integrable_norm_rpow_iff (by fun_prop) hp hp₂,
+  · rw [ENNReal.toReal_pos_iff] at hp
+    rw [← MeasureTheory.integrable_norm_rpow_iff (by fun_prop) hp.1.ne' hp.2.ne,
       ← MeasureTheory.IntegrableOn]
     apply ContinuousOn.integrableOn_of_subset_isCompact (K := closure s)
     · apply Continuous.continuousOn

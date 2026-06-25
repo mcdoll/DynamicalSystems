@@ -488,6 +488,8 @@ theorem smallGainThm_part1₁'
       · exact hp
     _ = _ := by ring
 
+attribute [fun_prop] MeasureTheory.MemLp.aestronglyMeasurable
+
 theorem smallGainThm_part1₂'
     {G₁ : (α → E) → α → F} (hG₁ : G₁.graph = loop.topRel)
     {G₂ : (α → F) → α → E} (hG₂ : G₂.graph = loop.botRel)
@@ -495,7 +497,7 @@ theorem smallGainThm_part1₂'
     {y₁ : α → F} {y₂ : α → E} {e₁ : α → E} {e₂ : α → F} (hy₁ : MemLpLoc y₁ p μ)
     (he₂ : MemLpLoc e₂ p μ)
     (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (y₁ x, y₂ x)) ∈ loop.inputOutput) {t : ι}
-    (ht : MeasurableSet (s t) ∧ IsBounded (s t)) :
+    (ht : MeasurableSet (s t)) (ht' : IsBounded (s t)) :
     eLpNorm y₂ p (μ.restrict (s t)) ≤
       k₂ * eLpNorm e₂ p (μ.restrict (s t)) + k₂ * eLpNorm y₁ p (μ.restrict (s t)) + β₂ := by
   calc
@@ -504,10 +506,7 @@ theorem smallGainThm_part1₂'
       apply hG₂'.stableWith _ _ (by fun_prop)
     _ ≤ k₂ * (eLpNorm e₂ p (μ.restrict (s t)) + eLpNorm y₁ p (μ.restrict (s t))) + β₂ := by
       gcongr
-      apply MeasureTheory.eLpNorm_add_le
-      · apply (he₂ (s t) ht).aestronglyMeasurable
-      · apply (hy₁ (s t) ht).aestronglyMeasurable
-      · exact hp
+      exact eLpNorm_add_le (by fun_prop) (by fun_prop) hp
     _ = _ := by ring
 
 theorem smallGainThm_part2₁'
@@ -528,7 +527,7 @@ theorem smallGainThm_part2₁'
       smallGainThm_part1₁' hG₁ hG₂ hG₁' hp hy₂ he₁ h ht
     _ ≤ k₁ * eLpNorm e₁ p _ + k₁ * (k₂ * eLpNorm e₂ p _ + k₂ * eLpNorm y₁ p _ + β₂) + β₁ := by
       gcongr
-      apply smallGainThm_part1₂' hG₁ hG₂ hG₂' hp hy₁ he₂ h ht
+      apply smallGainThm_part1₂' hG₁ hG₂ hG₂' hp hy₁ he₂ h ht.1 ht.2
     _ = _ := by ring
 
 theorem smallGainThm_part2₂'
@@ -546,7 +545,7 @@ theorem smallGainThm_part2₂'
   rw [ENNReal.sub_mul (fun _ _ ↦ (hy₂ (s t) ht).eLpNorm_ne_top), one_mul, tsub_le_iff_right]
   calc
     _ ≤ k₂ * eLpNorm e₂ p _ + k₂ * eLpNorm y₁ p _ + β₂ :=
-      smallGainThm_part1₂' hG₁ hG₂ hG₂' hp hy₁ he₂ h ht
+      smallGainThm_part1₂' hG₁ hG₂ hG₂' hp hy₁ he₂ h ht.1 ht.2
     _ ≤ k₂ * eLpNorm e₂ p _ + k₂ * (k₁ * eLpNorm e₁ p _ + k₁ * eLpNorm y₂ p _ + β₁) + β₂ := by
       gcongr
       apply smallGainThm_part1₁' hG₁ hG₂ hG₁' hp hy₂ he₁ h ht

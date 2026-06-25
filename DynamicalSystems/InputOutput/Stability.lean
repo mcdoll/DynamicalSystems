@@ -130,6 +130,42 @@ theorem comp (hg : g.IsFiniteGainStableWith k' β' s p μ) (hf : f.IsFiniteGainS
     _ = _ := by
       push_cast; ring
 
+/-- The addition of two finite gain stable maps is finite gain stable. -/
+theorem add {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 1 ≤ p)
+    (hs : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t))
+    (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
+    (f + g).IsFiniteGainStableWith (k + k') (β + β') s p μ where
+  memLpLoc u hu := (hf.memLpLoc hu).add (hg.memLpLoc hu)
+  stableWith t u hu := calc
+    _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := by
+      apply eLpNorm_add_le _ _ hp
+      · exact (hf.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
+      · exact (hg.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
+    _ ≤ (k * eLpNorm u p _ + β) + (k' * eLpNorm u p _ + β') := by
+      gcongr
+      · exact hf.stableWith t u hu
+      · exact hg.stableWith t u hu
+    _ = _ := by
+      push_cast; ring
+
+/-- The subtraction of two finite gain stable maps is finite gain stable. -/
+theorem sub {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 1 ≤ p)
+    (hs : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t))
+    (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
+    (f - g).IsFiniteGainStableWith (k + k') (β + β') s p μ where
+  memLpLoc u hu := (hf.memLpLoc hu).sub (hg.memLpLoc hu)
+  stableWith t u hu := calc
+    _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := by
+      apply eLpNorm_sub_le _ _ hp
+      · exact (hf.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
+      · exact (hg.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
+    _ ≤ (k * eLpNorm u p _ + β) + (k' * eLpNorm u p _ + β') := by
+      gcongr
+      · exact hf.stableWith t u hu
+      · exact hg.stableWith t u hu
+    _ = _ := by
+      push_cast; ring
+
 variable [Preorder ι] [Countable ι] [Nonempty ι] [IsDirectedOrder ι]
 
 /-- Every finite gain stable system is `Lp` stable. -/
