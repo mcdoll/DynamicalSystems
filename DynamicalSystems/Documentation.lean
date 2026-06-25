@@ -13,6 +13,13 @@ set_option linter.hashCommand false
 
 set_option pp.rawOnError true
 
+open Verso Doc Elab in
+@[role_expander leanVersion]
+def leanVersion : RoleExpander
+  | #[], #[] => do
+    return #[← ``(Verso.Doc.Inline.code $(Lean.Quote.quote Lean.versionString))]
+  | _, _ => throwError "Unexpected arguments"
+
 #doc (Manual) "Nonlinear dynamical systems & control theory" =>
 
 %%%
@@ -22,7 +29,8 @@ authors := ["Moritz Doll", "Iman Shames"]
 This repository develops the mathematical foundations of nonlinear dynamical systems and control
 theory.
 
-The code is hosted on [Github](https://github.com/mcdoll/DynamicalSystems).
+The code is hosted on [Github](https://github.com/mcdoll/DynamicalSystems) and compiled with
+Lean {leanVersion}[].
 
 {include 1 DynamicalSystems.Mathlib.Analysis.ODE.Documentation}
 {include 1 DynamicalSystems.Basic.Documentation}
