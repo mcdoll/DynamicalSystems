@@ -3,7 +3,7 @@ import VersoManual
 import DynamicalSystems.InputOutput.Causal
 import DynamicalSystems.InputOutput.ClosedLoop
 import DynamicalSystems.InputOutput.Dissipative
-import DynamicalSystems.InputOutput.FiniteGain
+import DynamicalSystems.InputOutput.Example
 import DynamicalSystems.InputOutput.Stability
 
 open Verso.Genre Manual

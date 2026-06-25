@@ -3,11 +3,10 @@ import DynamicalSystems.Basic.ComparisonFunctions
 import DynamicalSystems.Basic.LpLoc
 import DynamicalSystems.Basic.NonAutonomous
 import DynamicalSystems.InputOutput.Causal
+import DynamicalSystems.InputOutput.ClosedLoop
 import DynamicalSystems.InputOutput.Dissipative
 import DynamicalSystems.InputOutput.Example
-import DynamicalSystems.InputOutput.FiniteGain
 import DynamicalSystems.InputOutput.Stability
-import DynamicalSystems.Engineering.RLCCircuit
 import DynamicalSystems.Mathlib.Analysis.Calculus
 import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
@@ -18,7 +17,7 @@ import DynamicalSystems.Mathlib.Topology.Antitone
 import DynamicalSystems.Mathlib.Topology.LimitSet
 import DynamicalSystems.Stability.Basic
 import DynamicalSystems.Stability.Hamiltonian
-import DynamicalSystems.Stability.InputToState
 import DynamicalSystems.Stability.Example
 import DynamicalSystems.Stability.LaSalle
 import DynamicalSystems.Stability.Lyapunov
+import DynamicalSystems.Stability.RLCCircuit

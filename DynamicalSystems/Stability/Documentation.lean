@@ -3,9 +3,9 @@ import Lean
 
 import DynamicalSystems.Stability.Basic
 import DynamicalSystems.Stability.Example
-import DynamicalSystems.Stability.InputToState
 import DynamicalSystems.Stability.LaSalle
 import DynamicalSystems.Stability.Lyapunov
+import DynamicalSystems.Stability.RLCCircuit
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
