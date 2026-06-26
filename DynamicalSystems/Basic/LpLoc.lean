@@ -16,27 +16,91 @@ public import Mathlib.MeasureTheory.SpecificCodomains.WithLp
 
 @[expose] public noncomputable section
 
-open MeasureTheory Filter
+open MeasureTheory Filter Topology Bornology
 open scoped NNReal ENNReal
 
-variable {α 𝕜 𝕜' E F : Type*} {m : MeasurableSpace α} {p : ℝ≥0∞} {μ : Measure α}
+variable {α 𝕜 𝕜' E F : Type*} {m : MeasurableSpace α} {p : ℝ≥0∞} {μ ν : Measure α}
   [NormedAddCommGroup E] [NormedAddCommGroup F]
 
 namespace MeasureTheory
 
 variable {s : Set α} {f : α →ₘ[μ] E}
 
-open Bornology
+section eLpNorm
+
+@[simp]
+theorem lpAddConst_top : ∞.LpAddConst = 1 := rfl
+
+theorem eLpNorm_add_measure {f : α → E} :
+    eLpNorm f p (μ + ν) ≤ p.LpAddConst * (eLpNorm f p μ + eLpNorm f p ν) := by
+  rcases p.trichotomy with (rfl | rfl | hp)
+  · simp
+  · simp only [eLpNorm_exponent_top]
+    refine eLpNormEssSup_le_of_ae_enorm_bound ?_
+    simp only [ae_add_measure_iff]
+    constructor
+    · have : ∀ᵐ (x : α) ∂μ, ‖f x‖ₑ ≤ eLpNormEssSup f μ :=
+        ENNReal.ae_le_essSup (fun y ↦ ‖f y‖ₑ)
+      filter_upwards [this] with x hx
+      grw [hx]
+      simp
+    · have : ∀ᵐ (x : α) ∂ν, ‖f x‖ₑ ≤ eLpNormEssSup f ν :=
+        ENNReal.ae_le_essSup (‖f ·‖ₑ)
+      filter_upwards [this] with x hx
+      grw [hx]
+      simp
+  · rw [ENNReal.toReal_pos_iff] at hp
+    simp_rw [eLpNorm_eq_eLpNorm' hp.1.ne' hp.2.ne, eLpNorm'_eq_lintegral_enorm, one_div,
+      lintegral_add_measure]
+    apply ENNReal.rpow_add_le_mul_rpow_add_rpow''
+
+end eLpNorm
+
+namespace MemLp
+
+attribute [fun_prop] MemLp MemLp.add MemLp.sub MemLp.neg MemLp.aestronglyMeasurable
+
+theorem add_measure {f : α → E} (hμ : MemLp f p μ) (hν : MemLp f p ν) : MemLp f p (μ + ν) := by
+  constructor
+  · simp only [aestronglyMeasurable_add_measure_iff]
+    exact ⟨hμ.aestronglyMeasurable, hν.aestronglyMeasurable⟩
+  · grw [eLpNorm_add_measure]
+    rw [ENNReal.mul_lt_top_iff, ENNReal.add_lt_top]
+    exact Or.inl ⟨p.LpAddConst_lt_top, ⟨hμ.2, hν.2⟩⟩
+
+end MemLp
+
 
 section MemLpLoc
-
-attribute [fun_prop] MemLp MemLp.add MemLp.sub MemLp.neg
 
 /-- A function `u` is locally in `Lp` if for every bounded measurable set `s`, `u` is in `Lp` with
 respect to measure `μ` restricted to `s`. -/
 @[fun_prop]
 def MemLpLoc [Bornology α] (u : α → E) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : Prop :=
   ∀ s : Set α, MeasurableSet s ∧ IsBounded s → MemLp u p (μ.restrict s)
+
+/-- A function `u` is locally in `Lp` if for every bounded measurable set `s`, `u` is in `Lp` with
+respect to measure `μ` restricted to `s`. -/
+@[fun_prop]
+def MemLpLoc' [TopologicalSpace α] (u : α → E) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : Prop :=
+  ∀ x, ∃ s : Set α, s ∈ 𝓝 x ∧ MemLp u p (μ.restrict s)
+
+section Topology
+
+/-- If a function is locally integrable on a compact set, then it is integrable on that set. -/
+theorem MemLpLoc'.memLp_restrict_isCompact {f : α → E} [TopologicalSpace α]
+    (hf : MemLpLoc' f p μ) (hs : IsCompact s) : MemLp f p (μ.restrict s) := by
+  refine hs.induction_on (by simp) ?_ ?_ ?_
+  · intro s t hst h
+    exact h.mono_measure (μ.restrict_mono_set hst)
+  · intro s t hs ht
+    apply (hs.add_measure ht).mono_measure
+    exact Measure.restrict_union_le s t
+  · intro x hx
+    obtain ⟨s', hs', hs''⟩ := hf x
+    exact ⟨s', mem_nhdsWithin_of_mem_nhds hs', hs''⟩
+
+end Topology
 
 section Bornology
 
@@ -68,6 +132,13 @@ theorem memLpLoc_withLp_prod_iff {p : ℝ≥0∞} [Fact (1 ≤ p)] {u : α → W
     exact ⟨(h · · |>.prodLp_fst), (h · · |>.prodLp_snd)⟩
   · intro ⟨h₁, h₂⟩ s hs
     exact MemLp.of_fst_of_snd_prodLp ⟨h₁ s hs, h₂ s hs⟩
+
+theorem memLpLoc_congr_ae (huv : u =ᵐ[μ] v) : MemLpLoc u p μ ↔ MemLpLoc v p μ := by
+  congrm (∀ s hs, ?_)
+  exact memLp_congr_ae huv.restrict
+
+theorem MemLpLoc.congr_ae (hu : MemLpLoc u p μ) (huv : u =ᵐ[μ] v) : MemLpLoc v p μ :=
+  (memLpLoc_congr_ae huv).mp hu
 
 @[to_fun (attr := fun_prop)]
 theorem MemLpLoc.add (hu : MemLpLoc u p μ) (hv : MemLpLoc v p μ) : MemLpLoc (u + v) p μ := by
@@ -138,8 +209,7 @@ variable {u : α → E}
 
 /-- Every continuous function is locally `Lp` -/
 @[fun_prop]
-theorem Continuous.memLpLoc (h : Continuous u) :
-    MemLpLoc u p μ := by
+theorem Continuous.memLpLoc (h : Continuous u) : MemLpLoc u p μ := by
   intro s ⟨hs₁, hs₂⟩
   rcases p.trichotomy with (rfl | rfl | hp)
   · simp [h.aestronglyMeasurable]
@@ -167,35 +237,17 @@ end MemLpLoc
 variable [Bornology α]
 
 variable (E p) in
-/-- The space of locally Lp functions
-
-Not clear whether the condition should be `eLpNorm (s.indicator f) p μ < ∞` instead. They are
-equivalent. -/
+/-- The space of locally Lp functions. -/
 def LpLoc (μ : Measure α := by volume_tac) : AddSubgroup (α →ₘ[μ] E) where
-  carrier := { f | ∀ s : Set α, Measurable s ∧ IsBounded s → eLpNorm f p (μ.restrict s) < ∞ }
+  carrier := { f | MemLpLoc f p μ }
   zero_mem' := by
-    intro s ⟨hs₁, hs₂⟩
-    have : eLpNorm (0 : α → E) p (μ.restrict s) < ∞ := by simp
-    convert this using 1
-    apply eLpNorm_congr_ae
-    apply Filter.EventuallyEq.restrict
-    apply AEEqFun.coeFn_zero
-  add_mem' {f g} hf hg := by
-    intro s hs
-    convert eLpNorm_add_lt_top
-      ⟨f.aestronglyMeasurable.restrict, hf s hs⟩ ⟨g.aestronglyMeasurable.restrict, hg s hs⟩ using 1
-    apply eLpNorm_congr_ae
-    apply Filter.EventuallyEq.restrict
-    filter_upwards [AEEqFun.coeFn_add f g] with x h
-    simp [h]
-  neg_mem' {f} hf := by
-    intro s hs
-    convert hf s hs using 1
-    rw [← eLpNorm_neg]
-    apply eLpNorm_congr_ae
-    apply Filter.EventuallyEq.restrict
-    filter_upwards [AEEqFun.coeFn_neg f] with x h
-    simp [h]
+    refine MemLp.memLpLoc ?_
+    rw [← Lp.mem_Lp_iff_memLp]
+    simp
+  add_mem' {f g} hf hg :=
+    (hf.add hg).congr_ae (AEEqFun.coeFn_add f g).symm
+  neg_mem' {f} hf :=
+    hf.neg.congr_ae (AEEqFun.coeFn_neg f).symm
 
 
 end MeasureTheory
