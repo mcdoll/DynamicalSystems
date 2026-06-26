@@ -64,9 +64,9 @@ section IsFiniteGainStable
 
 /-! ## Finite gain stability -/
 
-variable [Bornology α]
-
 namespace SetRel
+
+variable [TopologicalSpace α]
 
 variable (f : SetRel (α → E) (α → E))
 
@@ -101,8 +101,8 @@ variable {k k' β β' : ℝ≥0} {s : ι → Set α} {p : ℝ≥0∞} {μ : Meas
 
 /-- A map is called finite gain stable with gain less than `k` if there exists `β` such that
 for all local `Lp` functions `u`, we have the `Lp`-norm estimate `‖(f u)ₜ‖ ≤ k * ‖uₜ‖ + β`. -/
-structure IsFiniteGainStableWith (f : (α → E) → α → F) (k β : ℝ≥0) (s : ι → Set α) (p : ℝ≥0∞)
-    (μ : Measure α) where
+structure IsFiniteGainStableWith [TopologicalSpace α] (f : (α → E) → α → F) (k β : ℝ≥0)
+    (s : ι → Set α) (p : ℝ≥0∞) (μ : Measure α) where
   /-- Every `u` in `Lp` gets mapped to `Lp`. -/
   memLpLoc : ∀ ⦃u⦄, MemLpLoc u p μ → MemLpLoc (f u) p μ
   /-- For every `u` in `LpLoc`, we have `‖yₜ‖ ≤ k * ‖(f u)ₜ‖ + β`. -/
@@ -110,6 +110,8 @@ structure IsFiniteGainStableWith (f : (α → E) → α → F) (k β : ℝ≥0) 
     eLpNorm (f u) p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
 
 namespace IsFiniteGainStableWith
+
+variable [TopologicalSpace α]
 
 theorem graph (h : f.IsFiniteGainStableWith k β s p μ) :
     f.graph.IsFiniteGainStableWith k β s p μ := by
@@ -132,15 +134,15 @@ theorem comp (hg : g.IsFiniteGainStableWith k' β' s p μ) (hf : f.IsFiniteGainS
 
 /-- The addition of two finite gain stable maps is finite gain stable. -/
 theorem add {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 1 ≤ p)
-    (hs : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t))
+    (hs : ∀ t, IsCompact (s t))
     (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
     (f + g).IsFiniteGainStableWith (k + k') (β + β') s p μ where
   memLpLoc u hu := (hf.memLpLoc hu).add (hg.memLpLoc hu)
   stableWith t u hu := calc
     _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := by
       apply eLpNorm_add_le _ _ hp
-      · exact (hf.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
-      · exact (hg.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
+      · exact (hf.memLpLoc hu).aestronglyMeasurable (hs t)
+      · exact (hg.memLpLoc hu).aestronglyMeasurable (hs t)
     _ ≤ (k * eLpNorm u p _ + β) + (k' * eLpNorm u p _ + β') := by
       gcongr
       · exact hf.stableWith t u hu
@@ -150,15 +152,15 @@ theorem add {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 
 
 /-- The subtraction of two finite gain stable maps is finite gain stable. -/
 theorem sub {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 1 ≤ p)
-    (hs : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t))
+    (hs : ∀ t, IsCompact (s t))
     (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
     (f - g).IsFiniteGainStableWith (k + k') (β + β') s p μ where
   memLpLoc u hu := (hf.memLpLoc hu).sub (hg.memLpLoc hu)
   stableWith t u hu := calc
     _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := by
       apply eLpNorm_sub_le _ _ hp
-      · exact (hf.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
-      · exact (hg.memLpLoc hu (s t) (hs t)).aestronglyMeasurable
+      · exact (hf.memLpLoc hu).aestronglyMeasurable (hs t)
+      · exact (hg.memLpLoc hu).aestronglyMeasurable (hs t)
     _ ≤ (k * eLpNorm u p _ + β) + (k' * eLpNorm u p _ + β') := by
       gcongr
       · exact hf.stableWith t u hu
@@ -193,12 +195,13 @@ theorem isLpStable (hf : IsFiniteGainStableWith f k β s p μ)
 
 end IsFiniteGainStableWith
 
+variable [PseudoMetricSpace α] [OpensMeasurableSpace α] [T2Space α] {k β : ℝ≥0}
+
 /-- Every system that is causal and satisfies the finite gain estimate is for `Lp` functions is
 finite gain stable.
 
 Proposition 1.2.3 in van der Schaft. -/
-theorem IsCausal.isFiniteGainStableWith (hf : IsCausal f s p μ) (k β : ℝ≥0)
-    (hs : ∀ t, MeasurableSet (s t) ∧ IsBounded (s t))
+theorem IsCausal.isFiniteGainStableWith (hf : IsCausal f s p μ) (hs : ∀ t, IsCompact (s t))
     (h : ∀ u (_hu : MemLp u p μ), eLpNorm (f u) p μ ≤ k * eLpNorm u p μ + β) :
     IsFiniteGainStableWith f k β s p μ := by
   constructor
@@ -207,16 +210,16 @@ theorem IsCausal.isFiniteGainStableWith (hf : IsCausal f s p μ) (k β : ℝ≥0
   · intro t u hu
     calc
       _ = eLpNorm ((s t).indicator (f u)) p μ :=
-        (eLpNorm_indicator_eq_eLpNorm_restrict (hs t).1).symm
+        (eLpNorm_indicator_eq_eLpNorm_restrict (hs t).measurableSet).symm
       _ = eLpNorm ((s t).indicator (f <| (s t).indicator u)) p μ := by
         rw [← hf.causal t u hu]
       _ ≤ eLpNorm (f <| (s t).indicator u) p μ :=
         eLpNorm_indicator_le (f ((s t).indicator u))
       _ ≤ ↑k * eLpNorm ((s t).indicator u) p μ + β := by
         apply h
-        exact hu.memLp_indicator (hs t).1 (hs t).2
+        exact hu.memLp_indicator (hs t)
       _ = _ := by
-        rw [eLpNorm_indicator_eq_eLpNorm_restrict (hs t).1]
+        rw [eLpNorm_indicator_eq_eLpNorm_restrict (hs t).measurableSet]
 
 /- Todo: define the gain -/
 

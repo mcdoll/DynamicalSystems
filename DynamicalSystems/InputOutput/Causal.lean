@@ -15,7 +15,7 @@ open MeasureTheory Filter Bornology Set
 open scoped NNReal ENNReal
 
 variable {ι α E F : Type*}
-  [MeasurableSpace α] [NormedAddCommGroup E] [NormedAddCommGroup F] [Bornology α]
+  [MeasurableSpace α] [NormedAddCommGroup E] [NormedAddCommGroup F] [PseudoMetricSpace α]
   {f g : (α → E) → α → F} {s : ι → Set α} {p : ℝ≥0∞} {μ : Measure α}
 
 namespace SetRel
