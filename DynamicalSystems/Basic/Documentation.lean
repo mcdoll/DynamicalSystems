@@ -33,7 +33,7 @@ tag := "lploc"
 For autonomous equations, the solution operator can be represented using {name}`Flow` as a map
 `ℝ → E → E`.
 For non-autonomous systems, the solution operator is not time-covariant, therefore one has to take
-the initial time into account. We prove a bundled map
+the initial time into account. We define a bundled map
 
 {docstring NonautonomousFlow}
 
