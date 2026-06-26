@@ -33,6 +33,7 @@ theorem lpAddConst_top : ∞.LpAddConst = 1 := rfl
 
 variable [ENorm ε]
 
+/-- Addition of measures -/
 theorem eLpNorm_add_measure {f : α → ε} :
     eLpNorm f p (μ + ν) ≤ p.LpAddConst * (eLpNorm f p μ + eLpNorm f p ν) := by
   rcases p.trichotomy with (rfl | rfl | hp)
@@ -241,9 +242,7 @@ theorem Continuous.memLpLoc (h : Continuous u) : MemLpLoc u p μ := by
   rcases p.trichotomy with (rfl | rfl | hp)
   · simp [h.aestronglyMeasurable]
   · obtain ⟨C, hC⟩ := hs.exists_bound_of_continuousOn (f := u) (by fun_prop)
-    apply memLp_top_of_bound (by fun_prop) C (ae_restrict_of_forall_mem hs.measurableSet ?_)
-    intro x hx
-    exact hC _ hx
+    exact memLp_top_of_bound (by fun_prop) C (ae_restrict_of_forall_mem hs.measurableSet hC)
   · rw [ENNReal.toReal_pos_iff] at hp
     rw [← MeasureTheory.integrable_norm_rpow_iff (by fun_prop) hp.1.ne' hp.2.ne,
       ← MeasureTheory.IntegrableOn]
