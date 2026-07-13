@@ -19,7 +19,7 @@ rev = "v4.32.0-rc1"
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "master-2026-06-22"
+rev = "4a7edd35ec64de7117995da659e9d4d80e6cca19"
 
 [[lean_lib]]
 name = "DynamicalSystems"
