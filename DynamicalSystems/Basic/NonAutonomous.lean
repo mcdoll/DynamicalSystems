@@ -30,6 +30,11 @@ structure NonautonomousFlow where
   /-- Semigroup property: the solution operator satisfies `Φ t₀ t₁ (Φ t₁ t₂ x) = Φ t₀ t₂ x` -/
   map_comp (t₀ t₁ t₂ : τ) (x : E) : toFun t₀ t₁ (toFun t₁ t₂ x) = toFun t₀ t₂ x
 
+attribute [coe] NonautonomousFlow.toFun
+
 namespace NonautonomousFlow
+
+instance : CoeFun (NonautonomousFlow τ E) (fun _ ↦ τ → τ → E → E) where
+  coe L := L.toFun
 
 end NonautonomousFlow
