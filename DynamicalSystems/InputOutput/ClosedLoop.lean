@@ -6,6 +6,7 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.InputOutput.Stability
+public import DynamicalSystems.InputOutput.Passive
 public import DynamicalSystems.Basic.WithLp
 public import Mathlib.Analysis.Normed.Lp.ProdLp
 
@@ -634,6 +635,30 @@ theorem inputOutputLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)]
         ring
 
 end IsFiniteGainStable
+
+section IsPassiveWith
+
+variable [TopologicalSpace α] [InnerProductSpace ℝ E]
+
+variable {loop : SetRel.closedLoop α E E} {G₁ G₂ : (α → E) → α → E}
+  (hG₁ : G₁.graph = loop.topRel) (hG₁ : G₂.graph = loop.botRel)
+--fun x y ↦ inner ℝ x y - δ • ‖x‖ ^ 2 - ε • ‖y‖ ^ 2
+
+variable {ε₁ ε₂ δ₁ δ₂ β₁ β₂ : ℝ}
+variable {s : ι → Set α}
+
+def passiveLoopBias : ℝ≥0 := sorry
+def passiveLoopGain : ℝ≥0 := sorry
+
+theorem inputOutputLp_isFiniteGainStableWith' :
+    (loop.inputOutputLp 2).IsFiniteGainStableWith passiveLoopGain
+      passiveLoopBias s 2 μ := by
+  intro t e y he hy hey
+  rw [memLpLoc_withLp_prod_iff] at he hy
+  sorry
+
+
+end IsPassiveWith
 
 end SetRel.closedLoop
 
