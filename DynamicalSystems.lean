@@ -4,7 +4,7 @@ import DynamicalSystems.Basic.LpLoc
 import DynamicalSystems.Basic.NonAutonomous
 import DynamicalSystems.InputOutput.Causal
 import DynamicalSystems.InputOutput.ClosedLoop
-import DynamicalSystems.InputOutput.Dissipative
+import DynamicalSystems.InputOutput.Passive
 import DynamicalSystems.InputOutput.Example
 import DynamicalSystems.InputOutput.Stability
 import DynamicalSystems.Mathlib.Analysis.Calculus
