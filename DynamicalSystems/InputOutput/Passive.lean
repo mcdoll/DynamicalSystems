@@ -22,6 +22,52 @@ open scoped NNReal ENNReal
 
 variable {ι α 𝕜 E F G : Type*}
 
+section IsHolderMap
+
+section definition
+
+variable [NNNorm E] [NNNorm F] [NNNorm G]
+
+@[fun_prop]
+def IsHolderMap (B : E → F → G) (p q : ℝ≥0∞) [p.HolderConjugate q] : Prop :=
+  ∀ x y, ∃ C, ‖B x y‖₊ ≤ C * (‖x‖₊ * ‖y‖₊ + ‖x‖₊ ^ p.toReal + ‖y‖₊ ^ q.toReal)
+
+/-
+Idea: proof integrability by writing
+`B x y = B x y - C (‖x‖₊ ^ p.toReal + ‖y‖₊ ^ q.toReal) + C (..)`
+the `(..)` part is dealt with by standard things and the first bit is `MemLp.of_bilin`
+-/
+
+
+variable [MeasurableSpace α]
+  [TopologicalSpace E] [ENorm E]
+  [TopologicalSpace F] [ENorm F]
+  [TopologicalSpace G] [ContinuousENorm G]
+
+@[fun_prop]
+def IsHolderMap (B : E → F → G) (p q : ℝ≥0∞) [p.HolderConjugate q] : Prop :=
+  ∀ (ν : Measure α) (u : α → E) (v : α → F), MemLp u p ν ∧ MemLp v q ν →
+    Integrable (fun x ↦ B (u x) (v x)) ν
+
+#check MeasureTheory.eLpNorm'_le_eLpNorm'_mul_eLpNorm'
+#check MemLp.of_bilin
+
+namespace IsHolderMap
+
+variable {B₁ B₂ : E → F → G} {p q : ℝ≥0∞} [p.HolderConjugate q]
+
+@[fun_prop]
+theorem add [Add G] (hB₁ : IsHolderMap B₁ p q) (hB₁ : IsHolderMap B₂ p q) :
+    IsHolderMap (B₁ + B₂) p q := by
+  sorry
+
+end IsHolderMap
+
+end definition
+
+end IsHolderMap
+
+
 section definition
 
 variable [MeasurableSpace α] [TopologicalSpace α] [TopologicalSpace E] [TopologicalSpace F]
@@ -57,6 +103,7 @@ namespace Function.IsPassiveWith
 
 variable {f : (α → E) → α → F} {B B₁ B₂ : E → F → ℝ} {s : ι → Set α} {β β' : ℝ} {p q : ℝ≥0∞}
     [p.HolderConjugate q] {μ : Measure α}
+
 
 theorem add_right
     (hs : ∀ t, IsCompact (s t))
