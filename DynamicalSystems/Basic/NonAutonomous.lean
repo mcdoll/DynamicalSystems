@@ -30,6 +30,19 @@ structure NonautonomousFlow where
   /-- Semigroup property: the solution operator satisfies `Φ t₀ t₁ (Φ t₁ t₂ x) = Φ t₀ t₂ x` -/
   map_comp (t₀ t₁ t₂ : τ) (x : E) : toFun t₀ (toFun t₁ x t₂) t₁ = toFun t₀ x t₂
 
+variable (τ E) in
+/-- A non-autonomous flow is a map `u` from `τ × τ × E` to `E` such that `u t₀ t₀ x = x` and
+`u t₀ t₁ (u t₁ t₂ x) = u t₀ t₂ x`.
+
+We do not impose any continuity property. -/
+structure NonautonomousFlow' where
+  /-- The underlying map -/
+  toFun : τ → τ → E → E
+  /-- Consistency: the solution operator acts as the identity at initial time -/
+  map_id (t₀ : τ) (x : E) : toFun t₀ t₀ x = x
+  /-- Semigroup property: the solution operator satisfies `Φ t₀ t₁ (Φ t₁ t₂ x) = Φ t₀ t₂ x` -/
+  map_comp (t₀ t₁ t₂ : τ) (x : E) : toFun t₀ t₁ (toFun t₁ t₂ x) = toFun t₀ t₂ x
+
 attribute [coe] NonautonomousFlow.toFun
 
 namespace NonautonomousFlow
@@ -44,6 +57,8 @@ structure AutonomousFlow [AddZero τ] where
   toFun : τ → E → E
   map_id (x : E) : toFun 0 x = x
   map_comp (t t' : τ) (x : E) : toFun t (toFun t' x) = toFun (t + t') x
+
+attribute [coe] AutonomousFlow.toFun
 
 attribute [simp] AutonomousFlow.map_id
 
