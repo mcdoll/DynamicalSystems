@@ -53,9 +53,16 @@ instance : CoeFun (NonautonomousFlow τ E) (fun _ ↦ τ → E → τ → E) whe
 end NonautonomousFlow
 
 variable (τ E) in
+/-- An autonomous flow is a map `u` from `τ × E` to `E` such that `u 0 x = x` and
+`u t₀ (u t₁ x) = u (t₀ + t₁) x`.
+
+As opposed to mathlib's `Flow`, we do not impose any continuity property. -/
 structure AutonomousFlow [AddZero τ] where
+  /-- The underlying map -/
   toFun : τ → E → E
+  /-- Initial conditions -/
   map_id (x : E) : toFun 0 x = x
+  /-- Semigroup property -/
   map_comp (t t' : τ) (x : E) : toFun t (toFun t' x) = toFun (t + t') x
 
 attribute [coe] AutonomousFlow.toFun
@@ -80,6 +87,7 @@ variable [AddCommGroup τ]
 variable {Φ : AutonomousFlow τ E}
 
 variable (Φ) in
+/-- Every autonomous flow defines a non-autonomous flow -/
 def toNonautonomousFlow : NonautonomousFlow τ E where
   toFun t₀ x t := Φ (t - t₀) x
   map_id t₀ x := by simp
