@@ -9,11 +9,12 @@ public import Mathlib.Analysis.Calculus.FDeriv.Bilinear
 
 @[expose] public noncomputable section
 
-variable {E F : Type*}
+variable {D E F : Type*}
 
 section EL
 
 variable
+  [NormedAddCommGroup D] [NormedSpace ℝ D]
   [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup F] [NormedSpace ℝ F]
 
@@ -73,6 +74,24 @@ theorem deriv_hamiltonian (hL : ContDiff ℝ 2 (fun t ↦ (L t ·).uncurry).uncu
     (eulerLagrangeOp L t q (deriv q)) (deriv q t) - deriv (L · (q t) (deriv q t)) t :=
   deriv_foo hL hq
 
+theorem baz {γ : ℝ → E} (hγ : ContDiff ℝ 2 γ) (hL : ContDiff ℝ 2 (fun t ↦ (L t ·).uncurry).uncurry)
+    {f : ℝ → E → (E →L[ℝ] ℝ)} (ht : 0 ≤ t)
+    (hf : ∀ s ∈ Set.Icc 0 t, eulerLagrangeOp L s γ (deriv γ) (deriv γ s) ≤ f s (γ s) (deriv γ s)) :
+    L.hamiltonian t (γ t) (deriv γ t) - L.hamiltonian 0 (γ 0) (deriv γ 0) ≤
+      ∫ s in 0..t, f s (γ s) (deriv γ s) - deriv (L · (γ s) (deriv γ s)) s := calc
+  _ = ∫ s' in 0..t, deriv (fun s ↦ L.hamiltonian s (γ s) (deriv γ s)) s' := by
+    rw [intervalIntegral.integral_deriv_eq_sub_uIoo]
+    · sorry
+    · intro s hs
+      sorry
+    · apply Continuous.intervalIntegrable
+      refine ContDiff.continuous_deriv_one ?_
+      sorry
+  _ ≤ _ := by
+    apply intervalIntegral.integral_mono_on ht sorry sorry
+    intro s hs
+    rw [deriv_hamiltonian hL hγ]
+    grw [hf s hs]
 
 end EL
 
@@ -140,18 +159,16 @@ theorem deriv_H {q : ℝ → E} (hq : ContDiff ℝ 2 q) :
 
 end Lagrangian
 
-variable {L : Lagrangian E F}
+variable {γ : ℝ → E} {Φ : NonautonomousFlow ℝ E} {L : Lagrangian E E} {f : ℝ → E → (E →L[ℝ] ℝ)}
 
+variable (γ L f) in
 /-- A curve is Lagrangian if it is differentiable and satisfies
 `d/dt (∂_p L t (Φ t) (Φ' t)) - ∂_q L t (Φ t) (Φ' t) = f t (Φ t)` for a given
 Lagrangian `L` and inhomogeneity `f`. -/
-def IsLagrangianCurve (Φ : ℝ → E) (L : Lagrangian E E) (f : ℝ → E → (E →L[ℝ] ℝ)) : Prop :=
-  Differentiable ℝ Φ ∧ ∀ t, eulerLagrangeOp L t Φ (deriv Φ) = f t (Φ t)
+def IsLagrangianCurve : Prop :=
+  ContDiff ℝ 2 γ ∧ ∀ t, eulerLagrangeOp L t γ (deriv γ) = f t (γ t)
 
 variable {t : ℝ} {x : E} {y : F}
 
-#check deriv (L · x y) t
-
-
-def IsLagrangianFlow (Φ : NonautonomousFlow ℝ E) (L : Lagrangian E E) (f : ℝ → E → (E →L[ℝ] ℝ)) : Prop :=
-  ∀ t₀ x₀, IsLagrangianCurve (Φ t₀ x₀) L f
+variable (Φ L f) in
+def IsLagrangianFlow : Prop := ∀ t₀ x₀, IsLagrangianCurve (Φ t₀ x₀) L f
