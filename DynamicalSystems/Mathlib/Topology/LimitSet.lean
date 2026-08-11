@@ -55,6 +55,6 @@ theorem IsCompact.tendsto_of_limitSet_inter_subset_singleton {s : Set E} (hs : I
   exact hs.tendsto_of_limitSet_inter_subset hf h
 
 theorem isClosed_limitSet : IsClosed (l.limitSet f) :=
-  isClosed_setOf_clusterPt
+  isClosed_setOfPred_clusterPt
 
 end TopologicalSpace
