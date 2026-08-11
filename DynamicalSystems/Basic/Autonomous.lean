@@ -43,6 +43,10 @@ namespace IsInvariantOn
 
 variable {s : Set E} {I₁ I₂ : Set ι}
 
+theorem mono_right (h₁ : IsInvariantOn Φ s I₁) (h_mono : I₂ ≤ I₁) : IsInvariantOn Φ s I₂ := by
+  intro t ht
+  apply h₁ (h_mono ht)
+
 @[fun_prop]
 theorem union_right (h₁ : IsInvariantOn Φ s I₁) (h₂ : IsInvariantOn Φ s I₂) :
     IsInvariantOn Φ s (I₁ ∪ I₂) := by
