@@ -48,7 +48,7 @@ theorem AntitoneOn.exists_tendsto [IsDirectedOrder ι] {f : ι → α} {i : ι}
   obtain ⟨c, hc⟩ := h_anti'.exists_tendsto hbdd'
   use c
   apply hc.congr'
-  haveI : Nonempty ι := ⟨i⟩
+  have : Nonempty ι := ⟨i⟩
   rw [Filter.EventuallyEq, Filter.eventually_atTop]
   use i
   intro t ht

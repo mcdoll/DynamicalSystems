@@ -144,7 +144,7 @@ theorem exists_setOf_fun_le_subset (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤
   simp only [gt_iff_lt] at this
   simp_rw [Set.not_subset] at this
   choose r hδ using this
-  simp only [Set.mem_setOf_eq] at hδ
+  simp only [Set.mem_ofPred_eq] at hδ
   let a : ℕ → ℝ := fun n ↦ ((n : ℝ) + 1)⁻¹
   have ha : ∀ n, 0 < a n := by intro; positivity
   have ha' : Filter.Tendsto a Filter.atTop (𝓝 0) := by
@@ -173,7 +173,7 @@ theorem exists_setOf_fun_le_subset (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤
     obtain ⟨N, hN₀, hN⟩ := Real.exists_nat_pos_inv_lt hδ₀
     use N
     intro n hn
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     grw [hb₁ n, ← hN, hn]
     field_simp [lt_of_lt_of_le hN₀ hn]
     simp
@@ -245,10 +245,10 @@ theorem IsLyapunovOn.isStableOn_nhdsSet (h_lya : IsLyapunovOn v Φ s) (h_cpt : I
   intro t (ht : t₀ ≤ t) x (hx : v x ≤ min δ δ₀)
   have hx' : x ∈ s := by
     apply h_subset
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     grw [hx]
     exact Std.min_le_right
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   have hx0 : Φ t₀ x ∈ s := hs _ hx' _ (by simp)
   have hxt : Φ t x ∈ s := hs _ hx' _ ht
   grw [h_lya.antitone hx0 hxt ht, h_id x, hx]
@@ -272,7 +272,7 @@ theorem IsLyapunov.isStableOn_nhdsSet (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x,
     (𝓝ˢ s').IsStableOn Φ (Set.Ici t₀) := by
   refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn_nhdsSet h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
   intro x (hx : v x ≤ δ₀) t (ht : t₀ ≤ t)
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   grw [h_lya.antitone x ht, h_id x, hx]
 
 /-- Lyapunov stability for time-independent Lyapunov functions.
@@ -283,7 +283,7 @@ theorem IsLyapunov.isStableOn_nhds (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v 
     (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
   refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn_nhds h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
   intro x (hx : v x ≤ δ₀) t (ht : t₀ ≤ t)
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   grw [h_lya.antitone x ht, h_id x, hx]
 
 end TopologicalSpace

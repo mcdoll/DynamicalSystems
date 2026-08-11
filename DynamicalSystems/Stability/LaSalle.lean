@@ -64,7 +64,7 @@ variable {Φ : ℝ≥0 → E → E} {y : E}
 
 theorem isCompact_limitSet' (hf : TotallyBounded (Set.range (Φ · y))) :
     IsCompact (atTop.limitSet (Φ · y)) := by
-  apply Filter.TotallyBounded.isCompact_setOf_clusterPt
+  apply Filter.TotallyBounded.isCompact_setOfPred_clusterPt
   rw [← Filter.totallyBounded_principal_iff] at hf
   apply hf.mono
   intro s hs
@@ -163,7 +163,7 @@ theorem limitSet_subset
     atTop.limitSet (Φ · y) ⊆ {x | f' x = 0 } := by
   intro x hx
   have hx' : x ∈ s := hs' hx
-  rw [Set.mem_setOf_eq]
+  rw [Set.mem_ofPred_eq]
   apply hasDerivAt_eq_zero hx (isInvariantSet_limitSet hs' hΦs) c _ (hf' x hx')
   intro x' hx'
   apply eq_of_tendsto hc hx' (hv_diff _ (hs' hx'))
