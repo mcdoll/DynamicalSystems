@@ -211,7 +211,7 @@ theorem tendsto_smulFlow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) (hf₂
     simp only [add_apply, smul_apply, ContinuousLinearMap.coe_snd', smul_eq_mul,
       ContinuousLinearMap.coe_fst']
     ring_nf
-    simp_rw [neg_eq_zero, hf', Set.mem_setOf_eq]
+    simp_rw [neg_eq_zero, hf', Set.mem_ofPred_eq]
     by_contra!
     set γ₁ := fun t ↦ (RLCCircuit.flow f g t y).1
     set γ₂ := fun t ↦ (RLCCircuit.flow f g t y).2
