@@ -35,6 +35,7 @@ section NormedSpace
 
 variable [NormedSpace 𝕜 E]
 
+/-- The exponential map of a continuous linear map as a flow. -/
 def ContinuousLinearMap.expFlow (A : E →L[𝕜] E) : Flow 𝕜 E where
   toFun t x := NormedSpace.exp (t • A) x
   cont' := by
@@ -81,14 +82,13 @@ variable {A : E →L[ℝ] E}
 
 attribute [fun_prop] differentiable_inner
 
-/-- The function `x ↦ ⟪A x, x⟫` is a Lyapunov function for the system `d/dt x = (-A) • x`. -/
-theorem isLyapunov_sq_expFlow (hA : A.IsPositive) :
-    IsLyapunov (fun x : E ↦ inner ℝ (A x) x) ((-A).expFlow) := by
-  apply Flow.isLyapunov (by fun_prop) hA.inner_nonneg_left (by fun_prop)
+/-- The function `x ↦ ⟪x, x⟫` is a Lyapunov function for the system `d/dt x = (-A) • x`. -/
+theorem isLyapunov_inner_expFlow (hA : A.IsPositive) :
+    IsLyapunov (fun x : E ↦ inner ℝ x x) ((-A).expFlow) := by
+  apply Flow.isLyapunov (by fun_prop) (fun _ ↦ real_inner_self_nonneg) (by fun_prop)
   intro x
   rw [deriv_expFlow, fderiv_inner_apply ℝ (by fun_prop) (by fun_prop)]
-  suffices -‖A x‖ ^ 2 ≤ inner ℝ (A (A x)) x by simpa
-  simp [hA.inner_left_eq_inner_right]
+  simp [hA.inner_left_eq_inner_right, hA.inner_nonneg_right]
 
 end InnerProductSpace
 
