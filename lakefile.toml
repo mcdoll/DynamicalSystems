@@ -9,7 +9,7 @@ relaxedAutoImplicit = false
 maxSynthPendingDepth = 3
 weak.linter.flexible = true
 weak.linter.mathlibStandardSet = true
-warn.sorry = false
+warn.sorry = true
 
 [[require]]
 name = "verso"

@@ -7,6 +7,7 @@ module
 
 public import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
 public import Mathlib.Analysis.ODE.Transform
+public import Mathlib.Dynamics.Flow
 
 /-! # Global existence of ODEs -/
 
@@ -37,24 +38,21 @@ theorem differentiableAt (hΦ : IsFundamentalSolution Φ f) (t₀ t : ℝ) (x₀
     DifferentiableAt ℝ (Φ t₀ x₀) t :=
   (hΦ.isIntegralCurve t₀ x₀ t).differentiableAt
 
-theorem continuous (hΦ : IsFundamentalSolution Φ f)
+proof_wanted continuous (hΦ : IsFundamentalSolution Φ f)
     (hf : UniformlyLocallyLipschitz f) (hf' : Continuous f) (t₀ : ℝ) :
-    Continuous (Φ t₀).uncurry := by
-  sorry
+    Continuous (Φ t₀).uncurry
 
-theorem unique (hΦ : IsFundamentalSolution Φ f) (hΦ' : IsFundamentalSolution Φ f)
+proof_wanted unique (hΦ : IsFundamentalSolution Φ f) (hΦ' : IsFundamentalSolution Φ f)
     (hf : UniformlyLocallyLipschitz f) (hf' : Continuous f) :
-    Φ = Φ' := by
-  sorry
+    Φ = Φ'
 
 section Linear
 
 variable (L : ℝ → E →L[ℝ] E) (X : ℝ → ℝ → E →L[ℝ] E)
 
-theorem linear_fundamental_solution (hX₀ : ∀ t₀, X t₀ t₀ = ContinuousLinearMap.id _ _)
+proof_wanted linear_fundamental_solution (hX₀ : ∀ t₀, X t₀ t₀ = ContinuousLinearMap.id _ _)
     (hX : ∀ t₀ t, deriv (X t₀ ·) t = L t ∘L X t₀ t) :
-    IsFundamentalSolution (fun t₀ x t ↦ X t₀ t x) (L · ·) := by
-  sorry
+    IsFundamentalSolution (fun t₀ x t ↦ X t₀ t x) (L · ·)
 
 /-- The operator solving the inhomogeneous ODE `d/dx x = L(t) x + g t` given a solution operator
 `X : ℝ → ℝ → E →L[ℝ] E`. -/
@@ -67,10 +65,9 @@ theorem duhamelOperator_initial (hX₀ : ∀ t₀, X t₀ t₀ = ContinuousLinea
     (t₀ : ℝ) (x₀ : E) : duhamelOperator X g t₀ x₀ t₀ = x₀ := by
   simp [duhamelOperator, hX₀ t₀]
 
-theorem duhamelOperator_isIntegralCurve
+proof_wanted duhamelOperator_isIntegralCurve
     (hX : ∀ t₀ t, deriv (X t₀ ·) t = L t ∘L X t₀ t) (t₀ : ℝ) (x₀ : E) (t : ℝ) :
-    deriv (duhamelOperator X g t₀ x₀) t = L t (duhamelOperator X g t₀ x₀ t) + g t := by
-  sorry
+    deriv (duhamelOperator X g t₀ x₀) t = L t (duhamelOperator X g t₀ x₀ t) + g t
 
 end Linear
 
@@ -121,12 +118,11 @@ end IsCompleteVectorField
 
 variable {f : ℝ → E → E}
 
-theorem UniformlyLocallyLipschitz.isCompleteVectorField (hf : UniformlyLocallyLipschitz f)
+/-- This is a consequence of the global existence result for ODEs. -/
+proof_wanted UniformlyLocallyLipschitz.isCompleteVectorField (hf : UniformlyLocallyLipschitz f)
     (hf' : Continuous f)
     (hf'' : ∀ t, ∃ a b, ∀ x, ‖f t x‖ ≤ a + b * ‖x‖) :
-    IsCompleteVectorField f := by
-  intro t₀ x₀
-  sorry
+    IsCompleteVectorField f
 
 end NonAutonomous
 
@@ -165,17 +161,62 @@ theorem IsFundamentalSolution.add_apply'
 variable {Φ' : ℝ → E → ℝ → E}
 
 /-- The fundamental solution satisfies the group property, `Φ t ∘ Φ t' = Φ (t + t')`. -/
-theorem IsFundamentalSolution.add_apply''
+proof_wanted IsFundamentalSolution.add_apply''
     (hΦ : IsFundamentalSolution Φ' (fun _ ↦ f))
     (hv : LocallyLipschitz f) (t₀ t t' : ℝ) (x : E) :
-    Φ' t₀ (Φ' t₀ x t') t = Φ' t₀ x (t + t') := by
-  sorry
+    Φ' t₀ (Φ' t₀ x t') t = Φ' t₀ x (t + t')
 
 /-- The fundamental solution satisfies the group property, `Φ t ∘ Φ t' = Φ (t + t')`. -/
-theorem IsFundamentalSolution.add_apply
+proof_wanted IsFundamentalSolution.add_apply
     (hΦ : IsFundamentalSolution (fun t₀ x t ↦ Φ x (t - t₀)) (fun _ ↦ f))
     (hv : LocallyLipschitz f) (t t' : ℝ) (x : E) :
-    Φ (Φ x t') t = Φ x (t + t') := by
-  sorry
+    Φ (Φ x t') t = Φ x (t + t')
 
 end Autonomous
+
+/-
+namespace IsCompleteVectorField
+
+open scoped NNReal
+
+variable {x : E}
+variable {f : E → E}
+
+variable {K : ℝ≥0}
+
+/-- Every complete and Lipschitz vector field admits a global flow. -/
+def flow (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) : Flow ℝ E where
+  toFun t x := hf.flowAt 0 x t
+  cont' :=
+    (hf.flowAt_isFundamentalSolution.continuous h.uniformlyLocallyLipschitz continuous_const 0).comp
+      continuous_swap
+  map_add' := by
+    intro t₀ t₁ x
+    apply (hf.flowAt_isFundamentalSolution |>.add_apply'' f h 0 t₀ t₁ x).symm
+  map_zero' := by simp
+
+/-@[fun_prop]
+theorem differentiable_flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (x : E) :
+    Differentiable ℝ (hf.flow h · x) := by fun_prop-/
+
+@[simp]
+theorem deriv_flow (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) (t : ℝ)
+    (x : E) :
+    deriv (hf.flow h · x) t = f (hf.flow h t x) :=
+  (hf.flowAt_isIntegralCurve 0 x t).deriv
+
+example (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) (x : E) :
+    deriv (hf.flow h · x) 0 = f x := by
+  simp
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v)
+    (hf : IsCompleteVectorField (fun _ ↦ f))
+    (h : LocallyLipschitz f) (t : ℝ) (x : E) :
+    deriv (v <| hf.flow h · x) t = fderiv ℝ v (hf.flow h t x) (f <| hf.flow h t x) := calc
+  _ = (fderiv ℝ v (hf.flow h t x)) (deriv (hf.flow h · x) t) := by
+    apply fderiv_comp_deriv t (by fun_prop) (by fun_prop)
+  _ = _ := by rw [hf.deriv_flow]
+
+end IsCompleteVectorField -/

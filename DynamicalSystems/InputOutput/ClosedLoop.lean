@@ -184,13 +184,11 @@ theorem blubb₂ {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ =
   simp [(this x).2]
   congr
 
-theorem isGraph_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
-    (h : loop.inputState.IsGraph) : loop.inputOutput.IsGraph := by
-  sorry
+proof_wanted isGraph_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h : loop.inputState.IsGraph) : loop.inputOutput.IsGraph
 
-theorem isGraph_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
-    (h : loop.inputOutput.IsGraph) : loop.inputState.IsGraph := by
-  sorry
+proof_wanted isGraph_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h : loop.inputOutput.IsGraph) : loop.inputState.IsGraph
 
 variable [MeasurableSpace α] {μ : Measure α}
 
@@ -241,10 +239,10 @@ variable [PseudoMetricSpace α]
 variable {s : ι → Set α} {p : ℝ≥0∞}
 
 /-- Proposition 1.2.9 in van der Schaft -/
-theorem isCausal_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+proof_wanted isCausal_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
     (h_topRel' : loop.topRel.IsCausal s p μ) (h_botRel' : loop.botRel.IsCausal s p μ)
     (h : loop.inputState.IsGraph) :
-    loop.inputState.IsCausal s p μ := by
+    loop.inputState.IsCausal s p μ
   /-
   informal proof:
   have : (G₁ uₜ)ₜ = (G₁ u)ₜ
@@ -259,7 +257,7 @@ theorem isCausal_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.bo
   `(eₜ, uᵗ)` satisfies `(eₜ, uᵗ + FG uᵗ) ∈ inputState`
   We have that `(u + FG u)ₜ = (uₜ + (FG uₜ)ₜ)`
   -/
-  constructor
+  /-constructor
   · intro e y hey he
     simp only [mem_inputState] at hey
     -- seems like we have to assume something here
@@ -268,13 +266,13 @@ theorem isCausal_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.bo
   · intro t e y e' y' hey hey' he hy he' hy' hee'
     have htop := h_topRel'.causal t
     have hbot := h_botRel'.causal t
-    sorry
+    sorry-/
 
 /-- Proposition 1.2.9 in van der Schaft -/
-theorem isCausal_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+proof_wanted isCausal_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
     (h_topRel' : loop.topRel.IsCausal s p μ) (h_botRel' : loop.botRel.IsCausal s p μ)
     (h : loop.inputOutput.IsGraph) :
-    loop.inputOutput.IsCausal s p μ := by
+    loop.inputOutput.IsCausal s p μ /-:= by
   constructor
   · intro e y hey he
     simp only [mem_inputOutput] at hey
@@ -284,7 +282,7 @@ theorem isCausal_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.b
   · intro t e y e' y' hey hey' he hy he' hy' hee'
     have htop := h_topRel'.causal t
     have hbot := h_botRel'.causal t
-    sorry
+    sorry-/
 
 end IsCausal
 

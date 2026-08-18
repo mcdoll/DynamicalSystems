@@ -29,16 +29,15 @@ structure IsCaratheodory (f : ℝ → E → E) where
 
 variable {f : ℝ → E → E} {m : ℝ → ℝ} {γ : ℝ → E}
 
-theorem IsCaratheodory.comp_aemeasurable (h : IsCaratheodory f) (hm : Integrable m)
-    (hγ : AEMeasurable γ) : AEMeasurable (fun t ↦ f t (γ t)) := by
+proof_wanted IsCaratheodory.comp_aemeasurable (h : IsCaratheodory f) (hm : Integrable m)
+    (hγ : AEMeasurable γ) : AEMeasurable (fun t ↦ f t (γ t))
   -- measurability of the composition: this is highly nontrivial and hinges on the fact that
   -- `f` is a Caratheodory function, see Lemma 2.4 in Rindler
-  sorry
 
 
-theorem IsCaratheodory.comp_integrable [BorelSpace E] [SecondCountableTopology E]
+proof_wanted IsCaratheodory.comp_integrable [BorelSpace E] [SecondCountableTopology E]
     (h : IsCaratheodory f) (hm : Integrable m) (hfm : ∀ t x, ‖f t x‖ ≤ m t)
-    (hγ : AEMeasurable γ) : Integrable (fun t ↦ f t (γ t)) := by
+    (hγ : AEMeasurable γ) : Integrable (fun t ↦ f t (γ t)) /-:= by
   constructor
   · exact (h.comp_aemeasurable hm hγ).aestronglyMeasurable
   calc
@@ -47,7 +46,7 @@ theorem IsCaratheodory.comp_integrable [BorelSpace E] [SecondCountableTopology E
       rw [enorm_le_iff_norm_le]
       grw [hfm]
       exact Real.le_norm_self (m t)
-    _ < _ := hm.hasFiniteIntegral
+    _ < _ := hm.hasFiniteIntegral-/
 
 /-- `IsAEIntegralCurveOn γ v s` means `γ t` is tangent to `v t (γ t)` within `s` for almost all
 `t ∈ s`. -/

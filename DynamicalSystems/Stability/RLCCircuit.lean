@@ -8,6 +8,7 @@ module
 public import DynamicalSystems.Stability.LaSalle
 public import DynamicalSystems.Stability.Lyapunov
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+public import DynamicalSystems.Mathlib.Dynamics.Basic
 
 /-! # Asymptotic stability of the RLC circuit
 
@@ -21,13 +22,13 @@ variable (hf : Continuous f) (hg : Continuous g) (hf_pass : ∀ x, 0 ≤ x * f x
 
 -- maybe define a structure for locally passive functions
 
+attribute [fun_prop] IntervalIntegrable Continuous.intervalIntegrable
+attribute [fun_prop] StronglyMeasurableAtFilter Continuous.stronglyMeasurableAtFilter
+
 theorem integral_hasDerivAt (hf : Continuous f) (a b) :
     HasDerivAt (fun x : ℝ ↦ ∫ y in a..x, f y) (f b) b := by
-  apply (intervalIntegral.integral_hasStrictDerivAt_right _ _ _).hasDerivAt
-  -- Todo: all three should be `fun_prop`
-  · exact Continuous.intervalIntegrable hf a b
-  · exact Continuous.stronglyMeasurableAtFilter hf MeasureTheory.volume (nhds b)
-  fun_prop
+  apply (intervalIntegral.integral_hasStrictDerivAt_right
+    (by fun_prop) (by fun_prop) (by fun_prop)).hasDerivAt
 
 -- should be in mathlib? specialize this t₀ t₁
 @[fun_prop]
@@ -46,6 +47,14 @@ theorem integral_nonneg_of_Ioo [MeasureTheory.NullSingletonClass μ] (hab : a �
   · simp
   · simp [intervalIntegrable_const_iff]
 
+-- should be in mathlib
+theorem integral_nonpos_of_Ioo [MeasureTheory.NullSingletonClass μ] (hab : a ≤ b)
+    (hf : IntervalIntegrable f μ a b) (h : ∀ x ∈ Set.Ioo a b, f x ≤ 0) :
+    ∫ u in a..b, f u ∂μ ≤ 0 := by
+  convert intervalIntegral.integral_mono_on_of_le_Ioo hab hf _ h
+  · simp
+  · simp [intervalIntegrable_const_iff]
+
 namespace RLCCircuit
 
 variable (g) in
@@ -61,13 +70,13 @@ theorem nonneg_energy (hg : Continuous g) (hg_pass : ∀ x, 0 ≤ x * g x) (x) :
     0 ≤ RLCCircuit.energy g x := by
   have : 0 ≤ ∫ t in 0..x.1, g t := by
     by_cases! hx : 0 ≤ x.1
-    · apply integral_nonneg_of_Ioo hx
-      · -- should be `fun_prop`
-        exact IntervalIntegrable.symm (Continuous.intervalIntegrable hg x.1 0)
+    · apply integral_nonneg_of_Ioo hx (by fun_prop)
       intro y ⟨hy₁, hy₂⟩
       exact nonneg_of_mul_nonneg_right (hg_pass y) hy₁
-    · -- similar argument
-      sorry
+    · rw [intervalIntegral.integral_symm, Left.nonneg_neg_iff]
+      apply integral_nonpos_of_Ioo hx.le (by fun_prop)
+      intro y ⟨hy₁, hy₂⟩
+      exact nonpos_of_mul_nonneg_right (hg_pass y) hy₂
   unfold RLCCircuit.energy
   positivity
 
@@ -97,9 +106,13 @@ theorem isLinearlyBddVectorField {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f
   exists_bound := by
     simp only [Prod.forall]
     use 1 + C₁ + C₂
-    have hC₁ : 0 ≤ C₁ := by sorry
-    have hC₂ : 0 ≤ C₂ := by sorry
-    have hC' : 0 ≤ 1 + C₁ + C₂ := by sorry
+    have hC₁ : 0 ≤ C₁ := by
+      have : 0 ≤ |deriv f 0| := by positivity
+      grw [this, hf₂ 0]
+    have hC₂ : 0 ≤ C₂ := by
+      have : 0 ≤ |deriv g 0| := by positivity
+      grw [this, hg₂ 0]
+    have hC' : 0 ≤ 1 + C₁ + C₂ := by positivity
     intro x y
     rw [DifferentiableAt.fderiv_prodMk (by fun_prop) (by fun_prop), fderiv_snd]
     rw [fderiv_fun_sub (by fun_prop) (by fun_prop), fderiv_fun_neg]
@@ -133,6 +146,8 @@ theorem isLinearlyBddVectorField {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f
         · grw [hg₂ x]
         · simp
 
+/- uses `IsLinearlyBddVectorField.flow`
+
 open Classical in
 variable (f g) in
 /-- The flow of the vector field `x ↦ r • x`. -/
@@ -141,7 +156,7 @@ def flow : Flow ℝ (ℝ × ℝ) :=
   if h : Differentiable ℝ f ∧ Differentiable ℝ g ∧ (∃ C₁, ∀ x, |deriv f x| ≤ C₁) ∧
     ∃ C₂, ∀ x, |deriv g x| ≤ C₂
   then (RLCCircuit.isLinearlyBddVectorField h.1 h.2.2.1.choose_spec h.2.1 h.2.2.2.choose_spec).flow
-  else sorry
+  else .id _ _
 
 theorem flow_eq {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f)
     (hf₂ : ∀ x, |deriv f x| ≤ C₁) (hg₁ : Differentiable ℝ g) (hg₂ : ∀ x, |deriv g x| ≤ C₂) :
@@ -157,7 +172,6 @@ theorem differentiable_flow (x) : Differentiable ℝ (RLCCircuit.flow f g · x) 
   · simp [RLCCircuit.flow, h]
     sorry
   · simp [RLCCircuit.flow, h]
-    sorry
 
 theorem deriv_flow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f)
     (hf₂ : ∀ x, |deriv f x| ≤ C₁) (hg₁ : Differentiable ℝ g) (hg₂ : ∀ x, |deriv g x| ≤ C₂) (t) (x) :
@@ -258,5 +272,7 @@ theorem tendsto_smulFlow {C₁ C₂ : ℝ} (hf₁ : Differentiable ℝ f) (hf₂
     rfl
 
 -- the energy is decreasing along the flow
+
+-/
 
 end RLCCircuit

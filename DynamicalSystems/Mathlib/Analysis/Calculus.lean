@@ -7,6 +7,8 @@ module
 
 public import Mathlib.Analysis.Calculus.Deriv.Comp
 public import Mathlib.Analysis.Calculus.FDeriv.Prod
+public import Mathlib.Analysis.Normed.Lp.ProdLp
+public import Mathlib.Analysis.Calculus.FDeriv.Equiv
 
 /-! # Missing calculus lemmas -/
 
@@ -15,6 +17,8 @@ public import Mathlib.Analysis.Calculus.FDeriv.Prod
 variable {E E' F G : Type*}
 
 section uncurry
+
+open scoped ENNReal
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup E'] [NormedSpace ℝ E']
@@ -47,6 +51,47 @@ theorem fderiv_prod (f : E × E' → F) (hf : DifferentiableAt ℝ f (x, y)) :
   ext z
   · simp [foo₀' hf]
   · simp [foo₀ hf]
+
+theorem fderiv_prod' {z : E × E'} (f : E × E' → F) (hf : DifferentiableAt ℝ f z) :
+    fderiv ℝ f z =
+      (fderiv ℝ (fun x ↦ f (x, z.2)) z.1).coprod (fderiv ℝ (fun y ↦ f (z.1, y)) z.2) := by
+  ext x
+  · simp [foo₀' hf]
+  · simp [foo₀ hf]
+
+variable {p : ℝ≥0∞}
+
+variable (p E E') in
+/-- The left injection into a product is a continuous linear map. -/
+def WithLp.inl : E →L[ℝ] WithLp p (E × E') :=
+  (WithLp.prodContinuousLinearEquiv p ℝ E E').symm.toContinuousLinearMap ∘L .inl ℝ E E'
+
+@[simp]
+theorem WithLp.inl_apply (x : E) : WithLp.inl E E' p x = toLp p (x, 0) := rfl
+
+variable (p E E') in
+/-- The right injection into a product is a continuous linear map. -/
+def WithLp.inr : E' →L[ℝ] WithLp p (E × E') :=
+  (WithLp.prodContinuousLinearEquiv p ℝ E E').symm.toContinuousLinearMap ∘L .inr ℝ E E'
+
+@[simp]
+theorem WithLp.inr_apply (x : E') : WithLp.inr E E' p x = toLp p (0, x) := rfl
+
+theorem fderiv_WithLp_prod {p : ℝ≥0∞} [Fact (1 ≤ p)] {z : WithLp p (E × E')}
+    (f : WithLp p (E × E') → F) (hf : DifferentiableAt ℝ f z) :
+    fderiv ℝ f z =
+      (fderiv ℝ (fun x ↦ f (WithLp.toLp p (x, z.snd))) z.fst).coprod
+      (fderiv ℝ (fun y ↦ f (WithLp.toLp p (z.fst, y))) z.snd) ∘L
+      (WithLp.prodContinuousLinearEquiv p ℝ E E').toContinuousLinearMap := by
+  have : f = (f ∘ (WithLp.prodContinuousLinearEquiv p ℝ E E').symm) ∘
+      (WithLp.prodContinuousLinearEquiv p ℝ E E') := by
+    ext x
+    simp
+  nth_rewrite 1 [this]
+  rw [ContinuousLinearEquiv.comp_right_fderiv (WithLp.prodContinuousLinearEquiv p ℝ E E')]
+  rw [fderiv_prod']
+  · simp
+  · fun_prop
 
 theorem fderiv_uncurry (f : E → E' → F) (hf : DifferentiableAt ℝ f.uncurry (x, y)) :
     fderiv ℝ f.uncurry (x, y) = (fderiv ℝ (f · y) x).coprod (fderiv ℝ (f x) y) := by
