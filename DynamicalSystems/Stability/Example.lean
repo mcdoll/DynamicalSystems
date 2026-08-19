@@ -90,6 +90,16 @@ theorem isLyapunov_inner_expFlow (hA : A.IsPositive) :
   rw [deriv_expFlow, fderiv_inner_apply ℝ (by fun_prop) (by fun_prop)]
   simp [hA.inner_left_eq_inner_right, hA.inner_nonneg_right]
 
+open scoped Topology
+
+variable [ProperSpace E]
+
+/-- The origin is stable under the forward flow of `d/dt x = r x` -/
+theorem isStableOn_expFlow (hA : A.IsPositive) : (𝓝 0).IsStableOn (-A).expFlow (Set.Ici 0) := by
+  apply (isLyapunov_inner_expFlow hA).isStableOn_nhds (by simp) (by simp) zero_lt_one
+  convert isCompact_closedBall (0 : E) 1
+  ext; simp
+
 end InnerProductSpace
 
 end ExponentialFlow

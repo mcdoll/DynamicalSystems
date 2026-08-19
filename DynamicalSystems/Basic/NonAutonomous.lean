@@ -78,6 +78,18 @@ variable [AddZero τ]
 instance : CoeFun (AutonomousFlow τ E) (fun _ ↦ τ → E → E) where
   coe L := L.toFun
 
+/-- Any function defines a autonomous `ℕ`-flow. -/
+def _root_.Function.autonomousFlow (f : E → E) : AutonomousFlow ℕ E where
+  toFun t := f^[t]
+  map_id x := by simp
+  map_comp t t' x := by rw [Function.iterate_add_apply]
+
+/-- Any equivalence defines a autonomous `ℤ`-flow. -/
+def _root_.Equiv.autonomousFlow (f : E ≃ E) : AutonomousFlow ℤ E where
+  toFun t := ↑(f ^ t)
+  map_id x := by simp
+  map_comp t t' x := by simp [zpow_add f t t']
+
 end AddZero
 
 section AddCommGroup
