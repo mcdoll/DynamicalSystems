@@ -5,7 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.Mathlib.Dynamics.Basic
+public import Mathlib.Dynamics.Flow
 
 /-! # Abstract formulation of solution operators for non-autonomous ODEs
 
@@ -91,7 +91,7 @@ variable (Φ) in
 def toNonautonomousFlow : NonautonomousFlow τ E where
   toFun t₀ x t := Φ (t - t₀) x
   map_id t₀ x := by simp
-  map_comp t₀ t₁ t₂ x := by rw [map_comp]; abel_nf
+  map_comp t₀ t₁ t₂ x := by rw [map_comp]; congr; grind
 
 @[simp]
 theorem toNonautonomousFlow_apply (t₀ t : τ) (x : E) :

@@ -75,7 +75,7 @@ theorem comp (hf : MemKOn f a₁) (hg : MemKOn g a₂) (ha : g a₂ ≤ a₁) : 
     apply hg.strictMonoOn.monotoneOn (by simp [hx]) (by simp) hx
   zero := by simp [hf.zero, hg.zero]
 
-@[fun_prop]
+/-@[fun_prop]
 theorem invFunOn (hf : MemKOn f a₁) : MemKOn (f.invFunOn (Set.Icc 0 a₁)) (f a₁) where
   contOn := by
     /-rw [Metric.continuous_iff]
@@ -99,7 +99,7 @@ theorem invFunOn (hf : MemKOn f a₁) : MemKOn (f.invFunOn (Set.Icc 0 a₁)) (f 
   zero := by
     sorry
     /-convert Function.leftInverse_invFun hf.injective 0
-    simp [hf.zero]-/
+    simp [hf.zero]-/-/
 
 end MemKOn
 
@@ -116,7 +116,7 @@ theorem comp (hf : MemK f) (hg : MemK g) : MemK (f ∘ g) where
   strictMono := hf.strictMono.comp hg.strictMono
   zero := by simp [hf.zero, hg.zero]
 
-@[fun_prop]
+/-@[fun_prop]
 theorem invFun (hf : MemK f) (hf' : f.Bijective) : MemK f.invFun where
   cont := by
     rw [Metric.continuous_iff]
@@ -139,7 +139,7 @@ theorem invFun (hf : MemK f) (hf' : f.Bijective) : MemK f.invFun where
     sorry
   zero := by
     convert Function.leftInverse_invFun hf.injective 0
-    simp [hf.zero]
+    simp [hf.zero]-/
 
 end MemK
 
@@ -149,11 +149,10 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 variable (V : E → ℝ)
 
-/-- Lemma 4.3 in Khalil -/
-theorem foo (hV₁ : ∀ x, 0 ≤ V x) (hV₂ : ∀ x, V x = 0 ↔ x = 0) :
+/- Lemma 4.3 in Khalil -/
+proof_wanted foo (hV₁ : ∀ x, 0 ≤ V x) (hV₂ : ∀ x, V x = 0 ↔ x = 0) :
     ∃ α₁ α₂, ∃ (hα₁ : MemK α₁), ∃ (hα₁ : MemK α₂),
-    ∀ x, α₁ ‖x‖₊ ≤ V x ∧ V x ≤ α₂ ‖x‖₊ := by
-  sorry
+    ∀ x, α₁ ‖x‖₊ ≤ V x ∧ V x ≤ α₂ ‖x‖₊
 
 /-
 /-- Solutions of `d/dt x = - α x` for `α` a class K function exist globally for all `x₀ ≥ 0`

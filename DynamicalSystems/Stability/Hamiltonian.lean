@@ -42,12 +42,10 @@ variable {H : WithLp 2 (E × E) → ℝ} (ζ : WithLp 2 (E × E))
 def hamiltonvf (H : WithLp 2 (E × E) → ℝ) (ζ : WithLp 2 (E × E)) : WithLp 2 (E × E) :=
   LinearEquiv.withLpCongr 2 (LinearEquiv.skewSwap ℝ E E) (gradient H ζ)
 
-theorem fderiv_apply_hamiltonvf (h : Differentiable ℝ H) (x : WithLp 2 (E × E)) :
+theorem fderiv_apply_hamiltonvf (x : WithLp 2 (E × E)) :
     (fderiv ℝ H x) (hamiltonvf H x) = 0 := by
-  unfold hamiltonvf
-  simp
-  -- need `fderiv_prod` for `WithLp`
-  sorry
+  rw [← inner_gradient_left, WithLp.prod_inner_apply]
+  simp [hamiltonvf, real_inner_comm]
 
 open Topology
 
@@ -59,7 +57,7 @@ theorem isLyapunov_hamiltonian (hΦ : IsFundamentalSolution' Φ (hamiltonvf H))
     IsLyapunov H Φ := by
   apply Flow.isLyapunov (by intro x t; exact (hΦ.isIntegralCurve x t).differentiableAt) h₁ hH
   intro x
-  rw [deriv_isFundamentalSolution' hΦ, fderiv_apply_hamiltonvf hH]
+  rw [deriv_isFundamentalSolution' hΦ, fderiv_apply_hamiltonvf]
 
 
 theorem isStableOn (x₀ : WithLp 2 (E × E))

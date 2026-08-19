@@ -85,10 +85,10 @@ theorem exists_forall_mem_closedBall_eq_isIntegralCurveOn_lipschitzOnWith
   refine ⟨α', fun x hx ↦ ⟨?_, fun t ht ↦ ?_⟩, ?_⟩
   · rw [hα']
     beta_reduce
-    rw [dif_pos hx, FunSpace.compProj_val, ← hα, FunSpace.next_apply₀]
+    rw [dite_eq_left hx, FunSpace.compProj_val, ← hα, FunSpace.next_apply₀]
   · rw [hα']
     beta_reduce
-    rw [dif_pos hx, FunSpace.compProj_apply]
+    rw [dite_eq_left hx, FunSpace.compProj_apply]
     apply hasDerivWithinAt_picard_Icc t₀.2 hf.continuousOn_uncurry
       (α x hx |>.continuous_compProj.continuousOn)
       (fun _ ht' ↦ α x hx |>.compProj_mem_closedBall hf.mul_max_le)
@@ -99,7 +99,7 @@ theorem exists_forall_mem_closedBall_eq_isIntegralCurveOn_lipschitzOnWith
   · obtain ⟨L', h⟩ := FunSpace.exists_forall_closedBall_funSpace_dist_le_mul hf
     refine ⟨L', fun t ht ↦ LipschitzOnWith.of_dist_le_mul fun x hx y hy ↦ ?_⟩
     simp_rw [hα']
-    rw [dif_pos hx, dif_pos hy, FunSpace.compProj_apply, FunSpace.compProj_apply,
+    rw [dite_eq_left hx, dite_eq_left hy, FunSpace.compProj_apply, FunSpace.compProj_apply,
       ← FunSpace.toContinuousMap_apply_eq_apply, ← FunSpace.toContinuousMap_apply_eq_apply]
     have : Nonempty (Icc tmin tmax) := ⟨t₀⟩
     apply ContinuousMap.dist_le_iff_of_nonempty.mp
@@ -186,7 +186,7 @@ theorem exists_eventually_isIntegralCurveAt
   choose α hα using H
   refine ⟨fun (x : E) ↦ if hx : x ∈ closedBall x₀ r then α x hx else 0, ?_⟩
   filter_upwards [closedBall_mem_nhds x₀ hr] with x hx
-  simp only [dif_pos hx]
+  simp only [dite_eq_left hx]
   exact ⟨(hα x hx).1,
     (hα x hx).2.isIntegralCurveAt (Ioo_mem_nhds (by linarith) (by linarith))⟩
 

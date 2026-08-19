@@ -5,9 +5,9 @@ Authors: Moritz Doll
 -/
 module
 
---public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
-public import DynamicalSystems.Mathlib.Dynamics.Basic
 public import DynamicalSystems.Mathlib.Topology.LimitSet
+
+public import Mathlib.Dynamics.OmegaLimit
 
 /-!
 # Invariant sets and semigroups

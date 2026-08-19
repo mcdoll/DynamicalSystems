@@ -5,9 +5,12 @@ Authors: Moritz Doll
 -/
 module
 
-public import Mathlib.Dynamics.Flow
 public import Mathlib.Dynamics.OmegaLimit
+public import Mathlib.Analysis.ODE.Transform
+
 public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
+public import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
+public import DynamicalSystems.Mathlib.Analysis.Calculus.Flow
 
 /-! # Basics of dynamical systems -/
 
@@ -81,51 +84,6 @@ variable {E : Type*}
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-namespace IsCompleteVectorField
-
-open scoped NNReal
-
-variable {x : E}
-variable {f : E → E}
-
-variable {K : ℝ≥0}
-
-/-- Every complete and Lipschitz vector field admits a global flow. -/
-def flow (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) : Flow ℝ E where
-  toFun t x := hf.flowAt 0 x t
-  cont' :=
-    (hf.flowAt_isFundamentalSolution.continuous h.uniformlyLocallyLipschitz continuous_const 0).comp
-      continuous_swap
-  map_add' := by
-    intro t₀ t₁ x
-    apply (hf.flowAt_isFundamentalSolution |>.add_apply'' f h 0 t₀ t₁ x).symm
-  map_zero' := by simp
-
-/-@[fun_prop]
-theorem differentiable_flow (hf : IsCompleteVectorField f) (h : LipschitzWith K f) (x : E) :
-    Differentiable ℝ (hf.flow h · x) := by fun_prop-/
-
-@[simp]
-theorem deriv_flow (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) (t : ℝ)
-    (x : E) :
-    deriv (hf.flow h · x) t = f (hf.flow h t x) :=
-  (hf.flowAt_isIntegralCurve 0 x t).deriv
-
-example (hf : IsCompleteVectorField (fun _ ↦ f)) (h : LocallyLipschitz f) (x : E) :
-    deriv (hf.flow h · x) 0 = f x := by
-  simp
-
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-
-theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v)
-    (hf : IsCompleteVectorField (fun _ ↦ f))
-    (h : LocallyLipschitz f) (t : ℝ) (x : E) :
-    deriv (v <| hf.flow h · x) t = fderiv ℝ v (hf.flow h t x) (f <| hf.flow h t x) := calc
-  _ = (fderiv ℝ v (hf.flow h t x)) (deriv (hf.flow h · x) t) := by
-    apply fderiv_comp_deriv t (by fun_prop) (by fun_prop)
-  _ = _ := by rw [hf.deriv_flow]
-
-end IsCompleteVectorField
 
 end Continuous
 
@@ -135,26 +93,6 @@ variable {E F : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
 
 variable {Φ Φ' : Flow ℝ E} {x : E} {t : ℝ}
-
-theorem DifferentiableAt.deriv_eq_deriv_zero (h : ∀ x, DifferentiableAt ℝ (Φ · x) 0) :
-    deriv (Φ · x) t = deriv (Φ · (Φ t x)) 0 := calc
-  _ = deriv (fun s ↦ (Φ (s - t) (Φ t x))) t := by
-    congr
-    ext s
-    rw [← Φ.map_add']
-    grind
-  _ = deriv (fun s : ℝ ↦ s - t) t • deriv (Φ · (Φ t x)) ((fun s : ℝ ↦ s - t) t) :=
-    deriv.scomp (h := (· - t)) (g₁ := (Φ · (Φ t x))) t (by simp [h (Φ t x)]) (by fun_prop)
-  _ = _ := by
-    simp
-
-theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v) (h : ∀ x, Differentiable ℝ (Φ · x))
-    (t : ℝ) (x : E) :
-    deriv (v <| Φ · x) t = fderiv ℝ v (Φ t x) (deriv (Φ · (Φ t x)) 0) := calc
-  _ = (fderiv ℝ v (Φ t x)) (deriv (Φ · x) t) := by
-    apply fderiv_comp_deriv t (by fun_prop) (by fun_prop)
-  _ = _ := by
-    rw [DifferentiableAt.deriv_eq_deriv_zero (by fun_prop)]
 
 theorem Flow.isCompleteVectorField (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
     IsCompleteVectorField (fun _ x ↦ deriv (Φ · x) 0) := by
@@ -171,10 +109,8 @@ theorem Flow.isCompleteVectorField (hΦ : ∀ x, Differentiable ℝ (Φ · x)) :
   convert! this
   simp
 
-theorem flow_congr (hΦ : ∀ x, Differentiable ℝ (Φ · x)) (hΦ' : ∀ x, Differentiable ℝ (Φ' · x))
-    (h : ∀ x, deriv (Φ · x) 0 = deriv (Φ' · x) 0) : Φ = Φ' := by
-  ext t x
-  sorry
+proof_wanted flow_congr (hΦ : ∀ x, Differentiable ℝ (Φ · x)) (hΦ' : ∀ x, Differentiable ℝ (Φ' · x))
+    (h : ∀ x, deriv (Φ · x) 0 = deriv (Φ' · x) 0) : Φ = Φ'
 
 /-- A vector field `f : E → E` is called linearly bounded if it is differentiable and its derivative
 is uniformly bounded. -/
@@ -220,11 +156,11 @@ theorem lipschitzWith (hf : IsLinearlyBddVectorField f) :
     LipschitzWith hf.nnbound f :=
   lipschitzWith_of_nnnorm_fderiv_le hf.differentiable hf.nnnorm_fderiv_le_nnbound
 
-theorem isCompleteVectorField (hf : IsLinearlyBddVectorField f) :
-    IsCompleteVectorField (fun _ ↦ f) := by
-  intro x
+proof_wanted isCompleteVectorField (hf : IsLinearlyBddVectorField f) :
+    IsCompleteVectorField (fun _ ↦ f)
   -- this follows from Theorem 2.17 of Teschl and the fundamental theorem of calculus
-  sorry
+
+/- the following statements need the definition `IsCompleteVectorField.flow`
 
 /-- The flow of a linearly bounded vector field. -/
 def flow (hf : IsLinearlyBddVectorField f) : Flow ℝ E :=
@@ -242,6 +178,7 @@ theorem deriv_comp_flow (hf : IsLinearlyBddVectorField f) {v : E → F} (hv : Di
     deriv (v <| hf.flow · x) t = fderiv ℝ v (hf.flow t x) (f <| hf.flow t x) :=
   hf.isCompleteVectorField.deriv_comp_flow hv hf.lipschitzWith.locallyLipschitz t x
 
+-/
 
 end IsLinearlyBddVectorField
 
