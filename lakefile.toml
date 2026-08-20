@@ -21,6 +21,11 @@ name = "mathlib"
 scope = "leanprover-community"
 rev = "de5ce8a9a66a4aa68a9bdbb35b63a06d34d9ca11"
 
+[[require]]
+name = "axiom-audit"
+git = "https://github.com/leanprover-community/axiom-audit.git"
+rev = "main"
+
 [[lean_lib]]
 name = "DynamicalSystems"
 
