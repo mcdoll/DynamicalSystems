@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.ODE.Basic
 public import Mathlib.Analysis.ODE.Gronwall
 public import Mathlib.Analysis.ODE.PicardLindelof
+public import Mathlib.Analysis.ODE.ExistUnique
 
 /-!
 # Existence and uniqueness of integral curves in normed spaces
