@@ -7,7 +7,8 @@ import DynamicalSystems.InputOutput.ClosedLoop
 import DynamicalSystems.InputOutput.Dissipative
 import DynamicalSystems.InputOutput.Example
 import DynamicalSystems.InputOutput.Stability
-import DynamicalSystems.Mathlib.Analysis.Calculus
+import DynamicalSystems.Mathlib.Analysis.Calculus.Flow
+import DynamicalSystems.Mathlib.Analysis.Calculus.IsStrictLocalMax
 import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
