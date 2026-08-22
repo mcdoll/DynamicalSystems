@@ -10,6 +10,12 @@ public import DynamicalSystems.Stability.Example
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import DynamicalSystems.Mathlib.Analysis.Calculus.IsStrictLocalMax
 
+/-! # Stability of fixed points by linearization
+
+This file proves that a fixed point `x₀` of an autonomous ODE is stable if the `-fderiv ℝ f x₀` is
+coercive, in the sense that `innerSL ℝ ∘L (-fderiv ℝ f x₀)` is a coercive bilinear form.
+-/
+
 public section
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
