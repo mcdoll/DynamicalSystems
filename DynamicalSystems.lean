@@ -11,7 +11,8 @@ import DynamicalSystems.Mathlib.Analysis.Calculus
 import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
-import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistenceBounded
+import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistenceLinear
+import DynamicalSystems.Mathlib.Analysis.ODE.RadialTruncation
 import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
 import DynamicalSystems.Mathlib.Dynamics.Basic
 import DynamicalSystems.Mathlib.Topology.Antitone
@@ -20,5 +21,6 @@ import DynamicalSystems.Stability.Basic
 import DynamicalSystems.Stability.Hamiltonian
 import DynamicalSystems.Stability.Example
 import DynamicalSystems.Stability.LaSalle
+import DynamicalSystems.Stability.Linearization
 import DynamicalSystems.Stability.Lyapunov
 import DynamicalSystems.Stability.RLCCircuit
