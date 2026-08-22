@@ -5,6 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
+public import DynamicalSystems.Basic.Autonomous
 public import DynamicalSystems.Mathlib.Topology.Antitone
 public import DynamicalSystems.Stability.Basic
 public import DynamicalSystems.Mathlib.Analysis.Calculus.Flow
@@ -24,7 +25,7 @@ open scoped Topology
 section Definition
 
 variable [TopologicalSpace E]
-  [Preorder F] [Zero F] [TopologicalSpace F]
+  [Preorder F] [Zero F] [TopologicalSpace F] [Preorder ι]
 
 /-- A Lyapunov function is a continuous non-negative function that is non-increasing with respect
 to a given flow.
@@ -32,7 +33,7 @@ to a given flow.
 Note that we assume that `v` is non-negative and continuous everywhere, but only decreasing on
 `s`. -/
 @[fun_prop]
-structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Set E) : Prop where
+structure IsLyapunovOn (v : E → F) (Φ : ι → E → E) (s : Set E) : Prop where
   /-- A Lyapunov function is non-negative everywhere -/
   pos : ∀ x, 0 ≤ v x
   /-- A Lyapunov function is continuous everywhere -/
@@ -43,9 +44,42 @@ structure IsLyapunovOn [Preorder ι] (v : E → F) (Φ : ι → E → E) (s : Se
     v (Φ t₁ x) ≤ v (Φ t₀ x)
 
 /-- A Lyapunov function is a continuous non-negative function that is non-increasing with respect
+to a given flow.
+
+Note that we assume that `v` is non-negative and continuous everywhere, but only decreasing on
+`s`. -/
+@[fun_prop]
+structure IsLyapunovOn' (v : E → F) (Φ : ι → E → E) (s : Set E) : Prop where
+  /-- A Lyapunov function is non-negative everywhere -/
+  pos : ∀ x, 0 ≤ v x
+  /-- A Lyapunov function is continuous everywhere -/
+  cont : Continuous v
+  /-- A Lyapunov function is monotonically decreasing along the flow for all values `t` such that
+  `Φ t x` is contained in `s`. -/
+  antitone : ∀ ⦃x t₀ t₁⦄ (_hx : x ∈ s) (_ht₀ : Φ t₀ x ∈ s) (_ht₁ : Φ t₁ x ∈ s) (_ht : t₀ ≤ t₁),
+    v (Φ t₁ x) ≤ v (Φ t₀ x)
+
+/-- A Lyapunov function is a continuous non-negative function that is non-increasing with respect
+to a given flow.
+
+Note that we assume that `v` is non-negative and continuous everywhere, but only decreasing on
+`s`. -/
+@[fun_prop]
+structure IsLyapunovOnIn (v : E → F) (Φ : ι → E → E) (s : Set E) (s' : Set ι) : Prop where
+  /-- A Lyapunov function is non-negative everywhere -/
+  pos : ∀ x, 0 ≤ v x
+  /-- A Lyapunov function is continuous everywhere -/
+  cont : Continuous v
+  /-- A Lyapunov function is monotonically decreasing along the flow for all values `t` such that
+  `Φ t x` is contained in `s`. -/
+  antitone : ∀ x ∈ s, ∀ t₀ ∈ s', ∀ t₁ ∈ s', t₀ ≤ t₁ → v (Φ t₁ x) ≤ v (Φ t₀ x)
+  /-- the set `s` is invariant. -/
+  mem : ∀ x ∈ s, ∀ t ∈ s', Φ t x ∈ s
+
+/-- A Lyapunov function is a continuous non-negative function that is non-increasing with respect
 to a given flow. -/
 @[fun_prop]
-structure IsLyapunov [Preorder ι] (v : E → F) (Φ : ι → E → E) : Prop where
+structure IsLyapunov (v : E → F) (Φ : ι → E → E) : Prop where
   /-- A Lyapunov function is non-negative everywhere -/
   pos : ∀ x, 0 ≤ v x
   /-- A Lyapunov function is continuous everywhere -/
@@ -55,7 +89,13 @@ structure IsLyapunov [Preorder ι] (v : E → F) (Φ : ι → E → E) : Prop wh
 
 attribute [fun_prop] IsLyapunov.cont
 
-variable [Preorder ι] {v : E → F} {Φ : ι → E → E} {s : Set E}
+variable {v : E → F} {Φ : ι → E → E} {s : Set E}
+
+@[fun_prop]
+theorem IsLyapunovOn.isLyapunovOn' (h : IsLyapunovOn v Φ s) : IsLyapunovOn' v Φ s where
+  pos := h.pos
+  cont := h.cont
+  antitone _ _ _ _ ht₀ ht₁ ht := h.antitone ht₀ ht₁ ht
 
 @[fun_prop]
 theorem IsLyapunovOn.continuous (h : IsLyapunovOn v Φ s) : Continuous v := h.cont
@@ -63,6 +103,11 @@ theorem IsLyapunovOn.continuous (h : IsLyapunovOn v Φ s) : Continuous v := h.co
 @[fun_prop]
 theorem IsLyapunovOn.continuousAt (h : IsLyapunovOn v Φ s) {x : E} : ContinuousAt v x :=
   h.cont.continuousAt
+
+theorem IsLyapunov.isLyapunovOn' (h : IsLyapunov v Φ) (s : Set E) : IsLyapunovOn' v Φ s where
+  pos := h.pos
+  cont := h.cont
+  antitone x _ _ _ _ _ ht := h.antitone x ht
 
 theorem IsLyapunov.isLyapunovOn (h : IsLyapunov v Φ) (s : Set E) : IsLyapunovOn v Φ s where
   pos := h.pos
@@ -76,7 +121,7 @@ open Filter
 
 variable {Φ : ι → E → E} {v : E → F} {x₀ : E} {s : Set E}
 
-section blubb
+section HasBasis
 
 variable [Preorder ι] [IsDirectedOrder ι] [TopologicalSpace E]
 
@@ -87,11 +132,11 @@ variable
 
 /-- The flow composed with a Lyapunov function converges to some point. -/
 theorem IsLyapunovOn.exists_tendsto {x : E} {t₀ : ι} (h_lya : IsLyapunovOn v Φ s)
-    (hx : ∀ t ∈ Set.Ici t₀, Φ t x ∈ s) :
+    (hΦ : ∀ t ∈ Set.Ici t₀, Φ t x ∈ s) :
     ∃ c, Filter.Tendsto (v <| Φ · x) Filter.atTop (𝓝 c) := by
   have h_anti : AntitoneOn (v <| Φ · x) (Set.Ici t₀) := by
     intro t ht t' ht' h
-    exact h_lya.antitone (hx t ht) (hx t' ht') h
+    exact h_lya.antitone (hΦ t ht) (hΦ t' ht') h
   apply h_anti.exists_tendsto ⟨0, ?_⟩
   intro t ht
   exact h_lya.pos _
@@ -100,13 +145,13 @@ variable [Nonempty ι]
 
 /-- The flow composed with a Lyapunov function converges to some point. -/
 theorem IsLyapunovOn.exists_tendsto_of_eventually {x : E} (h_lya : IsLyapunovOn v Φ s)
-    (hx : ∀ᶠ t in atTop, Φ t x ∈ s) :
+    (hΦ : ∀ᶠ t in atTop, Φ t x ∈ s) :
     ∃ c, Filter.Tendsto (v <| Φ · x) Filter.atTop (𝓝 c) := by
-  rw [Filter.eventually_atTop] at hx
-  obtain ⟨t₀, hx⟩ := hx
+  rw [Filter.eventually_atTop] at hΦ
+  obtain ⟨t₀, hΦ⟩ := hΦ
   have h_anti : AntitoneOn (v <| Φ · x) (Set.Ici t₀) := by
     intro t ht t' ht' h
-    exact h_lya.antitone (hx t ht) (hx t' ht') h
+    exact h_lya.antitone (hΦ t ht) (hΦ t' ht') h
   apply h_anti.exists_tendsto ⟨0, ?_⟩
   intro t ht
   exact h_lya.pos _
@@ -222,18 +267,102 @@ theorem hasBasis_setOf_le (h_cont : Continuous v) (h_pos : ∀ x, 0 ≤ v x)
     (𝓝 x₀).HasBasis (0 < ·) ({ p | v p ≤ · }) := by
   simpa using hasBasis_nhdsSet_setOf_le (s' := {x₀}) h_cont h_pos (by simp [hvx₀]) hδ₀ h_cpt
 
-end blubb
+end HasBasis
 
-variable [TopologicalSpace E] [Preorder ι] [FirstCountableTopology E]
+variable [TopologicalSpace E]
 
 variable {v : E → ℝ} {t₀ : ι}
 
-variable {s' : Set E}
+variable {s' : Set E} {x : E}
+
+section ContinuityMethod
+
+variable [ConditionallyCompleteLinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+  [DenselyOrdered ι]
+
+variable [TopologicalSpace α]
+
+theorem continuity_method {γ : ι → α} {p : Set α} {s : Set α} (hs : IsOpen s)
+    (hγ : Continuous γ)
+    (ht₀ : γ t₀ ∈ p) (ht₀' : γ t₀ ∈ s) (h_closed : IsClosed (s ∩ p))
+    (h : ∀ t ∈ Set.Ici t₀, (∀ t' ∈ Set.Icc t₀ t, γ t' ∈ s) → γ t ∈ p)
+    {t : ι} (ht : t₀ ≤ t) :
+    γ t ∈ s ∩ p := by
+  -- Assume there exists `t ≥ t₀` such that `γ t ∉ s ∩ p
+  by_contra hgoal
+  set B : Set ι := {u | u ∈ Set.Icc t₀ t ∧ γ u ∉ s ∩ p} with hB
+  have htB : t ∈ B := by grind
+  have hBne : B.Nonempty := Set.nonempty_of_mem htB
+  have hbdd : BddBelow B := ⟨t₀, fun _ _ ↦ by grind⟩
+  -- Let `τ` denote the inf of all `t` such that `γ t ∉ s ∩ p`
+  set τ := sInf B with hτdef
+  have hτ0 : t₀ ≤ τ := by grind [le_csInf]
+  have hτt : τ ≤ t := by grind [csInf_le]
+  -- forall `t ≤ τ` we have that `γ t ∈ s ∩ p`
+  have hbelow : ∀ t ∈ Set.Ico t₀ τ, γ t ∈ s ∩ p := by
+    intro t ⟨ht₁, ht₂⟩
+    by_contra hc
+    have htB : t ∈ B := by grind
+    grind [csInf_le hbdd htB]
+  -- at time `τ` the path is still in `s ∩ p`, by closedness
+  have hKτ : γ τ ∈ s ∩ p := by
+    rcases eq_or_lt_of_le hτ0 with heq | hlt
+    · grind
+    · have hclosed : IsClosed (γ ⁻¹' (s ∩ p)) := h_closed.preimage hγ
+      have hsub : Set.Ico t₀ τ ⊆ γ ⁻¹' (s ∩ p) := hbelow
+      have hmem : τ ∈ closure (Set.Ico t₀ τ) := by grind [closure_Ico, ne_of_lt]
+      grind [hclosed.closure_eq, closure_mono hsub hmem]
+  have hsτ : ∀ t ∈ Set.Icc t₀ τ, γ t ∈ s := by grind
+  have hBgt : ∀ t ∈ B, τ < t := by grind
+  -- `t₁` satisfies `τ < t₁` and `Set.Ico τ t₁ ⊆ γ ⁻¹' s`
+  obtain ⟨t₁, ht₁, ht₁'⟩ := exists_Ico_subset_of_mem_nhds (hs.preimage hγ |>.mem_nhds hKτ.1)
+    ⟨t, hBgt t htB⟩
+  -- `τ₁` satisfies `τ₁ ∈ B` and `τ₁ < t₁`
+  obtain ⟨τ₁, hτ₁B, hτ₁'⟩ := exists_lt_of_csInf_lt hBne ht₁
+  have : ∀ t' ∈ Set.Icc t₀ τ₁, γ t' ∈ s := by
+    intro t' ⟨ht'₁, ht'₂⟩
+    rcases le_or_gt t' τ with hle | hgt
+    · grind
+    · exact ht₁' ⟨hgt.le, lt_of_le_of_lt ht'₂ hτ₁'⟩
+  grind
+
+theorem continuity_method' {γ : ι → α} {p : Set α} {s : Set α} (hs : IsOpen s) (hp : IsClosed p)
+    (hsp : p ⊆ s) (hγ : Continuous γ) (ht₀ : γ t₀ ∈ p)
+    (h : ∀ t ∈ Set.Ici t₀, (∀ t' ∈ Set.Icc t₀ t, γ t' ∈ s) → γ t ∈ p)
+    {t : ι} (ht : t₀ ≤ t) :
+    γ t ∈ p := by
+  suffices γ t ∈ s ∩ p from Set.mem_of_mem_inter_right this
+  refine continuity_method hs hγ ht₀ (hsp ht₀) ?_ h ht
+  convert hp
+  simp [hsp]
+
+theorem IsLyapunovOn.isInvariantOn {δ : ℝ} (h_lya : IsLyapunovOn v Φ s) (hs : IsOpen s)
+    (hΦ' : ∀ x, Continuous (Φ · x))
+    (hv : IsClosed {p | v p ≤ δ ∧ p ∈ s}) (h_id : ∀ x, Φ t₀ x = x) :
+    IsInvariantOn Φ {p | v p ≤ δ ∧ p ∈ s} (Set.Ici t₀) := by
+  rw [isInvariantOn_iff]
+  intro x ⟨hx₁, hx₂⟩ t (ht : t₀ ≤ t)
+  simp only [Set.mem_ofPred_eq]
+  rw [and_comm]
+  have ht₀ : v (Φ t₀ x) ≤ δ := by rwa [h_id]
+  have ht₀' : Φ t₀ x ∈ s := by rwa [h_id]
+  have h_closed : IsClosed (s ∩ {x | v x ≤ δ}) := by
+    convert hv
+    ext; simp [and_comm]
+  refine continuity_method hs (hΦ' x) ht₀ ht₀' h_closed ?_ ht
+  intro t (ht : t₀ ≤ t) h
+  have := @h_lya.antitone x t₀ t ht₀' (h t (by simp [ht])) ht
+  simp only [Set.mem_ofPred_eq, ge_iff_le]
+  grw [this, ht₀]
+
+end ContinuityMethod
+
+variable [Preorder ι] [FirstCountableTopology E]
 
 /-- Lyapunov stability for time-independent Lyapunov functions.
 
 Version for stability of subsets and local Lyapunov functions. -/
-theorem IsLyapunovOn.isStableOn_nhdsSet (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
+theorem IsLyapunovOn'.isStableOn_nhdsSet (h_lya : IsLyapunovOn' v Φ s) (h_cpt : IsCompact s)
     (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici t₀, Φ t x ∈ s)
     (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
     (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
@@ -253,13 +382,13 @@ theorem IsLyapunovOn.isStableOn_nhdsSet (h_lya : IsLyapunovOn v Φ s) (h_cpt : I
   simp only [Set.mem_ofPred_eq]
   have hx0 : Φ t₀ x ∈ s := hs _ hx' _ (by simp)
   have hxt : Φ t x ∈ s := hs _ hx' _ ht
-  grw [h_lya.antitone hx0 hxt ht, h_id x, hx]
+  grw [h_lya.antitone hx' hx0 hxt ht, h_id x, hx]
   exact Std.min_le_left
 
 /-- Lyapunov stability for time-independent Lyapunov functions.
 
 Version for stability of points and local Lyapunov functions. -/
-theorem IsLyapunovOn.isStableOn_nhds (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
+theorem IsLyapunovOn'.isStableOn_nhds (h_lya : IsLyapunovOn' v Φ s) (h_cpt : IsCompact s)
     (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici t₀, Φ t x ∈ s)
     (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
     (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
@@ -268,11 +397,45 @@ theorem IsLyapunovOn.isStableOn_nhds (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCo
 
 /-- Lyapunov stability for time-independent Lyapunov functions.
 
+Version for stability of subsets and local Lyapunov functions. -/
+theorem IsLyapunovOnIn.isStableOn_nhdsSet (h_lya : IsLyapunovOnIn v Φ s (Set.Ici t₀))
+    (h_cpt : IsCompact s) (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
+    (𝓝ˢ s').IsStableOn Φ (Set.Ici t₀) := by
+  have h_cpt' : IsCompact { p | v p ≤ δ₀ } := by
+    apply h_cpt.of_isClosed_subset _ h_subset
+    refine isClosed_le h_lya.cont continuous_const
+  apply (hasBasis_nhdsSet_setOf_le h_lya.cont h_lya.pos hvx₀ hδ₀ h_cpt').isStableOn
+  intro δ hδ
+  use min δ δ₀, lt_min hδ hδ₀
+  intro t (ht : t₀ ≤ t) x (hx : v x ≤ min δ δ₀)
+  have hx' : x ∈ s := by
+    apply h_subset
+    simp only [Set.mem_ofPred_eq]
+    grw [hx]
+    exact Std.min_le_right
+  simp only [Set.mem_ofPred_eq]
+  grw [h_lya.antitone x hx' t₀ (by simp) t (by simp [ht]) ht, h_id x, hx]
+  exact Std.min_le_left
+
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
+Version for stability of points and local Lyapunov functions. -/
+theorem IsLyapunovOnIn.isStableOn_nhds (h_lya : IsLyapunovOnIn v Φ s (Set.Ici t₀))
+    (h_cpt : IsCompact s)
+    (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
+    (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
+  simpa using h_lya.isStableOn_nhdsSet (s' := {x₀}) h_cpt (by simp [hvx₀]) h_id hδ₀ h_subset
+
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
 Version for stability of a point and global Lyapunov functions. -/
 theorem IsLyapunov.isStableOn_nhdsSet (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
     (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
     (𝓝ˢ s').IsStableOn Φ (Set.Ici t₀) := by
-  refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn_nhdsSet h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
+  refine (h_lya.isLyapunovOn' { p | v p ≤ δ₀ }).isStableOn_nhdsSet h_cpt ?_ hvx₀ h_id hδ₀
+    (le_refl _)
   intro x (hx : v x ≤ δ₀) t (ht : t₀ ≤ t)
   simp only [Set.mem_ofPred_eq]
   grw [h_lya.antitone x ht, h_id x, hx]
@@ -283,7 +446,7 @@ Version for stability of a point and global Lyapunov functions. -/
 theorem IsLyapunov.isStableOn_nhds (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
     (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | v p ≤ δ₀ }) :
     (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
-  refine (h_lya.isLyapunovOn { p | v p ≤ δ₀ }).isStableOn_nhds h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
+  refine (h_lya.isLyapunovOn' { p | v p ≤ δ₀ }).isStableOn_nhds h_cpt ?_ hvx₀ h_id hδ₀ (le_refl _)
   intro x (hx : v x ≤ δ₀) t (ht : t₀ ≤ t)
   simp only [Set.mem_ofPred_eq]
   grw [h_lya.antitone x ht, h_id x, hx]
@@ -294,7 +457,7 @@ section Continuous
 
 variable [NormedAddCommGroup E]
 
-variable {f : E → E} {Φ : ℝ → E → E} {v : E → ℝ} (s : Set E)
+variable {f : E → E} {Φ : ℝ → E → E} {v : E → ℝ} {s : Set E}
 
 /-- A non-negative differentiable function with decreasing derivative along the flow is a Lyapunov
 function for that flow. -/
@@ -307,47 +470,121 @@ theorem isLyapunov_of_deriv
   cont := h_cont
   antitone := fun x ↦ antitone_of_deriv_nonpos (h_diff x) (h_deriv x)
 
+theorem isLyapunovOn'_of_deriv
+    (hv : ∀ x, 0 ≤ v x)
+    (hv_cont : Continuous v) (h_diff : ∀ x, Differentiable ℝ (v <| Φ · x))
+    (h_deriv : ∀ x ∈ s, deriv (v <| Φ · x) ≤ 0) :
+    IsLyapunovOn' v Φ s where
+  pos := hv
+  cont := hv_cont
+  antitone := by
+    intro x t₀ t₁ hx ht₀ ht₁ ht
+    have : Antitone (v <| Φ · x) := by
+      apply antitone_of_deriv_nonpos (h_diff x)
+      intro t
+      apply h_deriv x hx
+    exact this ht
+
+theorem isLyapunovOnIn_of_deriv {δ₀ : ℝ} (hΦ : ∀ x, Φ 0 x = x)
+    (hv : ∀ x, 0 ≤ v x)
+    (hv_cont : Continuous v) (h_diff : ∀ x, Differentiable ℝ (v <| Φ · x))
+    (h_deriv : ∀ x, v x ≤ δ₀ → deriv (v <| Φ · x) ≤ 0) :
+    IsLyapunovOnIn v Φ { p | v p ≤ δ₀ } (Set.Ici 0) where
+  pos := hv
+  cont := hv_cont
+  antitone := by
+    intro x hx t₀ ht₀ t₁ ht₁ ht
+    have : AntitoneOn (v <| Φ · x) (Set.Ici 0) := by
+      apply antitoneOn_of_deriv_nonpos (convex_Ici 0) (h_diff x).continuous.continuousOn
+        (h_diff x).differentiableOn
+      intro t ht'
+      apply h_deriv x hx
+    exact this ht₀ ht₁ ht
+  mem x hx t ht := by
+    have : Antitone (v <| Φ · x) := by
+      apply antitone_of_deriv_nonpos (h_diff x)
+      intro t
+      apply h_deriv x hx
+    simp only [Set.mem_ofPred_eq, ge_iff_le] at ⊢ hx
+    grw [← hx]
+    nth_rewrite 2 [← hΦ x]
+    apply this ht
+
+/- Need a statement here that says the following: if `s` is open
+(and all of the assumptions of `blubbdieblubb`), for all `x ∈ s` we have that
+`fderiv ℝ v x (f x) ≤ 0`, then `IsLyapunovOn`. -/
+
+
 variable [NormedSpace ℝ E]
 
-/-theorem Flow.isLyapunovOn_of_deriv {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
-    (hv : ∀ x, 0 ≤ v x)
-    (hv_diff : Differentiable ℝ v)
-    (h_deriv : ∀ x, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
-    IsLyapunovOn v Φ s where
+private theorem mem_of_fderiv {Φ : Flow ℝ E} {δ₀ : ℝ}
+    (hs : IsOpen s) (hsδ : { p | v p ≤ δ₀ } ⊆ s)
+    (hv_diff : Differentiable ℝ v) (hΦ_diff : ∀ x, Differentiable ℝ (Φ · x))
+    (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0)
+    {x : E} (hx₁ : v x ≤ δ₀) {t : ℝ} (ht : 0 ≤ t) :
+    v (Φ t x) ≤ δ₀ := by
+  have hp_closed : IsClosed { p | v p ≤ δ₀ } := isClosed_le hv_diff.continuous (by fun_prop)
+  have hΦ0 : Φ 0 x ∈ { p | v p ≤ δ₀} := by simpa
+  apply continuity_method' hs hp_closed hsδ (hΦ_diff x).continuous hΦ0 _ ht
+  intro t₀ ht₀ ht₀'
+  suffices AntitoneOn (v <| Φ · x) (Set.Icc 0 t₀) by
+    simp only [Set.mem_ofPred_eq, ge_iff_le] at hΦ0 ⊢
+    grw [← hΦ0]
+    exact this (by grind) (by grind) (by grind)
+  have h_diff : ∀ x, Differentiable ℝ (v <| Φ · x) := by intro; fun_prop
+  apply antitoneOn_of_deriv_nonpos (convex_Icc 0 t₀) (h_diff x).continuous.continuousOn
+    (h_diff x).differentiableOn
+  intro t' ht'
+  rw [deriv_comp_flow hv_diff hΦ_diff]
+  apply h_deriv
+  apply ht₀'
+  simp at ⊢ ht'
+  grind
+
+theorem isLyapunovOnIn_of_fderiv {Φ : Flow ℝ E} {δ₀ : ℝ}
+    (hv : ∀ x, 0 ≤ v x) (hs : IsOpen s) (hsδ : { p | v p ≤ δ₀ } ⊆ s)
+    (hv_diff : Differentiable ℝ v) (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+    (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
+    IsLyapunovOnIn v Φ { p | v p ≤ δ₀ } (Set.Ici 0) where
   pos := hv
   cont := hv_diff.continuous
   antitone := by
-    intro x t₀ t₁ ht₀ ht₁ ht
-    have : AntitoneOn (v <| Φ · x) (Set.Ici 0) := by
-      apply antitoneOn_of_deriv_nonpos (convex_Ici 0)
-      · exact hv_diff.comp (hΦ x) |>.continuous.continuousOn
-      · fun_prop
-      · intro x hx
-        --apply h_deriv
-        sorry
-    --specialize this t₀
-    --apply this
-    sorry-/
+    intro x (hx : v x ≤ δ₀) t₀ ht₀ t₁ ht₁ ht
+    have h_diff : ∀ x, Differentiable ℝ (v <| Φ · x) := by intro; fun_prop
+    suffices AntitoneOn (v <| Φ · x) (Set.Ici 0) from this ht₀ ht₁ ht
+    apply antitoneOn_of_deriv_nonpos (convex_Ici 0) (h_diff x).continuous.continuousOn
+      (h_diff x).differentiableOn
+    intro t ht'
+    simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht'
+    rw [deriv_comp_flow hv_diff hΦ]
+    apply h_deriv
+    apply hsδ
+    exact mem_of_fderiv hs hsδ hv_diff hΦ h_deriv hx ht'.le
+  mem x (hx : v x ≤ δ₀) t (ht : 0 ≤ t) := by
+    simp only [Set.mem_ofPred_eq]
+    have : x ∈ s := hsδ hx
+    exact mem_of_fderiv hs hsδ hv_diff hΦ h_deriv hx ht
+
+theorem Flow.isLyapunovOn' {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+    (hv : ∀ x, 0 ≤ v x)
+    (hv_diff : Differentiable ℝ v)
+    (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0)
+    (hΦs : ∀ x ∈ s, ∀ t, Φ t x ∈ s) :
+    IsLyapunovOn' v Φ s := by
+  apply isLyapunovOn'_of_deriv hv hv_diff.continuous (fun _ ↦ by fun_prop)
+  intro x hx t
+  rw [deriv_comp_flow hv_diff hΦ]
+  exact h_deriv (Φ t x) (hΦs x hx t)
 
 theorem Flow.isLyapunov {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
     (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v)
     (h_deriv : ∀ x, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
     IsLyapunov v Φ := by
-  refine isLyapunov_of_deriv hv hv_diff.continuous ?_ ?_
-  · intro x
-    fun_prop
-  · intro x t
-    rw [deriv_comp_flow hv_diff hΦ]
-    exact h_deriv (Φ t x)
+  apply isLyapunov_of_deriv hv hv_diff.continuous (fun _ ↦ by fun_prop)
+  intro x t
+  rw [deriv_comp_flow hv_diff hΦ]
+  exact h_deriv (Φ t x)
 
 open scoped NNReal
-
-/-
-/-- Probably not needed anymore. -/
-theorem IsCompleteVectorField.isLyapunov (hf : IsCompleteVectorField (fun _ ↦ f))
-    (hf' : LocallyLipschitz f)
-    (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v) (h_deriv : ∀ x, fderiv ℝ v x (f x) ≤ 0) :
-    IsLyapunov v (hf.flow hf') :=
-  Flow.isLyapunov (by fun_prop) hv hv_diff (by simpa)-/
 
 end Continuous

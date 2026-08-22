@@ -34,7 +34,6 @@ theorem DifferentiableAt.deriv_eq_deriv_zero (h : ∀ x, DifferentiableAt ℝ (�
 theorem deriv_comp_flow {v : E → F} (hv : Differentiable ℝ v) (h : ∀ x, Differentiable ℝ (Φ · x))
     (t : ℝ) (x : E) :
     deriv (v <| Φ · x) t = fderiv ℝ v (Φ t x) (deriv (Φ · (Φ t x)) 0) := calc
-  _ = (fderiv ℝ v (Φ t x)) (deriv (Φ · x) t) := by
-    apply fderiv_comp_deriv t (by fun_prop) (by fun_prop)
-  _ = _ := by
-    rw [DifferentiableAt.deriv_eq_deriv_zero (by fun_prop)]
+  _ = (fderiv ℝ v (Φ t x)) (deriv (Φ · x) t) :=
+    fderiv_comp_deriv t (by fun_prop) (by fun_prop)
+  _ = _ := by rw [DifferentiableAt.deriv_eq_deriv_zero (by fun_prop)]
