@@ -29,6 +29,11 @@ variable (Φ : ι → E → E)
 def IsInvariantOn (s : Set E) (I : Set ι) : Prop :=
   ∀ ⦃t⦄, t ∈ I → Set.MapsTo (Φ t) s s
 
+variable {s : Set E} {I : Set ι}
+
+theorem isInvariantOn_iff : IsInvariantOn Φ s I ↔ ∀ ⦃x⦄, x ∈ s → ∀ ⦃t⦄, t ∈ I → Φ t x ∈ s := by
+  grind [IsInvariantOn, Set.MapsTo]
+
 @[fun_prop]
 theorem IsInvariant.isInvariantOn {s : Set E} (h : IsInvariant Φ s) (I : Set ι) :
     IsInvariantOn Φ s I :=
