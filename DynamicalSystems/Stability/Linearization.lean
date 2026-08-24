@@ -9,6 +9,7 @@ public import DynamicalSystems.Stability.Example
 
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import DynamicalSystems.Mathlib.Analysis.Calculus.IsStrictLocalMax
+import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistenceLinear
 
 /-! # Stability of fixed points by linearization
 
@@ -20,7 +21,7 @@ public section
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-variable {f : E → E} {Φ : Flow ℝ E} {x₀ : E}
+variable {f : E → E} {Φ : AutonomousFlow ℝ E} {x₀ : E}
 
 open scoped Topology
 
@@ -31,7 +32,7 @@ theorem exists_isLyapunovOnIn (hf : DifferentiableAt ℝ f x₀) (hx₀ : f x₀
   obtain ⟨δ, hδ, h⟩ := exists_inner_neg hx₀ h hf
   use (δ / 2) ^ 2, by positivity
   have hs : IsOpen { x | ‖x - x₀‖ < δ } := isOpen_lt (by fun_prop) (by fun_prop)
-  apply isLyapunovOnIn_of_fderiv (fun _ ↦ by positivity) hs ?_ ?_ ?_ ?_
+  apply AutonomousFlow.isLyapunovOnIn_of_fderiv (fun _ ↦ by positivity) hs ?_ ?_ ?_ ?_
   · intro x hx
     simp only [Set.mem_ofPred_eq] at hx ⊢
     rw [sq_le_sq₀ (by positivity) (by positivity)] at hx
@@ -72,3 +73,19 @@ theorem isStableOn_of_isCoercive_inner_comp_neg_fderiv (hf : DifferentiableAt �
     simp
   · simp [sub_eq_zero]
   · simp
+
+open scoped NNReal
+
+/-- For a globally Lipschitz continuous `f` with `f x₀ = 0` and
+`inner ℝ y (fderiv ℝ f x₀ y) ≤ -C ‖y‖ ^ 2` for some `C > 0` there exists a fundamental solution that
+is stable at `x₀`.
+
+The corresponding uniqueness result is `LipschitzWith.unique_autonomousFlow`. -/
+example {K : ℝ≥0} (hf : LipschitzWith K f) (hfx₀ : DifferentiableAt ℝ f x₀)
+    (hx₀ : f x₀ = 0) (h : IsCoercive (innerSL ℝ ∘L (-fderiv ℝ f x₀))) :
+    ∃ Φ : AutonomousFlow ℝ E, (𝓝 x₀).IsStableOn Φ (Set.Ici 0) ∧
+      ∀ x₀, IsIntegralCurve (Φ · x₀) (fun _ ↦ f) := by
+  obtain ⟨Φ, hΦ⟩ := hf.exists_autonomousFlow
+  use Φ
+  refine ⟨?_, hΦ⟩
+  exact isStableOn_of_isCoercive_inner_comp_neg_fderiv hfx₀ hx₀ hΦ h
