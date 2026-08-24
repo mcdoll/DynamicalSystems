@@ -398,6 +398,26 @@ theorem IsLyapunovOn'.isStableOn_nhds (h_lya : IsLyapunovOn' v Φ s) (h_cpt : Is
 /-- Lyapunov stability for time-independent Lyapunov functions.
 
 Version for stability of subsets and local Lyapunov functions. -/
+theorem IsLyapunovOn.isStableOn_nhdsSet (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
+    (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici t₀, Φ t x ∈ s)
+    (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
+    (𝓝ˢ s').IsStableOn Φ (Set.Ici t₀) :=
+  h_lya.isLyapunovOn'.isStableOn_nhdsSet h_cpt hs hvx₀ h_id hδ₀ h_subset
+
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
+Version for stability of points and local Lyapunov functions. -/
+theorem IsLyapunovOn.isStableOn_nhds (h_lya : IsLyapunovOn v Φ s) (h_cpt : IsCompact s)
+    (hs : ∀ x ∈ s, ∀ t ∈ Set.Ici t₀, Φ t x ∈ s)
+    (hvx₀ : ∀ x, v x = 0 ↔ x = x₀)
+    (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :
+    (𝓝 x₀).IsStableOn Φ (Set.Ici t₀) := by
+  simpa using h_lya.isStableOn_nhdsSet (s' := {x₀}) h_cpt hs (by simp [hvx₀]) h_id hδ₀ h_subset
+
+/-- Lyapunov stability for time-independent Lyapunov functions.
+
+Version for stability of subsets and local Lyapunov functions. -/
 theorem IsLyapunovOnIn.isStableOn_nhdsSet (h_lya : IsLyapunovOnIn v Φ s (Set.Ici t₀))
     (h_cpt : IsCompact s) (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s')
     (h_id : ∀ x, Φ t₀ x = x) {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_subset : { p | v p ≤ δ₀ } ⊆ s) :

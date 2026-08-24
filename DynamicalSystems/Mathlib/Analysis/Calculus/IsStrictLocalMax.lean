@@ -69,23 +69,23 @@ public theorem eventually_inner_neg (hf : f x₀ = 0)
   have hev := hdiff.hasFDerivAt.isLittleO.def (c := C / 2) (by positivity)
   filter_upwards [hev] with x hx hxx₀
   set u : E := x - x₀ with hu
-  have hupos : 0 < ‖u‖ := by simpa [hu, sub_eq_zero] using hxx₀
-  have hlin : inner ℝ u ((fderiv ℝ f x₀) u) ≤ -(C * ‖u‖ * ‖u‖) := by
-    have key : C * ‖u‖ * ‖u‖ ≤ -inner ℝ ((fderiv ℝ f x₀) u) u := by
-      simpa [innerSL_apply_apply ℝ] using hcoer u
-    grind [real_inner_comm]
-  have hrem : inner ℝ u (f x - f x₀ - (fderiv ℝ f x₀) u) ≤ C / 2 * ‖u‖ * ‖u‖ := by
+  have hle : inner ℝ u (f x - f x₀ - (fderiv ℝ f x₀) u) ≤ C / 2 * ‖u‖ * ‖u‖ := by
     calc inner ℝ u (f x - f x₀ - (fderiv ℝ f x₀) u)
         ≤ ‖u‖ * ‖f x - f x₀ - (fderiv ℝ f x₀) u‖ := real_inner_le_norm _ _
       _ ≤ ‖u‖ * (C / 2 * ‖u‖) := by gcongr
       _ = C / 2 * ‖u‖ * ‖u‖ := by ring
-  have hsplit : inner ℝ u (f x) =
-      inner ℝ u ((fderiv ℝ f x₀) u) + inner ℝ u (f x - f x₀ - (fderiv ℝ f x₀) u) := by
-    rw [← inner_add_right]
-    congr 1
-    grind
-  have hpos : 0 < C / 2 * ‖u‖ * ‖u‖ := by positivity
-  grind
+  calc
+    _ = inner ℝ u ((fderiv ℝ f x₀) u) + inner ℝ u (f x - f x₀ - (fderiv ℝ f x₀) u) := by
+      simp [← inner_add_right, hf]
+    _ ≤ -(C * ‖u‖ * ‖u‖) + C / 2 * ‖u‖ * ‖u‖ := by
+      gcongr
+      suffices C * ‖u‖ * ‖u‖ ≤ -inner ℝ ((fderiv ℝ f x₀) u) u by grind [real_inner_comm]
+      simpa [innerSL_apply_apply ℝ] using hcoer u
+    _ = - C / 2 * ‖u‖ * ‖u‖ := by grind
+    _ < _ := by
+      suffices 0 < C / 2 * ‖u‖ * ‖u‖ by grind
+      have : 0 < ‖u‖ := by simpa [hu, sub_eq_zero] using hxx₀
+      positivity
 
 /-- If `-fderiv ℝ f x₀` is coercive, then there exists a neighborhood of `x₀` such that
 `inner ℝ (x - x₀) (f x) < 0` for all `x ≠ x₀` in that neighborhood. -/
