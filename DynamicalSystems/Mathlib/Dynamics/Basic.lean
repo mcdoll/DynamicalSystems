@@ -34,45 +34,6 @@ structure FlowOn (τ : Type*) [TopologicalSpace τ] [AddMonoid τ] [ContinuousAd
 
 end Abstract
 
-
-section Discrete
-
-variable {α : Type*}
-
-variable {f : α ≃ α} {n m : ℤ} {x : α}
-
-variable (f) in
-theorem Equiv.zpow_add_apply : (f ^ (n + m)) x = (f ^ n) ((f ^ m) x) := by
-  rw [← Equiv.Perm.mul_apply, zpow_add]
-
-variable (f) in
-protected theorem Equiv.zpow_mul {n m : ℤ} : f ^ (n * m) = (f ^ n) ^ m := by
-  apply zpow_mul
-
-example : f ^ 0 = Equiv.refl _ := by
-  simp only [pow_zero]
-  exact Equiv.Perm.one_def
-
-namespace Homeomorph
-
-variable [TopologicalSpace α] (f : Homeomorph α α)
-
-/-- The discrete flow `ℤ → α → α` induced by a homeomorphism `f : α → α`. -/
-def flow (f : Homeomorph α α) : Flow ℤ α where
-  toFun n x := (f ^ n) x
-  cont' := by
-    rw [continuous_prod_of_discrete_left]
-    intro n
-    simp only [Function.uncurry_apply_pair]
-    fun_prop
-  map_add' n₁ n₂ := by
-    simp_rw [← mul_apply, ← Homeomorph.ext_iff, zpow_add]
-  map_zero' x := by simp
-
-end Homeomorph
-
-end Discrete
-
 section Continuous
 
 /-! ### Flows of vector fields -/

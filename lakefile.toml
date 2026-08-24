@@ -14,12 +14,12 @@ warn.sorry = true
 [[require]]
 name = "verso"
 scope = "leanprover"
-rev = "v4.33.0-rc1"
+rev = "v4.34.0-rc2"
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "de5ce8a9a66a4aa68a9bdbb35b63a06d34d9ca11"
+rev = "v4.34.0-rc2"
 
 [[require]]
 name = "axiom-audit"
