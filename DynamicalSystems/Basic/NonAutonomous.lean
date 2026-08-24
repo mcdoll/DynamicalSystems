@@ -6,6 +6,7 @@ Authors: Moritz Doll
 module
 
 public import Mathlib.Dynamics.Flow
+public import Mathlib.Algebra.Group.End
 
 /-! # Abstract formulation of solution operators for non-autonomous ODEs
 
