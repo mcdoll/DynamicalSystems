@@ -528,16 +528,15 @@ theorem isLyapunovOnIn_of_deriv {δ₀ : ℝ} (hΦ : ∀ x, Φ 0 x = x)
     simp only [Set.mem_ofPred_eq, ge_iff_le] at ⊢ hx
     grw [← hx]
     nth_rewrite 2 [← hΦ x]
-    apply this ht
-
-/- Need a statement here that says the following: if `s` is open
-(and all of the assumptions of `blubbdieblubb`), for all `x ∈ s` we have that
-`fderiv ℝ v x (f x) ≤ 0`, then `IsLyapunovOn`. -/
-
+    exact this ht
 
 variable [NormedSpace ℝ E]
 
-private theorem mem_of_fderiv {Φ : Flow ℝ E} {δ₀ : ℝ}
+namespace AutonomousFlow
+
+variable {Φ : AutonomousFlow ℝ E}
+
+private theorem mem_of_fderiv {δ₀ : ℝ}
     (hs : IsOpen s) (hsδ : { p | v p ≤ δ₀ } ⊆ s)
     (hv_diff : Differentiable ℝ v) (hΦ_diff : ∀ x, Differentiable ℝ (Φ · x))
     (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0)
@@ -555,13 +554,10 @@ private theorem mem_of_fderiv {Φ : Flow ℝ E} {δ₀ : ℝ}
   apply antitoneOn_of_deriv_nonpos (convex_Icc 0 t₀) (h_diff x).continuous.continuousOn
     (h_diff x).differentiableOn
   intro t' ht'
-  rw [deriv_comp_flow hv_diff hΦ_diff]
-  apply h_deriv
-  apply ht₀'
-  simp at ⊢ ht'
-  grind
+  rw [AutonomousFlow.deriv_comp_flow hv_diff hΦ_diff]
+  grind [interior_Icc]
 
-theorem isLyapunovOnIn_of_fderiv {Φ : Flow ℝ E} {δ₀ : ℝ}
+theorem isLyapunovOnIn_of_fderiv {δ₀ : ℝ}
     (hv : ∀ x, 0 ≤ v x) (hs : IsOpen s) (hsδ : { p | v p ≤ δ₀ } ⊆ s)
     (hv_diff : Differentiable ℝ v) (hΦ : ∀ x, Differentiable ℝ (Φ · x))
     (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
@@ -576,16 +572,14 @@ theorem isLyapunovOnIn_of_fderiv {Φ : Flow ℝ E} {δ₀ : ℝ}
       (h_diff x).differentiableOn
     intro t ht'
     simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht'
-    rw [deriv_comp_flow hv_diff hΦ]
+    rw [AutonomousFlow.deriv_comp_flow hv_diff hΦ]
     apply h_deriv
     apply hsδ
     exact mem_of_fderiv hs hsδ hv_diff hΦ h_deriv hx ht'.le
-  mem x (hx : v x ≤ δ₀) t (ht : 0 ≤ t) := by
-    simp only [Set.mem_ofPred_eq]
-    have : x ∈ s := hsδ hx
-    exact mem_of_fderiv hs hsδ hv_diff hΦ h_deriv hx ht
+  mem x (hx : v x ≤ δ₀) t (ht : 0 ≤ t) :=
+    mem_of_fderiv hs hsδ hv_diff hΦ h_deriv hx ht
 
-theorem Flow.isLyapunovOn' {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+theorem isLyapunovOn' (hΦ : ∀ x, Differentiable ℝ (Φ · x))
     (hv : ∀ x, 0 ≤ v x)
     (hv_diff : Differentiable ℝ v)
     (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0)
@@ -593,17 +587,53 @@ theorem Flow.isLyapunovOn' {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (�
     IsLyapunovOn' v Φ s := by
   apply isLyapunovOn'_of_deriv hv hv_diff.continuous (fun _ ↦ by fun_prop)
   intro x hx t
-  rw [deriv_comp_flow hv_diff hΦ]
+  rw [AutonomousFlow.deriv_comp_flow hv_diff hΦ]
   exact h_deriv (Φ t x) (hΦs x hx t)
 
-theorem Flow.isLyapunov {Φ : Flow ℝ E} (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+theorem isLyapunov (hΦ : ∀ x, Differentiable ℝ (Φ · x))
     (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v)
     (h_deriv : ∀ x, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
     IsLyapunov v Φ := by
   apply isLyapunov_of_deriv hv hv_diff.continuous (fun _ ↦ by fun_prop)
   intro x t
-  rw [deriv_comp_flow hv_diff hΦ]
+  rw [AutonomousFlow.deriv_comp_flow hv_diff hΦ]
   exact h_deriv (Φ t x)
+
+end AutonomousFlow
+
+namespace Flow
+
+variable {Φ : Flow ℝ E}
+
+theorem isLyapunovOnIn_of_fderiv {δ₀ : ℝ}
+    (hv : ∀ x, 0 ≤ v x) (hs : IsOpen s) (hsδ : { p | v p ≤ δ₀ } ⊆ s)
+    (hv_diff : Differentiable ℝ v) (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+    (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
+    IsLyapunovOnIn v Φ { p | v p ≤ δ₀ } (Set.Ici 0) := by
+  have hΦ : ∀ x, Differentiable ℝ (Φ.toAutonomousFlow · x) := by simpa
+  have h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ.toAutonomousFlow · x) 0) ≤ 0 := by simpa
+  simpa using AutonomousFlow.isLyapunovOnIn_of_fderiv hv hs hsδ hv_diff hΦ h_deriv
+
+theorem isLyapunovOn' (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+    (hv : ∀ x, 0 ≤ v x)
+    (hv_diff : Differentiable ℝ v)
+    (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0)
+    (hΦs : ∀ x ∈ s, ∀ t, Φ t x ∈ s) :
+    IsLyapunovOn' v Φ s := by
+  have hΦ : ∀ x, Differentiable ℝ (Φ.toAutonomousFlow · x) := by simpa
+  have h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ.toAutonomousFlow · x) 0) ≤ 0 := by simpa
+  have hΦs : ∀ x ∈ s, ∀ t, Φ.toAutonomousFlow t x ∈ s := by simpa
+  simpa using AutonomousFlow.isLyapunovOn' hΦ hv hv_diff h_deriv hΦs
+
+theorem isLyapunov (hΦ : ∀ x, Differentiable ℝ (Φ · x))
+    (hv : ∀ x, 0 ≤ v x) (hv_diff : Differentiable ℝ v)
+    (h_deriv : ∀ x, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
+    IsLyapunov v Φ := by
+  have hΦ : ∀ x, Differentiable ℝ (Φ.toAutonomousFlow · x) := by simpa
+  have h_deriv : ∀ x, fderiv ℝ v x (deriv (Φ.toAutonomousFlow · x) 0) ≤ 0 := by simpa
+  simpa using AutonomousFlow.isLyapunov hΦ hv hv_diff h_deriv
+
+end Flow
 
 open scoped NNReal
 

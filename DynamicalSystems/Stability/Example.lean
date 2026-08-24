@@ -104,20 +104,9 @@ end InnerProductSpace
 
 end ExponentialFlow
 
-/-variable (r) in
-theorem isLinearlyBddVectorField_smul : IsLinearlyBddVectorField (fun x : ℝ ↦ r • x) where
-  differentiable := by fun_prop
-  exists_bound := by
-    use |r|
-    intro x
-    rw [fderiv_fun_const_smul (by fun_prop)]
-    simp only [fderiv_fun_id, norm_smul, Real.norm_eq_abs]
-    exact mul_le_of_le_one_right (by positivity) ContinuousLinearMap.norm_id_le-/
-
 variable (r) in
 /-- The flow of the vector field `x ↦ r • x`. -/
 def smulFlow : Flow ℝ ℝ := (r • ContinuousLinearMap.id ℝ ℝ).expFlow
-  --(isLinearlyBddVectorField_smul r).flow
 
 @[simp]
 theorem deriv_smulFlow {x : ℝ} : deriv (smulFlow r · x) 0 = r * x := by

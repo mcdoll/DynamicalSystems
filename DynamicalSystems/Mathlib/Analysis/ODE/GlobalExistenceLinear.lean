@@ -9,24 +9,15 @@ public import Mathlib.Analysis.ODE.Basic
 import Mathlib.Analysis.ODE.Gronwall
 import Mathlib.Analysis.ODE.PicardLindelof
 import Mathlib.Analysis.ODE.ExistUnique
+import Mathlib.Analysis.ODE.Transform
+public import DynamicalSystems.Basic.NonAutonomous
+import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 
 import DynamicalSystems.Mathlib.Analysis.ODE.RadialTruncation
 
 /-!
 # Global existence for ODEs with a globally Lipschitz vector field of linear growth
 
-The strategy is:
-
-* `exists_solution_Icc`: for a *bounded* vector field, the Picard-Lindelöf theorem produces a
-  solution on an arbitrarily large compact time interval;
-* `norm_le_gronwallBound_of_linear_growth`: Grönwall's inequality gives an a priori bound on
-  any solution of a vector field with linear growth, on a given compact time interval;
-* `exists_solution_Icc_of_linear_growth`: truncating the vector field outside a large ball
-  (using the `2`-Lipschitz radial retraction `radialTrunc`) reduces the linear growth case to
-  the bounded case, the a priori bound guaranteeing that the solution never sees the
-  truncation;
-* `exists_global_of_exists_solution_Icc`: solutions on larger and larger compact intervals are
-  patched into a single global solution, using uniqueness (Grönwall again).
 -/
 
 open scoped NNReal
@@ -239,6 +230,27 @@ public theorem global_existence (h_lip : ∀ t, LipschitzWith K (f t))
   exact exists_global_of_exists_solution_Icc h_lip
     (exists_solution_Icc_of_linear_growth h_lip h' hC' hgrow)
 
+proof_wanted exists_nonAutonomousFlow (h_lip : ∀ t, LipschitzWith K (f t))
+    (ht_bdd : ∀ t, ‖f t 0‖ ≤ C') (h' : Continuous f.uncurry) :
+    ∃ Φ : NonautonomousFlow ℝ E, ∀ t₀ x₀, IsIntegralCurve (Φ t₀ x₀) f
+  /-obtain ⟨Φ, hΦ⟩ := global_existence h_lip ht_bdd h'
+  have : ∀ (t₀ t₁ t₂ : ℝ) (x : E), Φ t₀ (Φ t₁ x t₂) t₁ = Φ t₀ x t₂ := by
+    intro t₀ t₁ t₂ x
+    set γ₁ := fun t₂ ↦ Φ t₀ (Φ t₁ x t₂) t₁ with hγ₁
+    set γ₂ := Φ t₀ x with hγ₂
+    suffices γ₁ = γ₂ by grind
+    have hγ₁_int : IsIntegralCurve γ₁ f := by
+      simp [hγ₁]
+      sorry
+    have hγ₂_int : IsIntegralCurve γ₂ f := by
+      sorry
+    have ht₀ : γ₁ t₀ = γ₂ t₀ := by
+      sorry
+    have h_lip : ∀ t : ℝ, LipschitzOnWith K (f t) Set.univ := by simpa
+    exact hγ₁_int.eq h_lip (by simp) hγ₂_int (by simp) ht₀
+  use ⟨Φ, (hΦ · · |>.2), this⟩
+  simpa using (hΦ · · |>.1)-/
+
 attribute [fun_prop] LipschitzWith.continuous
 
 /-- A time-independent globally Lipschitz continuous vector field admits a global fundamental
@@ -247,5 +259,36 @@ public theorem global_existence_autonomous {f : E → E} (h_lip : LipschitzWith 
     ∃ Φ : ℝ → E → ℝ → E, ∀ t₀ x₀, IsIntegralCurve (Φ t₀ x₀) (fun _ ↦ f) ∧ Φ t₀ x₀ t₀ = x₀ :=
   global_existence (fun _ ↦ h_lip) (fun _ ↦ le_refl _) (by fun_prop)
 
+public theorem LipschitzWith.exists_autonomousFlow {f : E → E} (h_lip : LipschitzWith K f) :
+    ∃ Φ : AutonomousFlow ℝ E, ∀ x₀, IsIntegralCurve (Φ · x₀) (fun _ ↦ f) := by
+  obtain ⟨Φ, hΦ⟩ := global_existence_autonomous h_lip
+  have : ∀ x, IsIntegralCurve (Φ 0 x) (fun _ ↦ f) := (hΦ 0 · |>.1)
+  suffices ∀ (t t' : ℝ) (x : E), Φ 0 (Φ 0 x t') t = Φ 0 x (t + t') by
+    use ⟨fun t x ↦ Φ 0 x t, (hΦ 0 · |>.2), this⟩
+  intro t t' x
+  set γ₁ := fun t ↦ Φ 0 (Φ 0 x t') t with hγ₁
+  set γ₂ := fun t ↦ Φ 0 x (t + t') with hγ₂
+  suffices γ₁ = γ₂ by grind
+  have hγ₁_int : IsIntegralCurve γ₁ (fun _ ↦ f) :=
+    (hΦ 0 (Φ 0 x t')).1
+  have hγ₂_int : IsIntegralCurve γ₂ (fun _ ↦ f) :=
+    (hΦ 0 x).1.comp_add t'
+  have ht₀ : γ₁ 0 = γ₂ 0 := by simp [hγ₁, hγ₂, hΦ]
+  have h_lip : ∀ t : ℝ, LipschitzOnWith K f Set.univ := by simpa
+  exact hγ₁_int.eq h_lip (by simp) hγ₂_int (by simp) ht₀
+
+attribute [fun_prop] LipschitzOnWith LipschitzWith.lipschitzOnWith
+
+omit [CompleteSpace E] in
+public theorem LipschitzWith.unique_autonomousFlow {f : E → E} (h_lip : LipschitzWith K f)
+    {Φ₁ Φ₂ : AutonomousFlow ℝ E} (hΦ₁ : ∀ x₀, IsIntegralCurve (Φ₁ · x₀) (fun _ ↦ f))
+    (hΦ₂ : ∀ x₀, IsIntegralCurve (Φ₂ · x₀) (fun _ ↦ f)) : Φ₁ = Φ₂ := by
+  ext t x
+  suffices (Φ₁ · x) = (Φ₂ · x) by
+    rw [funext_iff] at this
+    grind
+  have h_lip : LipschitzOnWith K f univ := by fun_prop
+  have h₀ : Φ₁ 0 x = Φ₂ 0 x := by simp
+  exact (hΦ₁ x).eq (fun _ ↦ h_lip) (by simp) (hΦ₂ x) (by simp) h₀
 
 end GlobalExistence

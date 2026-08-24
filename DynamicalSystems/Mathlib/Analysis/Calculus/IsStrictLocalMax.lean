@@ -65,9 +65,9 @@ variable {f : E → E} {x₀ x y : E} {n : ℕ} {δ₀ : ℝ}
 public theorem eventually_inner_neg (hf : f x₀ = 0)
     (h : IsCoercive ((innerSL ℝ) ∘L (-fderiv ℝ f x₀))) (hdiff : DifferentiableAt ℝ f x₀) :
     ∀ᶠ x in 𝓝 x₀, x ≠ x₀ → inner ℝ (x - x₀) (f x) < 0 := by
-  obtain ⟨C, hC, hcoer⟩ := h
-  have hev := hdiff.hasFDerivAt.isLittleO.def (c := C / 2) (by positivity)
-  filter_upwards [hev] with x hx hxx₀
+  obtain ⟨C, hC, h⟩ := h
+  have hx := hdiff.hasFDerivAt.isLittleO.def (c := C / 2) (by positivity)
+  filter_upwards [hx] with x hx hxx₀
   set u : E := x - x₀ with hu
   have hle : inner ℝ u (f x - f x₀ - (fderiv ℝ f x₀) u) ≤ C / 2 * ‖u‖ * ‖u‖ := by
     calc inner ℝ u (f x - f x₀ - (fderiv ℝ f x₀) u)
@@ -80,7 +80,7 @@ public theorem eventually_inner_neg (hf : f x₀ = 0)
     _ ≤ -(C * ‖u‖ * ‖u‖) + C / 2 * ‖u‖ * ‖u‖ := by
       gcongr
       suffices C * ‖u‖ * ‖u‖ ≤ -inner ℝ ((fderiv ℝ f x₀) u) u by grind [real_inner_comm]
-      simpa [innerSL_apply_apply ℝ] using hcoer u
+      simpa [innerSL_apply_apply ℝ] using h u
     _ = - C / 2 * ‖u‖ * ‖u‖ := by grind
     _ < _ := by
       suffices 0 < C / 2 * ‖u‖ * ‖u‖ by grind
