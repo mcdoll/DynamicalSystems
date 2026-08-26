@@ -49,18 +49,27 @@ theorem fderiv_apply_hamiltonvf (x : WithLp 2 (E × E)) :
 
 open Topology
 
-variable {Φ : Flow ℝ (WithLp 2 (E × E))}
+variable {Φ : AutonomousFlow ℝ (WithLp 2 (E × E))}
 
 /-- The Hamiltonian is a Lyapunov function for the Hamilton flow. -/
 theorem isLyapunov_hamiltonian (hΦ : IsFundamentalSolution' Φ (hamiltonvf H))
     (hH : Differentiable ℝ H) (h₁ : ∀ x, 0 ≤ H x) :
     IsLyapunov H Φ := by
-  apply Flow.isLyapunov (by intro x t; exact (hΦ.isIntegralCurve x t).differentiableAt) h₁ hH
+  apply AutonomousFlow.isLyapunov (by intro x t; exact (hΦ.isIntegralCurve x t).differentiableAt)
+    h₁ hH
   intro x
   rw [deriv_isFundamentalSolution' hΦ, fderiv_apply_hamiltonvf]
 
+theorem isStableOn_nhdsSet_of_hamiltonvf (s : Set (WithLp 2 (E × E)))
+    (hΦ : IsFundamentalSolution' Φ (hamiltonvf H))
+    (hH : Differentiable ℝ H)
+    (h₁ : ∀ x, 0 ≤ H x) (h₂ : ∀ x, H x = 0 ↔ x ∈ s)
+    {δ₀ : ℝ} (hδ₀ : 0 < δ₀) (h_cpt : IsCompact { p | H p ≤ δ₀ }) :
+    (𝓝ˢ s).IsStableOn Φ (Set.Ici 0) := by
+  apply IsLyapunov.isStableOn_nhdsSet ?_ h₂ hΦ.initial hδ₀ h_cpt
+  apply isLyapunov_hamiltonian hΦ hH h₁
 
-theorem isStableOn (x₀ : WithLp 2 (E × E))
+theorem isStableOn_nhds_of_hamiltonvf (x₀ : WithLp 2 (E × E))
     (hΦ : IsFundamentalSolution' Φ (hamiltonvf H))
     (hH : Differentiable ℝ H)
     (h₁ : ∀ x, 0 ≤ H x) (h₂ : ∀ x, H x = 0 ↔ x = x₀)
