@@ -5,9 +5,7 @@ Authors: Moritz Doll
 -/
 module
 
-public import DynamicalSystems.InputOutput.Stability
-public import DynamicalSystems.Basic.WithLp
-public import Mathlib.Analysis.Normed.Lp.ProdLp
+public import DynamicalSystems.InputOutput.ProdLp
 
 /-! # Closed loops -/
 
@@ -32,6 +30,10 @@ variable {f : α → β} {R : SetRel α β}
 theorem SetRel.isGraph_of_graph_eq (hf : f.graph = R) : R.IsGraph := by
   intro a
   exact ⟨f a, by simp [← hf]⟩
+
+@[simp]
+theorem SetRel.isGraph_of_graph : f.graph.IsGraph :=
+  SetRel.isGraph_of_graph_eq rfl
 
 theorem SetRel.IsGraph.eq_of_mem (hR : R.IsGraph) {a b₁ b₂} (h₁ : (a, b₁) ∈ R) (h₂ : (a, b₂) ∈ R) :
     b₁ = b₂ := ExistsUnique.unique (hR a) h₁ h₂
@@ -94,6 +96,8 @@ protected def inputStateLp (loop : SetRel.closedLoop α E F) (p : ℝ≥0∞) :
 variable {p : ℝ≥0∞} {loop : SetRel.closedLoop α E F}
 variable {e : α → E × F} {u : α → E × F} {y : α → F × E} {y₁ : α → F} {y₂ : α → E}
 
+section mem_loop
+
 theorem mem_inputOutput : (e, y) ∈ loop.inputOutput ↔
     (Prod.fst ∘ e - Prod.snd ∘ y, Prod.fst ∘ y) ∈ loop.topRel ∧
     (Prod.snd ∘ e + Prod.fst ∘ y, Prod.snd ∘ y) ∈ loop.botRel := by rfl
@@ -110,6 +114,12 @@ theorem mem_inputState_of_mem_inputOutput (h : (e, y) ∈ loop.inputOutput) :
   · convert h.2 using 2
     all_goals { ext; simp }
 
+theorem mem_inputStateLp_of_mem_inputOutputLp
+    {e : α → WithLp p (E × F)} {y : α → WithLp p (F × E)}
+    (h : (e, y) ∈ loop.inputOutputLp p) :
+    (e, e - (fun x ↦ WithLp.toLp p (x.snd, -x.fst)) ∘ y) ∈ loop.inputStateLp p :=
+  mem_inputState_of_mem_inputOutput h
+
 theorem mem_inputOutput_of_mem_inputState (h : (e, u) ∈ loop.inputState)
     (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
     (h_top : (Prod.fst ∘ u, Prod.fst ∘ y) ∈ loop.topRel)
@@ -123,38 +133,62 @@ theorem mem_inputOutput_of_mem_inputState (h : (e, u) ∈ loop.inputState)
     rw [← eq_sub_iff_add_eq']
     exact h_topRel.eq_of_mem h_top h.1
 
-theorem eq_fst_of_mem_inputOutput {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
-    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+
+theorem mem_inputOutputLp_of_mem_inputStateLp
+    {e : α → WithLp p (E × F)} {u : α → WithLp p (E × F)} {y : α → WithLp p (F × E)}
+    (h : (e, u) ∈ loop.inputStateLp p)
+    (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
+    (h_top : (WithLp.fst ∘ u, WithLp.fst ∘ y) ∈ loop.topRel)
+    (h_bot : (WithLp.snd ∘ u, WithLp.snd ∘ y) ∈ loop.botRel) :
+    (e, y) ∈ loop.inputOutputLp p :=
+  mem_inputOutput_of_mem_inputState h h_topRel h_botRel h_top h_bot
+
+variable {G₁ : (α → E) → α → F} {G₂ : (α → F) → α → E}
+
+theorem eq_fst_of_mem_inputOutput (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel)
     (h : (e, y) ∈ loop.inputOutput) :
     G₁ (Prod.fst ∘ e - Prod.snd ∘ y) = Prod.fst ∘ y := by
   simp only [mem_inputOutput, ← hG₂, ← hG₁, Function.mem_graph] at h
   exact h.1
 
-theorem eq_snd_of_mem_inputOutput {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
-    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+theorem eq_snd_of_mem_inputOutput (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel)
     (h : (e, y) ∈ loop.inputOutput) :
     G₂ (Prod.snd ∘ e + Prod.fst ∘ y) = Prod.snd ∘ y := by
   simp only [mem_inputOutput, ← hG₂, ← hG₁, Function.mem_graph] at h
   exact h.2
 
-theorem eq_fst_of_mem_inputOutput' {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
-    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+theorem eq_fst_of_mem_inputOutputLp {e : α → WithLp p (E × F)} {y : α → WithLp p (F × E)}
+    (hG₁ : Function.graph G₁ = loop.topRel) (hG₂ : Function.graph G₂ = loop.botRel)
+    (h : (e, y) ∈ loop.inputOutputLp p) :
+    G₁ (WithLp.fst ∘ e - WithLp.snd ∘ y) = WithLp.fst ∘ y :=
+  eq_fst_of_mem_inputOutput hG₁ hG₂ h
+
+theorem eq_snd_of_mem_inputOutputLp {e : α → WithLp p (E × F)} {y : α → WithLp p (F × E)}
+    (hG₁ : Function.graph G₁ = loop.topRel) (hG₂ : Function.graph G₂ = loop.botRel)
+    (h : (e, y) ∈ loop.inputOutputLp p) :
+    G₂ (WithLp.snd ∘ e + WithLp.fst ∘ y) = WithLp.snd ∘ y :=
+  eq_snd_of_mem_inputOutput hG₁ hG₂ h
+
+theorem eq_fst_of_mem_inputOutput' (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel)
     {y₁ : α → F} {y₂ : α → E} {e₁ : α → E} {e₂ : α → F}
     (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (y₁ x, y₂ x)) ∈ loop.inputOutput) :
     G₁ (e₁ - y₂) = y₁ := by
   have := eq_fst_of_mem_inputOutput hG₁ hG₂ h
   simpa
 
-theorem eq_snd_of_mem_inputOutput' {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
-    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+theorem eq_snd_of_mem_inputOutput' (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel)
     {y₁ : α → F} {y₂ : α → E} {e₁ : α → E} {e₂ : α → F}
     (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (y₁ x, y₂ x)) ∈ loop.inputOutput) :
     G₂ (e₂ + y₁) = y₂ := by
   have := eq_snd_of_mem_inputOutput hG₁ hG₂ h
   simpa
 
-theorem blubb'' {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
-    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+theorem eq_of_mem_inputState (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel)
     (h : (e, u) ∈ loop.inputState) :
     u = e - (fun x : α ↦ (G₂ (Prod.snd ∘ u) x, -G₁ (Prod.fst ∘ u) x)) := by
   simp only [mem_inputState, ← hG₂, ← hG₁, Function.mem_graph] at h
@@ -162,27 +196,88 @@ theorem blubb'' {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = 
   · simp [h.2]
   · simp [h.1]
 
-theorem blubb₁ {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
-    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+theorem eq_fst_of_mem_inputState (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel)
     {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F}
     (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) :
     u₁ = e₁ - G₂ u₂ := by
-  have := blubb'' hG₁ hG₂ h
+  have := eq_of_mem_inputState hG₁ hG₂ h
   ext x
   simp [funext_iff] at this
   simp [(this x).1]
   congr
 
-theorem blubb₂ {G₁ : (α → E) → α → F} (hG₁ : Function.graph G₁ = loop.topRel)
-    {G₂ : (α → F) → α → E} (hG₂ : Function.graph G₂ = loop.botRel)
+theorem eq_snd_of_mem_inputState (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel)
     {u₁ : α → E} {u₂ : α → F} {e₁ : α → E} {e₂ : α → F}
     (h : (fun x ↦ (e₁ x, e₂ x), fun x ↦ (u₁ x, u₂ x)) ∈ loop.inputState) :
     u₂ = e₂ + G₁ u₁ := by
-  have := blubb'' hG₁ hG₂ h
+  have := eq_of_mem_inputState hG₁ hG₂ h
   ext x
   simp [funext_iff] at this
   simp [(this x).2]
   congr
+
+theorem comp_inputState_mapProd (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel) :
+    loop.inputState.comp (fun u x ↦ (G₁ (Prod.fst ∘ u) x, G₂ (Prod.snd ∘ u) x)).graph =
+      loop.inputOutput := by
+  ext ⟨e, y⟩
+  simp only [mem_comp, Function.mem_graph]
+  constructor
+  · intro ⟨u, hu, h⟩
+    rw [← h]
+    apply mem_inputOutput_of_mem_inputState hu (by simp [← hG₁]) (by simp [← hG₂])
+    · rw [← hG₁]
+      ext; simp
+    · rw [← hG₂]
+      ext; simp
+  · intro h
+    use fun x ↦ ((e x).fst - (y x).snd, (e x).snd + (y x).fst)
+    constructor
+    · convert mem_inputState_of_mem_inputOutput h
+      · simp
+      · simp
+    · ext x
+      · convert funext_iff.mp (eq_fst_of_mem_inputOutput hG₁ hG₂ h) x
+        · ext; simp
+        · simp
+      · convert funext_iff.mp (eq_snd_of_mem_inputOutput hG₁ hG₂ h) x
+        · ext; simp
+        · simp
+
+theorem comp_inputStateLp_mapProdLp (hG₁ : Function.graph G₁ = loop.topRel)
+    (hG₂ : Function.graph G₂ = loop.botRel) :
+    (loop.inputStateLp p).comp (mapProdLp p G₁ G₂).graph = loop.inputOutputLp p := by
+  ext ⟨e, y⟩
+  simp only [mem_comp, Function.mem_graph]
+  constructor
+  · intro ⟨u, hu, h⟩
+    rw [← h]
+    apply mem_inputOutputLp_of_mem_inputStateLp hu (by simp [← hG₁]) (by simp [← hG₂])
+    · rw [← hG₁]
+      ext; simp
+    · rw [← hG₂]
+      ext; simp
+  · intro h
+    use fun x ↦ WithLp.toLp p ((e x).fst - (y x).snd, (e x).snd + (y x).fst)
+    constructor
+    · convert mem_inputStateLp_of_mem_inputOutputLp h
+      · simp
+      · simp
+    · ext x
+      rw [WithLp.ext_iff]
+      ext
+      · convert funext_iff.mp (eq_fst_of_mem_inputOutputLp hG₁ hG₂ h) x
+        · eta_expand
+          simp
+        · simp
+      · convert funext_iff.mp (eq_snd_of_mem_inputOutputLp hG₁ hG₂ h) x
+        · eta_expand
+          simp
+        · simp
+
+end mem_loop
 
 proof_wanted isGraph_inputOutput (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.botRel.IsGraph)
     (h : loop.inputState.IsGraph) : loop.inputOutput.IsGraph
@@ -222,7 +317,7 @@ theorem isLpStable_inputState (h_topRel : loop.topRel.IsGraph) (h_botRel : loop.
       ext x
       simp [y]
   have memLp' := h.memLp he y this
-  rw [blubb'' hG₁ hG₂ hu]
+  rw [eq_of_mem_inputState hG₁ hG₂ hu]
   apply he.sub
   rw [MeasureTheory.memLp_prod_iff] at memLp' ⊢
   exact ⟨memLp'.2, memLp'.1.neg⟩
@@ -318,7 +413,7 @@ theorem smallGainThm_part1₁
       eLpNorm e₁ p (μ.restrict (s t)) + k₂ * eLpNorm u₂ p (μ.restrict (s t)) + β₂ := by
   calc
     _ = eLpNorm (e₁ - G₂ u₂) p (μ.restrict (s t)) := by
-      rw [blubb₁ hG₁ hG₂ h]
+      rw [eq_fst_of_mem_inputState hG₁ hG₂ h]
     _ ≤ eLpNorm e₁ p (μ.restrict (s t)) + eLpNorm (G₂ u₂) p (μ.restrict (s t)) := by
       apply MeasureTheory.eLpNorm_sub_le
       · apply he₁.aestronglyMeasurable ht
@@ -341,7 +436,7 @@ theorem smallGainThm_part1₂
       eLpNorm e₂ p (μ.restrict (s t)) + k₁ * eLpNorm u₁ p (μ.restrict (s t)) + β₁ := by
   calc
     _ = eLpNorm (e₂ + G₁ u₁) p (μ.restrict (s t)) := by
-      rw [blubb₂ hG₁ hG₂ h]
+      rw [eq_snd_of_mem_inputState hG₁ hG₂ h]
     _ ≤ eLpNorm e₂ p (μ.restrict (s t)) + eLpNorm (G₁ u₁) p (μ.restrict (s t)) := by
       apply MeasureTheory.eLpNorm_add_le
       · apply he₂.aestronglyMeasurable ht
@@ -425,13 +520,13 @@ theorem inputStateLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)]
       (loopBias k₁ k₂ β₁ β₂) s p μ := by
   intro t e u he hu heu
   rw [memLpLoc_withLp_prod_iff] at he hu
-  let u₁ t := WithLp.fst (u t)
+  let u₁ t := (u t).fst
   have hu₁ : MemLpLoc u₁ p μ := hu.1
-  let u₂ t := WithLp.snd (u t)
+  let u₂ t := (u t).snd
   have hu₂ : MemLpLoc u₂ p μ := hu.2
-  let e₁ t := WithLp.fst (e t)
+  let e₁ t := (e t).fst
   have he₁ : MemLpLoc e₁ p μ := he.1
-  let e₂ t := WithLp.snd (e t)
+  let e₂ t := (e t).snd
   have he₂ : MemLpLoc e₂ p μ := he.2
   calc
     _ ≤ eLpNorm u₁ p (μ.restrict (s t)) + eLpNorm u₂ p (μ.restrict (s t)) :=
@@ -577,13 +672,13 @@ theorem inputOutputLp_isFiniteGainStableWith [hp : Fact (1 ≤ p)]
       (loopBias k₁ k₂ β₁ β₂) s p μ := by
   intro t e y he hy hey
   rw [memLpLoc_withLp_prod_iff] at he hy
-  let y₁ t := WithLp.fst (y t)
+  let y₁ t := (y t).fst
   have hy₁ : MemLpLoc y₁ p μ := hy.1
-  let y₂ t := WithLp.snd (y t)
+  let y₂ t := (y t).snd
   have hy₂ : MemLpLoc y₂ p μ := hy.2
-  let e₁ t := WithLp.fst (e t)
+  let e₁ t := (e t).fst
   have he₁ : MemLpLoc e₁ p μ := he.1
-  let e₂ t := WithLp.snd (e t)
+  let e₂ t := (e t).snd
   have he₂ : MemLpLoc e₂ p μ := he.2
   unfold loopBias inputOutputLoopGainLp
   have hk' : 0 < 1 - k₁ * k₂ := by simp [hk]
