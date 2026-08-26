@@ -6,6 +6,7 @@ import DynamicalSystems.InputOutput.Causal
 import DynamicalSystems.InputOutput.ClosedLoop
 import DynamicalSystems.InputOutput.Dissipative
 import DynamicalSystems.InputOutput.Example
+import DynamicalSystems.InputOutput.ProdLp
 import DynamicalSystems.InputOutput.Stability
 import DynamicalSystems.Mathlib.Analysis.Calculus.Flow
 import DynamicalSystems.Mathlib.Analysis.Calculus.IsStrictLocalMax
