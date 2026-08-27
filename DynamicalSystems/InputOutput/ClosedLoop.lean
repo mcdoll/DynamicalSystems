@@ -415,10 +415,8 @@ theorem smallGainThm_part1₁
     _ = eLpNorm (e₁ - G₂ u₂) p (μ.restrict (s t)) := by
       rw [eq_fst_of_mem_inputState hG₁ hG₂ h]
     _ ≤ eLpNorm e₁ p (μ.restrict (s t)) + eLpNorm (G₂ u₂) p (μ.restrict (s t)) := by
-      apply MeasureTheory.eLpNorm_sub_le
-      · apply he₁.aestronglyMeasurable ht
-      · apply (hG₂'.memLpLoc hu₂).aestronglyMeasurable ht
-      · exact hp
+      have : MemLpLoc (G₂ u₂) p μ := hG₂'.memLpLoc hu₂
+      exact MeasureTheory.eLpNorm_sub_le (by fun_prop) (by fun_prop) hp
     _ ≤ _ := by
       rw [add_assoc]
       gcongr
@@ -438,10 +436,8 @@ theorem smallGainThm_part1₂
     _ = eLpNorm (e₂ + G₁ u₁) p (μ.restrict (s t)) := by
       rw [eq_snd_of_mem_inputState hG₁ hG₂ h]
     _ ≤ eLpNorm e₂ p (μ.restrict (s t)) + eLpNorm (G₁ u₁) p (μ.restrict (s t)) := by
-      apply MeasureTheory.eLpNorm_add_le
-      · apply he₂.aestronglyMeasurable ht
-      · apply (hG₁'.memLpLoc hu₁).aestronglyMeasurable ht
-      · exact hp
+      have : MemLpLoc (G₁ u₁) p μ := hG₁'.memLpLoc hu₁
+      exact MeasureTheory.eLpNorm_add_le (by fun_prop) (by fun_prop) hp
     _ ≤ _ := by
       rw [add_assoc]
       gcongr
