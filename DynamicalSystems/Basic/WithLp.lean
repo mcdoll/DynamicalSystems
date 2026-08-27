@@ -147,8 +147,7 @@ theorem addLEConst_ne_top {p : ℝ≥0∞} : addLEConst p ≠ ∞ := by
   · simp [addLEConst_of_ne hp]
   · simp [hp]
 
-theorem add_le_eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] --(hp' : p ≠ ∞)
-    (hf : AEStronglyMeasurable f μ) :
+theorem add_le_eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] (hf : AEStronglyMeasurable f μ) :
     eLpNorm f p μ + eLpNorm g p μ ≤ addLEConst p *
       eLpNorm (fun x ↦ WithLp.toLp p (f x, g x)) p μ := by
   by_cases! hp' : p ≠ ∞
