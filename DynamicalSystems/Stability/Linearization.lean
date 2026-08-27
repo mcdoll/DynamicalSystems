@@ -6,10 +6,10 @@ Authors: Moritz Doll
 module
 
 public import DynamicalSystems.Stability.Example
+public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistenceLinear
 
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import DynamicalSystems.Mathlib.Analysis.Calculus.IsStrictLocalMax
-import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistenceLinear
 
 /-! # Stability of fixed points by linearization
 
@@ -27,12 +27,12 @@ open scoped Topology
 
 theorem exists_isLyapunovOnIn (hf : DifferentiableAt ℝ f x₀) (hx₀ : f x₀ = 0)
     (h : IsCoercive (innerSL ℝ ∘L (-fderiv ℝ f x₀)))
-    (hΦ : ∀ x₀, IsIntegralCurve (Φ · x₀) (fun _ ↦ f)) :
+    (hΦ : Φ.IsFundamentalSolution f) :
     ∃ δ, 0 < δ ∧ IsLyapunovOnIn (fun x ↦ ‖x - x₀‖ ^ 2) Φ { p | ‖p - x₀‖ ^ 2 ≤ δ} (Set.Ici 0) := by
   obtain ⟨δ, hδ, h⟩ := exists_inner_neg hx₀ h hf
   use (δ / 2) ^ 2, by positivity
   have hs : IsOpen { x | ‖x - x₀‖ < δ } := isOpen_lt (by fun_prop) (by fun_prop)
-  apply AutonomousFlow.isLyapunovOnIn_of_fderiv (fun _ ↦ by positivity) hs ?_ ?_ ?_ ?_
+  apply AutonomousFlow.isLyapunovOnIn_of_fderiv (fun _ ↦ by positivity) hs ?_ ?_ (by fun_prop) ?_
   · intro x hx
     simp only [Set.mem_ofPred_eq] at hx ⊢
     rw [sq_le_sq₀ (by positivity) (by positivity)] at hx
@@ -40,8 +40,6 @@ theorem exists_isLyapunovOnIn (hf : DifferentiableAt ℝ f x₀) (hx₀ : f x₀
     simpa
   · simp_rw [← real_inner_self_eq_norm_sq]
     fun_prop
-  · intro x t
-    apply (hΦ x t).differentiableAt
   · intro x hx
     suffices inner ℝ (x - x₀) (f x) ≤ 0 by
       simp_rw [← real_inner_self_eq_norm_sq]
@@ -60,19 +58,16 @@ A fixed point `x₀` of `Φ` is stable if `inner ℝ y (fderiv ℝ f x₀ y) ≤
 The condition on the derivative is phrased in terms of `IsCoercive`.
 -/
 theorem isStableOn_of_isCoercive_inner_comp_neg_fderiv (hf : DifferentiableAt ℝ f x₀)
-    (hx₀ : f x₀ = 0) (hΦ : ∀ x₀, IsIntegralCurve (Φ · x₀) (fun _ ↦ f))
+    (hx₀ : f x₀ = 0) (hΦ : Φ.IsFundamentalSolution f)
     (h : IsCoercive (innerSL ℝ ∘L (-fderiv ℝ f x₀))) :
     (𝓝 x₀).IsStableOn Φ (Set.Ici 0) := by
   obtain ⟨δ₀, hδ₀, h_lya⟩ := exists_isLyapunovOnIn hf hx₀ h hΦ
-  apply h_lya.isStableOn_nhds (δ₀ := δ₀) ?_ ?_ ?_ hδ₀
-  · simp
-  · convert isCompact_closedBall x₀ (δ₀ ^ ((1 : ℝ) / 2))
-    ext x
-    simp only [Set.mem_ofPred_eq, one_div, Metric.mem_closedBall]
-    rw [Real.le_rpow_inv_iff_of_pos (by positivity) hδ₀.le (by norm_num), dist_eq_norm]
-    simp
-  · simp [sub_eq_zero]
-  · simp
+  apply h_lya.isStableOn_nhds (δ₀ := δ₀) ?_ (by simp [sub_eq_zero]) (by simp) hδ₀ (by simp)
+  convert isCompact_closedBall x₀ (δ₀ ^ ((1 : ℝ) / 2))
+  ext x
+  simp only [Set.mem_ofPred_eq, one_div, Metric.mem_closedBall]
+  rw [Real.le_rpow_inv_iff_of_pos (by positivity) hδ₀.le (by norm_num), dist_eq_norm]
+  simp
 
 open scoped NNReal
 
@@ -83,9 +78,7 @@ is stable at `x₀`.
 The corresponding uniqueness result is `LipschitzWith.unique_autonomousFlow`. -/
 example {K : ℝ≥0} (hf : LipschitzWith K f) (hfx₀ : DifferentiableAt ℝ f x₀)
     (hx₀ : f x₀ = 0) (h : IsCoercive (innerSL ℝ ∘L (-fderiv ℝ f x₀))) :
-    ∃ Φ : AutonomousFlow ℝ E, (𝓝 x₀).IsStableOn Φ (Set.Ici 0) ∧
-      ∀ x₀, IsIntegralCurve (Φ · x₀) (fun _ ↦ f) := by
+    ∃ Φ : AutonomousFlow ℝ E, (𝓝 x₀).IsStableOn Φ (Set.Ici 0) ∧ Φ.IsFundamentalSolution f := by
   obtain ⟨Φ, hΦ⟩ := hf.exists_autonomousFlow
   use Φ
-  refine ⟨?_, hΦ⟩
-  exact isStableOn_of_isCoercive_inner_comp_neg_fderiv hfx₀ hx₀ hΦ h
+  exact ⟨isStableOn_of_isCoercive_inner_comp_neg_fderiv hfx₀ hx₀ hΦ h, hΦ⟩

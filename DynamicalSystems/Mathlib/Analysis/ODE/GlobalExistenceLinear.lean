@@ -6,13 +6,10 @@ Authors: Moritz Doll
 module
 
 public import Mathlib.Analysis.ODE.Basic
-import Mathlib.Analysis.ODE.Gronwall
-import Mathlib.Analysis.ODE.PicardLindelof
-import Mathlib.Analysis.ODE.ExistUnique
-import Mathlib.Analysis.ODE.Transform
+public import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 public import DynamicalSystems.Basic.NonAutonomous
-import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 
+import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
 import DynamicalSystems.Mathlib.Analysis.ODE.RadialTruncation
 
 /-!
@@ -230,6 +227,10 @@ public theorem global_existence (h_lip : ∀ t, LipschitzWith K (f t))
   exact exists_global_of_exists_solution_Icc h_lip
     (exists_solution_Icc_of_linear_growth h_lip h' hC' hgrow)
 
+/-- Global existence of a flow for a globally Lipschitz, jointly continuous vector field of
+linear growth.
+
+This version uses the bundled `NonAutonomousFlow` -/
 proof_wanted exists_nonAutonomousFlow (h_lip : ∀ t, LipschitzWith K (f t))
     (ht_bdd : ∀ t, ‖f t 0‖ ≤ C') (h' : Continuous f.uncurry) :
     ∃ Φ : NonautonomousFlow ℝ E, ∀ t₀ x₀, IsIntegralCurve (Φ t₀ x₀) f
@@ -260,11 +261,12 @@ public theorem global_existence_autonomous {f : E → E} (h_lip : LipschitzWith 
   global_existence (fun _ ↦ h_lip) (fun _ ↦ le_refl _) (by fun_prop)
 
 public theorem LipschitzWith.exists_autonomousFlow {f : E → E} (h_lip : LipschitzWith K f) :
-    ∃ Φ : AutonomousFlow ℝ E, ∀ x₀, IsIntegralCurve (Φ · x₀) (fun _ ↦ f) := by
+    ∃ Φ : AutonomousFlow ℝ E, Φ.IsFundamentalSolution f := by
   obtain ⟨Φ, hΦ⟩ := global_existence_autonomous h_lip
   have : ∀ x, IsIntegralCurve (Φ 0 x) (fun _ ↦ f) := (hΦ 0 · |>.1)
   suffices ∀ (t t' : ℝ) (x : E), Φ 0 (Φ 0 x t') t = Φ 0 x (t + t') by
     use ⟨fun t x ↦ Φ 0 x t, (hΦ 0 · |>.2), this⟩
+    exact (hΦ 0 · |>.1)
   intro t t' x
   set γ₁ := fun t ↦ Φ 0 (Φ 0 x t') t with hγ₁
   set γ₂ := fun t ↦ Φ 0 x (t + t') with hγ₂
@@ -281,8 +283,8 @@ attribute [fun_prop] LipschitzOnWith LipschitzWith.lipschitzOnWith
 
 omit [CompleteSpace E] in
 public theorem LipschitzWith.unique_autonomousFlow {f : E → E} (h_lip : LipschitzWith K f)
-    {Φ₁ Φ₂ : AutonomousFlow ℝ E} (hΦ₁ : ∀ x₀, IsIntegralCurve (Φ₁ · x₀) (fun _ ↦ f))
-    (hΦ₂ : ∀ x₀, IsIntegralCurve (Φ₂ · x₀) (fun _ ↦ f)) : Φ₁ = Φ₂ := by
+    {Φ₁ Φ₂ : AutonomousFlow ℝ E} (hΦ₁ : Φ₁.IsFundamentalSolution f)
+    (hΦ₂ : Φ₂.IsFundamentalSolution f) : Φ₁ = Φ₂ := by
   ext t x
   suffices (Φ₁ · x) = (Φ₂ · x) by
     rw [funext_iff] at this
