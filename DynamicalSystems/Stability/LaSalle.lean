@@ -98,7 +98,7 @@ vanishes for all `x ∈ s`.
 This is an easy consequence of the chain rule, but with the twist that we can only calculate
 one-sided derivatives. -/
 theorem deriv_eq_zero {x : E} {s : Set E} (hx : x ∈ s)
-    (hs : IsInvariantOn Φ s (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c) :
+    (hs : s.IsInvariantOn Φ (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c) :
     deriv (v <| Φ · x) 0 = 0 := by
   by_cases h : DifferentiableAt ℝ (v <| Φ · x) 0
   · calc
@@ -114,7 +114,7 @@ theorem deriv_eq_zero {x : E} {s : Set E} (hx : x ∈ s)
   · exact deriv_zero_of_not_differentiableAt h
 
 theorem hasDerivAt_eq_zero {x : E} {s : Set E} {f' : ℝ} (hx : x ∈ s)
-    (hs : IsInvariantOn Φ s (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c)
+    (hs : s.IsInvariantOn Φ (Set.Ici 0)) (c : ℝ) (hsv : ∀ x ∈ s, v x = c)
     (hf : HasDerivAt (v <| Φ · x) f' 0) : f' = 0 := by
   rw [← hf.deriv, deriv_eq_zero hx hs c hsv]
 
@@ -227,7 +227,7 @@ theorem limitSet_subset_of_notMem (hs : IsClosed s)
   have h_lim : atTop.limitSet (Φ · y) ⊆ s := by
       intro x hx
       apply hs.mem_of_mapClusterPt hx hΦ_mem
-  have h_inv : IsInvariantOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) :=
+  have h_inv : (atTop.limitSet (Φ · y)).IsInvariantOn Φ (Set.Ici 0) :=
       isInvariantSet_limitSet h_lim hΦ_cont
   by_cases! hx' : x ∈ s
   · obtain ⟨t, ht, h⟩ := h x hx' hx
