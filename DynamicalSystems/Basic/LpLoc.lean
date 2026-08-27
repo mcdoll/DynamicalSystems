@@ -61,13 +61,13 @@ end eLpNorm
 
 namespace MemLp
 
-attribute [fun_prop] MemLp MemLp.add MemLp.sub MemLp.neg MemLp.aestronglyMeasurable
+attribute [fun_prop] MemLp MemLp.add MemLp.sub MemLp.neg MemLp.aestronglyMeasurable MemLp.const_smul
 
 variable [TopologicalSpace ε] [TopologicalSpace.PseudoMetrizableSpace ε] [ENorm ε]
 
 theorem add_measure {f : α → ε} (hμ : MemLp f p μ) (hν : MemLp f p ν) : MemLp f p (μ + ν) := by
   constructor
-  · simp only [aestronglyMeasurable_add_measure_iff]
+  · rw [aestronglyMeasurable_add_measure_iff]
     exact ⟨hμ.aestronglyMeasurable, hν.aestronglyMeasurable⟩
   · grw [eLpNorm_add_measure]
     rw [ENNReal.mul_lt_top_iff, ENNReal.add_lt_top]
@@ -173,8 +173,7 @@ theorem memLpLoc_iff_memLp_indicator [WeaklyLocallyCompactSpace α] [Topological
     MemLpLoc f p μ ↔ ∀ s (_hs : IsCompact s), MemLp (s.indicator f) p μ := by
   rw [memLpLoc_iff_memLp_isCompact]
   congrm (∀ s hs, ?_)
-  refine Iff.symm (memLp_indicator_iff_restrict ?_)
-  apply hs.measurableSet
+  exact (memLp_indicator_iff_restrict hs.measurableSet).symm
 
 theorem MemLpLoc.memLp_indicator [OpensMeasurableSpace α] [T2Space α]
     [TopologicalSpace ε'] [TopologicalSpace.PseudoMetrizableSpace ε'] [ESeminormedAddMonoid ε']
@@ -196,19 +195,19 @@ variable [TopologicalSpace α] {f g : α → E}
 theorem MemLpLoc.add (hf : MemLpLoc f p μ) (hg : MemLpLoc g p μ) : MemLpLoc (f + g) p μ := by
   intro x
   filter_upwards [hf x, hg x] with x hf hg
-  exact hf.add hg
+  fun_prop
 
 @[to_fun (attr := fun_prop)]
 theorem MemLpLoc.sub (hf : MemLpLoc f p μ) (hg : MemLpLoc g p μ) : MemLpLoc (f - g) p μ := by
   intro x
   filter_upwards [hf x, hg x] with x hf hg
-  exact hf.sub hg
+  fun_prop
 
 @[to_fun (attr := fun_prop)]
 theorem MemLpLoc.neg (hf : MemLpLoc f p μ) : MemLpLoc (-f) p μ := by
   intro x
   filter_upwards [hf x] with x hf
-  exact hf.neg
+  fun_prop
 
 @[to_fun (attr := fun_prop)]
 theorem memLpLoc_finsetSum {ι} (s : Finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, MemLpLoc (f i) p μ) :
@@ -223,7 +222,7 @@ variable {𝕜 : Type*} [NormedRing 𝕜] [MulActionWithZero 𝕜 E] [IsBoundedS
 theorem MemLpLoc.const_smul (hf : MemLpLoc f p μ) : MemLpLoc (c • f) p μ := by
   intro x
   filter_upwards [hf x] with x hf
-  exact hf.const_smul c
+  fun_prop
 
 
 section MetricSpace

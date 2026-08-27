@@ -8,8 +8,6 @@ module
 public import DynamicalSystems.Basic.NonAutonomous
 public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 
-@[expose] public noncomputable section
-
 /-! # Fundamental solutions
 
 A fundamental solution is an autonomous flow `Φ` such that for each `x`, `Φ · x` is an integral
@@ -18,6 +16,8 @@ curve of the vector field `f`.
 We show the elementary facts that fundamental solutions are differentiable in `t`-direction and
 the derivative at `0` is the vector field evaluated at `x`.
 -/
+
+@[expose] public noncomputable section
 
 namespace AutonomousFlow
 

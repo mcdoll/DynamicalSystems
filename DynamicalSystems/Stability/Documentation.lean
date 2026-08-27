@@ -20,7 +20,7 @@ employ LaSalle's invariance principle to prove asymptotic stability even if the 
 function is not strictly decreasing everywhere.
 
 ```lean -show
-variable {α E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {α E : Type*} [PseudoMetricSpace E]
 
 open scoped Topology
 open Filter Set Metric
@@ -42,10 +42,10 @@ the usual definition:
 ```lean
 example (x₀ : E) : (𝓝 x₀).IsStableOn Φ (Ici 0) ↔
     ∀ ε > 0, ∃ δ > 0, ∀ t ≥ 0, ∀ x,
-    ‖x - x₀‖ < δ → ‖Φ t x - x₀‖ < ε := by
+    dist x x₀ < δ → dist (Φ t x) x₀ < ε := by
   rw [nhds_basis_ball.isStableOn_iff]
   congrm (∀ ε hε, ∃ δ, 0 < δ ∧ ?_)
-  simp [dist_eq_norm]
+  simp
 ```
 
 More generally, we can take the set neighbourhood filter {lean}`nhdsSet s`, then we have
