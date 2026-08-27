@@ -75,7 +75,7 @@ Version for relations. -/
 @[expose]
 def IsFiniteGainStableWith (f : SetRel (α → E) (α → F)) (k β : ℝ≥0) (s : ι → Set α) (p : ℝ≥0∞)
     (μ : Measure α) : Prop :=
-  ∀ t u y (_hu : MemLpLoc u p μ) (_hy : MemLpLoc y p μ) (_h : (u, y) ∈ f),
+  ∀ t u y, MemLpLoc u p μ → MemLpLoc y p μ → (u, y) ∈ f →
     eLpNorm y p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
 
 /-- A map is called finite gain stable with gain less than `k` if there exists `β` such that
@@ -87,7 +87,7 @@ structure IsFiniteGainStableWith' (f : SetRel (α → E) (α → F)) (k β : ℝ
   /-- For every pair `(u, y) ∈ f` if `u` is in `LpLoc` then `y` is also in `LpLoc`. -/
   memLpLoc : ∀ u, MemLpLoc u p μ → ∀ y, (u, y) ∈ f → MemLpLoc y p μ
   /-- For every pair `(u, y) ∈ f` with `u` in `LpLoc`, we have `‖yₜ‖ ≤ k * ‖uₜ‖ + β`. -/
-  stableWith : ∀ t u y (_hu : MemLpLoc u p μ) (_hy : MemLpLoc y p μ) (_h : (u, y) ∈ f),
+  stableWith : ∀ t u y, MemLpLoc u p μ → MemLpLoc y p μ → (u, y) ∈ f →
     eLpNorm y p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
 
 variable {f : SetRel (α → E) (α → F)} {g : SetRel (α → F) (α → G)}
@@ -123,7 +123,7 @@ structure IsFiniteGainStableWith [TopologicalSpace α] (f : (α → E) → α �
   /-- Every `u` in `Lp` gets mapped to `Lp`. -/
   memLpLoc : ∀ ⦃u⦄, MemLpLoc u p μ → MemLpLoc (f u) p μ
   /-- For every `u` in `LpLoc`, we have `‖yₜ‖ ≤ k * ‖(f u)ₜ‖ + β`. -/
-  stableWith : ∀ t u (_hu : MemLpLoc u p μ),
+  stableWith : ∀ t u, MemLpLoc u p μ →
     eLpNorm (f u) p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
 
 namespace IsFiniteGainStableWith

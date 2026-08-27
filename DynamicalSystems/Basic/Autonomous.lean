@@ -20,7 +20,7 @@ This file should be retired in favour of mathlib definitions.
 
 variable {ι E F : Type*}
 
-namespace Filter
+namespace Set
 
 variable (Φ : ι → E → E)
 
@@ -66,7 +66,7 @@ theorem emptyset_right : IsInvariantOn Φ s ∅ := by
 
 end IsInvariantOn
 
-end Filter
+end Set
 
 section Semigroup
 
@@ -103,7 +103,7 @@ variable [TopologicalSpace E] [AddCommMonoid ι] [Preorder ι] [IsDirectedOrder 
   [TopologicalSpace ι]
 
 
-open Filter
+open Set Filter
 
 variable {Φ : Flow ι E}
 
@@ -126,7 +126,7 @@ theorem limitSet_mono {t : ι} (ht : 0 ≤ t) :
 /-- If `Φ` is a semigroup and `Φ t` is continuous for every `t`, then the limit set is invariant. -/
 theorem isInvariantSet_limitSet {y : E} {s : Set E} (hs' : atTop.limitSet (Φ · y) ⊆ s)
     (hΦ₂ : ∀ t ∈ Set.Ici 0, ∀ x ∈ s, ContinuousAt (Φ t) x) :
-    IsInvariantOn Φ (atTop.limitSet (Φ · y)) (Set.Ici 0) := by
+    (atTop.limitSet (Φ · y)).IsInvariantOn Φ (Set.Ici 0) := by
   intro t (ht : 0 ≤ t) x hx
   have hx' : x ∈ s := hs' hx
   apply limitSet_mono ht

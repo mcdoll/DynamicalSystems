@@ -12,6 +12,7 @@ import DynamicalSystems.Mathlib.Analysis.Calculus.Flow
 import DynamicalSystems.Mathlib.Analysis.Calculus.IsStrictLocalMax
 import DynamicalSystems.Mathlib.Analysis.ODE.Caratheodory
 import DynamicalSystems.Mathlib.Analysis.ODE.ExistUnique
+import DynamicalSystems.Mathlib.Analysis.ODE.FundamentalSolution
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistenceLinear
 import DynamicalSystems.Mathlib.Analysis.ODE.RadialTruncation

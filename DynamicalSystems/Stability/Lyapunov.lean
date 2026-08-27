@@ -85,7 +85,7 @@ structure IsLyapunov (v : E → F) (Φ : ι → E → E) : Prop where
   /-- A Lyapunov function is continuous everywhere -/
   cont : Continuous v
   /-- A Lyapunov function is monotonically decreasing along the flow. -/
-  antitone : ∀ x ⦃t₀ t₁⦄ (_ht : t₀ ≤ t₁), v (Φ t₁ x) ≤ v (Φ t₀ x)
+  antitone : ∀ x ⦃t₀ t₁⦄, t₀ ≤ t₁ → v (Φ t₁ x) ≤ v (Φ t₀ x)
 
 attribute [fun_prop] IsLyapunov.cont
 
@@ -119,7 +119,25 @@ end Definition
 open Filter
 
 
-variable {Φ : ι → E → E} {v : E → F} {x₀ : E} {s : Set E}
+variable {Φ : ι → E → E} {v : E → F} {x₀ : E} {s : Set E} {t₀ : ι}
+
+section IsInvariantOn
+
+variable [Preorder ι] [TopologicalSpace E]
+  [Zero F] [TopologicalSpace F] [PartialOrder F]
+
+/-- If `v` is a global Lyapunov function and `s = {x | v x = 0}`, then `s` is invariant. -/
+theorem IsLyapunov.isInvariantOn (h_lya : IsLyapunov v Φ) (hvx₀ : ∀ x, v x = 0 ↔ x ∈ s)
+    (h_id : ∀ x, Φ t₀ x = x) : s.IsInvariantOn Φ (Set.Ici t₀) := by
+  intro t ht x hx
+  simp_rw [← hvx₀] at hx ⊢
+  rw [← h_id x] at hx
+  apply le_antisymm _ (h_lya.pos (Φ t x))
+  rw [← hx]
+  exact h_lya.antitone x ht
+
+end IsInvariantOn
+
 
 section HasBasis
 
@@ -339,8 +357,8 @@ theorem continuity_method' {γ : ι → α} {p : Set α} {s : Set α} (hs : IsOp
 theorem IsLyapunovOn.isInvariantOn {δ : ℝ} (h_lya : IsLyapunovOn v Φ s) (hs : IsOpen s)
     (hΦ' : ∀ x, Continuous (Φ · x))
     (hv : IsClosed {p | v p ≤ δ ∧ p ∈ s}) (h_id : ∀ x, Φ t₀ x = x) :
-    IsInvariantOn Φ {p | v p ≤ δ ∧ p ∈ s} (Set.Ici t₀) := by
-  rw [isInvariantOn_iff]
+    {p | v p ≤ δ ∧ p ∈ s}.IsInvariantOn Φ (Set.Ici t₀) := by
+  rw [Set.isInvariantOn_iff]
   intro x ⟨hx₁, hx₂⟩ t (ht : t₀ ≤ t)
   simp only [Set.mem_ofPred_eq]
   rw [and_comm]
@@ -556,6 +574,13 @@ private theorem mem_of_fderiv {δ₀ : ℝ}
   intro t' ht'
   rw [AutonomousFlow.deriv_comp_flow hv_diff hΦ_diff]
   grind [interior_Icc]
+
+theorem isInvariantOn_of_fderiv {δ₀ : ℝ} (hs : IsOpen s) (hsδ : { p | v p ≤ δ₀ } ⊆ s)
+    (hv_diff : Differentiable ℝ v) (hΦ_diff : ∀ x, Differentiable ℝ (Φ · x))
+    (h_deriv : ∀ x ∈ s, fderiv ℝ v x (deriv (Φ · x) 0) ≤ 0) :
+    {x | v x ≤ δ₀}.IsInvariantOn Φ (Set.Ici 0) := by
+  intro t ht x hx
+  exact mem_of_fderiv hs hsδ hv_diff hΦ_diff h_deriv hx ht
 
 theorem isLyapunovOnIn_of_fderiv {δ₀ : ℝ}
     (hv : ∀ x, 0 ≤ v x) (hs : IsOpen s) (hsδ : { p | v p ≤ δ₀ } ⊆ s)
