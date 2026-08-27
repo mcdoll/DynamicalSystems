@@ -68,8 +68,6 @@ namespace SetRel
 
 variable [TopologicalSpace α]
 
-variable (f : SetRel (α → E) (α → E))
-
 /-- A map is called finite gain stable with gain less than `k` if there exists `β` such that
 for all local `Lp` functions `u`, we have the `Lp`-norm estimate `‖(f u)ₜ‖ ≤ k * ‖uₜ‖ + β`.
 
@@ -91,6 +89,25 @@ structure IsFiniteGainStableWith' (f : SetRel (α → E) (α → F)) (k β : ℝ
   /-- For every pair `(u, y) ∈ f` with `u` in `LpLoc`, we have `‖yₜ‖ ≤ k * ‖uₜ‖ + β`. -/
   stableWith : ∀ t u y (_hu : MemLpLoc u p μ) (_hy : MemLpLoc y p μ) (_h : (u, y) ∈ f),
     eLpNorm y p (μ.restrict <| s t) ≤ k * eLpNorm u p (μ.restrict <| s t) + β
+
+variable {f : SetRel (α → E) (α → F)} {g : SetRel (α → F) (α → G)}
+variable {k k' β β' : ℝ≥0} {s : ι → Set α} {p : ℝ≥0∞} {μ : Measure α}
+
+/-- The composition of two finite gain stable relations is finite gain stable. -/
+theorem IsFiniteGainStableWith.comp (h_memLp : ∀ u e, (u, e) ∈ f → MemLpLoc u p μ → MemLpLoc e p μ)
+    (hg : g.IsFiniteGainStableWith k' β' s p μ)
+    (hf : f.IsFiniteGainStableWith k β s p μ) :
+    (f.comp g).IsFiniteGainStableWith (k * k') (β * k' + β') s p μ := by
+  rintro t u y hu hy ⟨e, he, h⟩
+  have he' := h_memLp u e he hu
+  calc
+    _ ≤ k' * eLpNorm e p _ + β' := by
+      exact hg _ _ _ he' hy h
+    _ ≤ k' * (k * eLpNorm u p _ + β) + β' := by
+      gcongr
+      exact hf _ _ _ hu he' he
+    _ = _ := by
+      push_cast; ring
 
 end SetRel
 
@@ -131,6 +148,21 @@ theorem comp (hg : g.IsFiniteGainStableWith k' β' s p μ) (hf : f.IsFiniteGainS
       gcongr; exact hf.stableWith t u hu
     _ = _ := by
       push_cast; ring
+
+theorem comp_graph_setRel {g : SetRel (α → F) (α → G)} (hg : g.IsFiniteGainStableWith k' β' s p μ)
+    (hf : f.IsFiniteGainStableWith k β s p μ) :
+    (f.graph.comp g).IsFiniteGainStableWith (k * k') (β * k' + β') s p μ := by
+  apply hg.comp _ hf.graph
+  intro u e he hu
+  simp only [mem_graph] at he
+  rw [← he]
+  exact hf.memLpLoc hu
+
+theorem comp_setRel_graph {f : SetRel (α → E) (α → F)} (hg : g.IsFiniteGainStableWith k' β' s p μ)
+    (hf : f.IsFiniteGainStableWith k β s p μ)
+    (hf_memLp : ∀ u e, (u, e) ∈ f → MemLpLoc u p μ → MemLpLoc e p μ) :
+    (f.comp g.graph).IsFiniteGainStableWith (k * k') (β * k' + β') s p μ :=
+  hg.graph.comp hf_memLp hf
 
 /-- The addition of two finite gain stable maps is finite gain stable. -/
 theorem add {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 1 ≤ p)
