@@ -107,16 +107,14 @@ variable (E) in
 abbrev harmonicOscillatorVf (ζ : WithLp 2 (E × E)) : WithLp 2 (E × E) :=
   hamiltonvf (fun x : WithLp 2 (E × E) ↦ ‖x‖ ^ 2) ζ
 
-@[simp]
 theorem fst_harmonicOscillatorVf (ζ : WithLp 2 (E × E)) :
     (harmonicOscillatorVf E ζ).fst = -2 • ζ.snd := by
-  simp [harmonicOscillatorVf, gradient_sq_norm]
+  simp [gradient_sq_norm]
   norm_cast
 
-@[simp]
 theorem snd_harmonicOscillatorVf (ζ : WithLp 2 (E × E)) :
     (harmonicOscillatorVf E ζ).snd = 2 • ζ.fst := by
-  simp [harmonicOscillatorVf, gradient_sq_norm]
+  simp [gradient_sq_norm]
 
 private
 theorem lipschitzWith_two_grad_norm_sq :
