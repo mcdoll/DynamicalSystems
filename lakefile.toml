@@ -19,7 +19,7 @@ rev = "v4.34.0-rc2"
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.34.0-rc2"
+rev = "7974e751bece493b6ff508039423ca9fa2452fa8"
 
 [[require]]
 name = "axiom-audit"
