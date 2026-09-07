@@ -90,9 +90,19 @@ section Linear
 
 variable (L : ℝ → E →L[ℝ] E) (X : ℝ → ℝ → E →L[ℝ] E)
 
-proof_wanted linear_fundamental_solution (hX₀ : ∀ t₀, X t₀ t₀ = ContinuousLinearMap.id _ _)
+theorem linear_fundamental_solution (hX₀ : ∀ t₀, X t₀ t₀ = ContinuousLinearMap.id _ _)
+    (hX : ∀ t₀ t, HasDerivAt (X t₀ ·) (L t ∘L X t₀ t) t) :
+    IsFundamentalSolution (fun t₀ x t ↦ X t₀ t x) (L · ·) where
+  initial := by intro t₀ x₀; simp [hX₀]
+  isIntegralCurve := by
+    intro t₀ x₀ t
+    simpa using (hX t₀ t).clm_apply (hasDerivAt_const t x₀)
+
+theorem linear_fundamental_solution' (hX₀ : ∀ t₀, X t₀ t₀ = ContinuousLinearMap.id _ _)
+    (hX' : ∀ t₀ t, DifferentiableAt ℝ (X t₀ ·) t)
     (hX : ∀ t₀ t, deriv (X t₀ ·) t = L t ∘L X t₀ t) :
-    IsFundamentalSolution (fun t₀ x t ↦ X t₀ t x) (L · ·)
+    IsFundamentalSolution (fun t₀ x t ↦ X t₀ t x) (L · ·) :=
+  linear_fundamental_solution L X hX₀ (fun t₀ t ↦ hX t₀ t ▸ (hX' t₀ t).hasDerivAt)
 
 /-- The operator solving the inhomogeneous ODE `d/dx x = L(t) x + g t` given a solution operator
 `X : ℝ → ℝ → E →L[ℝ] E`. -/
