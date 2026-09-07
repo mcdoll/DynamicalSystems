@@ -13,6 +13,8 @@ public import Mathlib.Dynamics.Flow
 
 @[expose] public noncomputable section
 
+open Topology Filter
+
 variable {E E' F : Type*}
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -42,9 +44,47 @@ proof_wanted continuous (hΦ : IsFundamentalSolution Φ f)
     (hf : UniformlyLocallyLipschitz f) (hf' : Continuous f) (t₀ : ℝ) :
     Continuous (Φ t₀).uncurry
 
-proof_wanted unique (hΦ : IsFundamentalSolution Φ f) (hΦ' : IsFundamentalSolution Φ f)
-    (hf : UniformlyLocallyLipschitz f) (hf' : Continuous f) :
-    Φ = Φ'
+theorem _root_.IsIntegralCurve.eq_of_uniformlyLocallyLipschitz
+    {v : ℝ → E → E} {γ₁ γ₂ : ℝ → E} {t₀ : ℝ}
+    (hf : UniformlyLocallyLipschitz v)
+    (h1 : IsIntegralCurve γ₁ v) (h2 : IsIntegralCurve γ₂ v)
+    (heq : γ₁ t₀ = γ₂ t₀) : γ₁ = γ₂ := by
+  have hclosed : IsClosed {s : ℝ | γ₁ s = γ₂ s} :=
+    isClosed_eq h1.continuous h2.continuous
+  have hopen : IsOpen {s : ℝ | γ₁ s = γ₂ s} := by
+    rw [isOpen_iff_mem_nhds]
+    intro s (hs : γ₁ s = γ₂ s)
+    obtain ⟨K, U, hU, hfK⟩ := hf s (γ₁ s)
+    have hU1 : ∀ᶠ s' in 𝓝 s, γ₁ s' ∈ U :=
+      h1.continuous.continuousAt.eventually_mem hU
+    have hU' : U ∈ 𝓝 (γ₂ s) := by
+      have : γ₂ s = γ₁ s := hs.symm
+      rw [this]
+      exact hU
+    have hU2 : ∀ᶠ s' in 𝓝 s, γ₂ s' ∈ U :=
+      h2.continuous.continuousAt.eventually_mem hU'
+    have heq_ev := IsIntegralCurveAt.eventuallyEq hfK
+      (h1.isIntegralCurveAt s) hU1
+      (h2.isIntegralCurveAt s) hU2
+      hs
+    exact heq_ev.mono (fun s' hs' ↦ hs')
+  have huniv : {s : ℝ | γ₁ s = γ₂ s} = Set.univ := by
+    refine isClopen_iff.mp ⟨hclosed, hopen⟩ |>.resolve_left ?_
+    intro hempty
+    have : t₀ ∈ ({s : ℝ | γ₁ s = γ₂ s} : Set ℝ) := heq
+    rw [hempty] at this
+    exact this
+  ext t
+  exact Set.ext_iff.mp huniv t |>.mpr trivial
+
+theorem unique (hΦ : IsFundamentalSolution Φ f) (hΦ' : IsFundamentalSolution Φ' f)
+    (hf : UniformlyLocallyLipschitz f) (_hf' : Continuous f) :
+    Φ = Φ' := by
+  ext t₀ x₀ t
+  have heq := IsIntegralCurve.eq_of_uniformlyLocallyLipschitz hf
+    (hΦ.isIntegralCurve t₀ x₀) (hΦ'.isIntegralCurve t₀ x₀)
+    (by rw [hΦ.initial, hΦ'.initial])
+  exact congrFun heq t
 
 section Linear
 
@@ -161,16 +201,37 @@ theorem IsFundamentalSolution.add_apply'
 variable {Φ' : ℝ → E → ℝ → E}
 
 /-- The fundamental solution satisfies the group property, `Φ t ∘ Φ t' = Φ (t + t')`. -/
-proof_wanted IsFundamentalSolution.add_apply''
+theorem IsFundamentalSolution.add_apply''
     (hΦ : IsFundamentalSolution Φ' (fun _ ↦ f))
-    (hv : LocallyLipschitz f) (t₀ t t' : ℝ) (x : E) :
-    Φ' t₀ (Φ' t₀ x t') t = Φ' t₀ x (t + t')
+    (hv : LocallyLipschitz f) (t t' : ℝ) (x : E) :
+    Φ' 0 (Φ' 0 x t') t = Φ' 0 x (t + t') := by
+  set γ₁ := Φ' 0 (Φ' 0 x t')
+  set γ₂ := fun t ↦ Φ' 0 x (t + t')
+  have hf_curve : IsIntegralCurve γ₁ (fun _ ↦ f) := hΦ.isIntegralCurve 0 (Φ' 0 x t')
+  have hg_curve : IsIntegralCurve γ₂ (fun _ ↦ f) := (hΦ.isIntegralCurve 0 x).comp_add t'
+  have ht₀ : γ₁ 0 = γ₂ 0 := by
+    unfold γ₁ γ₂
+    simp [hΦ.initial]
+  have heq := IsIntegralCurve.eq_of_uniformlyLocallyLipschitz hv.uniformlyLocallyLipschitz
+    hf_curve hg_curve ht₀
+  exact congrFun heq t
 
 /-- The fundamental solution satisfies the group property, `Φ t ∘ Φ t' = Φ (t + t')`. -/
-proof_wanted IsFundamentalSolution.add_apply
+theorem IsFundamentalSolution.add_apply
     (hΦ : IsFundamentalSolution (fun t₀ x t ↦ Φ x (t - t₀)) (fun _ ↦ f))
     (hv : LocallyLipschitz f) (t t' : ℝ) (x : E) :
-    Φ (Φ x t') t = Φ x (t + t')
+    Φ (Φ x t') t = Φ x (t + t') := by
+  set γ₁ := Φ (Φ x t')
+  set γ₂ := fun t ↦ Φ x (t + t')
+  rw [isFundamentalSolution_iff'] at hΦ
+  have hf_curve : IsIntegralCurve γ₁ (fun _ ↦ f) := (hΦ (Φ x t')).1
+  have hg_curve : IsIntegralCurve γ₂ (fun _ ↦ f) := (hΦ x).1.comp_add t'
+  have ht₀ : γ₁ 0 = γ₂ 0 := by
+    unfold γ₁ γ₂
+    simp [(hΦ (Φ x t')).2]
+  have heq := IsIntegralCurve.eq_of_uniformlyLocallyLipschitz hv.uniformlyLocallyLipschitz
+    hf_curve hg_curve ht₀
+  exact congrFun heq t
 
 end Autonomous
 
