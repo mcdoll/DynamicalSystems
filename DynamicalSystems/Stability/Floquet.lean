@@ -37,13 +37,21 @@ We follow Michael J. Ward, *Basic Floquet Theory*, Chapter 3:
 - **Stability of Periodic Orbits**: Linearization of an autonomous periodic orbit has `1` as a
   Floquet multiplier along the orbit tangent (Ward Section 3.1.2).
 - **Dynamic Stability of Discrete Flows**:
-  - `IsStableOn`: If `‖M‖ ≤ 1`, the stroboscopic origin is Lyapunov stable.
+  - `IsStableOn`: If `‖M‖ ≤ 1`, the stroboscopic origin is Lyapunov stable (sufficient condition).
   - `IsAttractive`: If `‖M‖ < 1`, trajectories converge to `0` along `atTop`.
-  - Floquet mode convergence to `0` when `|ρ| < 1`.
-- **Second-Order Trace Criterion**: For conservative 2D systems with `det M = 1`,
-  `|tr M| < 2` yields complex eigenvalues lying on the unit circle (`‖z‖ = 1`), while `|tr M| > 2`
-  yields a real eigenvalue strictly greater than 1 causing exponential instability
-  (Ward Section 3.2.3).
+  - Mode convergence and divergence: If `M v = ρ • v`, the trajectory satisfies
+    `X(0, k • T) v = (ρ ^ k) • v`. When `|ρ| < 1`, `X(0, k • T) v → 0`.
+    When `1 < |ρ|` and `v ≠ 0`, `‖X(0, k • T) v‖ → ∞`.
+- **Second-Order Conservative Characteristic Roots**: For conservative 2D systems (`det M = 1`,
+  `φ = (tr M) / 2`):
+  - When `|tr M| < 2` (`|φ| < 1`), the roots are complex conjugates lying strictly on the unit
+    circle (`‖z‖ = 1`) with non-zero imaginary parts (Ward Section 3.2.3 Case I).
+  - When `|tr M| > 2` (`1 < |φ|`), there exists a real root with `1 < |ρ|` (Ward Section 3.2.3
+    Case II). Note that for negative trace `φ < -1`, the roots are negative, so `1 < |ρ|` rather
+    than `ρ > 1`.
+  - These are algebraic root lemmas for the scalar polynomial; lifting them to full 2D matrix
+    dynamic stability requires Jordan form or symplecticity, while operator norm bounds
+    `‖M‖ ≤ 1` give direct flow stability.
 -/
 
 @[expose] public noncomputable section
@@ -237,6 +245,33 @@ theorem floquet_mode_tendsto_zero (hX : LinearPropagator L X)
   rw [h_eq]
   exact tendsto_smul_pow_zero_of_lt_one hρ v
 
+/-- Along any expanding Floquet mode `1 < |ρ|` with `v ≠ 0`, the trajectory norms diverge to
+infinity. -/
+theorem tendsto_norm_smul_pow_atTop_of_one_lt {ρ : ℝ} (hρ : 1 < |ρ|) {v : E} (hv_ne : v ≠ 0) :
+    Tendsto (fun k : ℕ ↦ ‖(ρ ^ k) • v‖) atTop atTop := by
+  have hv_pos : 0 < ‖v‖ := norm_pos_iff.mpr hv_ne
+  have h_pow : Tendsto (fun k : ℕ ↦ |ρ| ^ k) atTop atTop :=
+    tendsto_pow_atTop_atTop_of_one_lt hρ
+  have h_mul : Tendsto (fun k : ℕ ↦ |ρ| ^ k * ‖v‖) atTop atTop :=
+    h_pow.atTop_mul_const hv_pos
+  have h_eq : (fun k : ℕ ↦ ‖(ρ ^ k) • v‖) = (fun k : ℕ ↦ |ρ| ^ k * ‖v‖) := by
+    ext k
+    rw [norm_smul, Real.norm_eq_abs, abs_pow]
+  rw [h_eq]
+  exact h_mul
+
+/-- Divergence along an expanding Floquet mode:
+when `1 < |ρ|` and `v ≠ 0`, `‖X 0 (k • T) v‖ → ∞`. -/
+theorem floquet_mode_tendsto_atTop (hX : LinearPropagator L X)
+    (h_shift : HasShiftInvariance X T) {v : E} {ρ : ℝ}
+    (hv : (monodromyOperator X T) v = ρ • v) (hρ : 1 < |ρ|) (hv_ne : v ≠ 0) :
+    Tendsto (fun k : ℕ ↦ ‖X 0 (k • T) v‖) atTop atTop := by
+  have h_eq : (fun k : ℕ ↦ ‖X 0 (k • T) v‖) = (fun k : ℕ ↦ ‖(ρ ^ k) • v‖) := by
+    ext k
+    rw [floquet_mode_stroboscopic hX h_shift hv k]
+  rw [h_eq]
+  exact tendsto_norm_smul_pow_atTop_of_one_lt hρ hv_ne
+
 end FloquetModes
 
 /-! ## 4. Quasi-Periodic Decomposition (Ward Theorem 3.4(ii)) -/
@@ -375,9 +410,25 @@ theorem isAttractive_monodromy_of_lt_one (M : E →L[ℝ] E) (hM : ‖M‖ < 1) 
 
 end DynamicStability
 
-/-! ## 7. Stability Criteria and 2D Second-Order Systems (Ward §3.2) -/
+/-! ## 7. Characteristic Roots of 2D Conservative Systems (Ward §3.2) -/
 
 section SecondOrderStability
+
+/-!
+This section formalizes the scalar algebraic root analysis of the characteristic polynomial
+`λ² - 2φ λ + 1 = 0` (where `φ = (tr M) / 2`) for 2D conservative systems with `det M = 1`
+(Ward Section 3.2.3).
+
+Scope note:
+- These theorems analyze the roots of the scalar characteristic polynomial.
+- For `|φ| < 1` (Ward Case I), both roots lie strictly on the unit circle (`‖z‖ = 1`).
+  Lifting this to uniform matrix power-boundedness (`sup_k ‖M^k‖ < ∞`) requires Jordan
+  decomposition or symplectic preservation, whereas the operator norm theorem
+  `isStableOn_monodromy_of_le_one` directly guarantees Lyapunov stability when `‖M‖ ≤ 1`.
+- For `1 < |φ|` (Ward Case II), there exists a real root with `1 < |ρ|`.
+  Coupled with `floquet_mode_tendsto_atTop`, this produces exponential trajectory divergence
+  along any corresponding Floquet eigenvector.
+-/
 
 /-- For a 2x2 conservative system with `det M = 1`, the characteristic polynomial is
 `λ² - 2φ λ + 1 = 0` where `φ = tr M / 2`.
@@ -396,9 +447,51 @@ theorem second_order_stable_of_trace_lt_two {tr_M : ℝ} (h : |tr_M| < 2) :
   have h_sq : tr_M ^ 2 < (2 : ℝ) ^ 2 := sq_lt_sq.mpr h2
   linarith
 
-/-- Ward Section 3.2.3 Case I (Unit Circle Eigenvalue Theorem):
-When `|φ| < 1`, the complex number `z = φ + i * σ` (where `σ = √(1 - φ²)`) is a root of the
-characteristic polynomial and lies precisely on the unit circle in `ℂ` (`‖z‖ = 1`). -/
+/-- Ward Section 3.2.3 Case I (Unit Circle Roots):
+When `|φ| < 1`, the imaginary part `σ = √(1 - φ²)` is strictly positive, and the complex root
+`z = ⟨φ, σ⟩` satisfies the characteristic equation and lies on the unit circle (`‖z‖ = 1`). -/
+theorem second_order_stable_roots_unit_circle (φ : ℝ) (hφ : |φ| < 1) :
+    let σ := Real.sqrt (1 - φ ^ 2)
+    let z : ℂ := ⟨φ, σ⟩
+    0 < σ ∧ z ^ 2 - ((2 * φ : ℝ) : ℂ) * z + 1 = 0 ∧ ‖z‖ = 1 := by
+  intro σ z
+  have h_pos : 0 < 1 - φ ^ 2 := by
+    have h_sq : |φ| ^ 2 < (1 : ℝ) ^ 2 := sq_lt_sq.mpr (by simpa using hφ)
+    rw [sq_abs] at h_sq
+    linarith
+  have h_nonneg : 0 ≤ 1 - φ ^ 2 := by linarith
+  have hσ_pos : 0 < σ := by
+    dsimp [σ]
+    exact Real.sqrt_pos.mpr h_pos
+  have h_root : z ^ 2 - ((2 * φ : ℝ) : ℂ) * z + 1 = 0 := by
+    apply Complex.ext
+    · rw [sq]
+      simp only [Complex.sub_re, Complex.add_re, Complex.one_re, Complex.zero_re,
+        Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
+      dsimp [z]
+      have hσ_sq : σ ^ 2 = 1 - φ ^ 2 := by
+        dsimp [σ]
+        exact Real.sq_sqrt h_nonneg
+      nlinarith
+    · rw [sq]
+      simp only [Complex.sub_im, Complex.add_im, Complex.one_im, Complex.zero_im,
+        Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im]
+      dsimp [z]
+      ring
+  have h_norm : ‖z‖ = 1 := by
+    have h : Complex.normSq z = 1 := by
+      dsimp [z, Complex.normSq]
+      have hσ_sq : σ ^ 2 = 1 - φ ^ 2 := by
+        dsimp [σ]
+        exact Real.sq_sqrt h_nonneg
+      linarith
+    rw [Complex.normSq_eq_norm_sq] at h
+    nlinarith [norm_nonneg z]
+  exact ⟨hσ_pos, h_root, h_norm⟩
+
+/-- Ward Section 3.2.3 Case I (Unit Circle Eigenvalue Identity):
+Given `σ² = 1 - φ²`, the complex number `z = ⟨φ, σ⟩` is a root of the characteristic polynomial
+and lies on the unit circle in `ℂ` (`‖z‖ = 1`). -/
 theorem second_order_stable_eigenvalues_unit_circle (φ σ : ℝ) (hσ : σ ^ 2 = 1 - φ ^ 2) :
     let z : ℂ := ⟨φ, σ⟩
     z ^ 2 - ((2 * φ : ℝ) : ℂ) * z + 1 = 0 ∧ ‖z‖ = 1 := by
@@ -430,9 +523,63 @@ theorem second_order_unstable_of_trace_gt_two {tr_M : ℝ} (h : 2 < |tr_M|) :
   have h_sq : (2 : ℝ) ^ 2 < tr_M ^ 2 := sq_lt_sq.mpr h2
   linarith
 
-/-- Ward Section 3.2.3 Case II (Unstable Eigenvalue Theorem):
-When `1 < φ`, the real number `ρ = φ + √(φ² - 1)` is a root strictly greater than 1,
-yielding exponential instability. -/
+/-- Ward Section 3.2.3 Case II (Unstable Roots of Conservative 2D Characteristic Polynomial):
+When `1 < |φ|`, there exists a real root `ρ` of `r² - 2φ r + 1 = 0` with `1 < |ρ|`.
+For positive trace `1 < φ`, the root `ρ = φ + √(φ² - 1)` satisfies `1 < ρ`.
+For negative trace `φ < -1`, the root `ρ = φ - √(φ² - 1)` satisfies `ρ < -1`, hence `1 < |ρ|`. -/
+theorem second_order_unstable_root_abs_gt_one (φ : ℝ) (hφ : 1 < |φ|) :
+    ∃ ρ : ℝ, 1 < |ρ| ∧ ρ ^ 2 - 2 * φ * ρ + 1 = 0 := by
+  have h_pos : 0 < φ ^ 2 - 1 := by
+    have h_sq : 1 ^ 2 < |φ| ^ 2 := sq_lt_sq.mpr (by simpa using hφ)
+    rw [sq_abs] at h_sq
+    linarith
+  have h_sqrt_nonneg : 0 ≤ φ ^ 2 - 1 := by linarith
+  have h_ne : φ ≠ 0 := by
+    intro h
+    rw [h, abs_zero] at hφ
+    linarith
+  rcases lt_or_gt_of_ne h_ne with h_neg | h_pos_phi
+  · -- Case φ < 0, so φ < -1
+    have h_lt : φ < -1 := by
+      rw [abs_of_neg h_neg] at hφ
+      linarith
+    let ρ := φ - Real.sqrt (φ ^ 2 - 1)
+    use ρ
+    have h_sqrt_pos : 0 < Real.sqrt (φ ^ 2 - 1) := Real.sqrt_pos.mpr h_pos
+    have h_rho_lt : ρ < -1 := by
+      dsimp [ρ]
+      linarith
+    have h_abs_gt : 1 < |ρ| := by
+      have h_rho_neg : ρ < 0 := by linarith
+      rw [abs_of_neg h_rho_neg]
+      linarith
+    have h_root : ρ ^ 2 - 2 * φ * ρ + 1 = 0 := by
+      dsimp [ρ]
+      have h_sq : (Real.sqrt (φ ^ 2 - 1)) ^ 2 = φ ^ 2 - 1 := Real.sq_sqrt h_sqrt_nonneg
+      nlinarith
+    exact ⟨h_abs_gt, h_root⟩
+  · -- Case φ > 0, so 1 < φ
+    have h_gt : 1 < φ := by
+      rw [abs_of_pos h_pos_phi] at hφ
+      exact hφ
+    let ρ := φ + Real.sqrt (φ ^ 2 - 1)
+    use ρ
+    have h_sqrt_pos : 0 < Real.sqrt (φ ^ 2 - 1) := Real.sqrt_pos.mpr h_pos
+    have h_rho_gt : 1 < ρ := by
+      dsimp [ρ]
+      linarith
+    have h_abs_gt : 1 < |ρ| := by
+      have h_rho_pos : 0 < ρ := by linarith
+      rw [abs_of_pos h_rho_pos]
+      exact h_rho_gt
+    have h_root : ρ ^ 2 - 2 * φ * ρ + 1 = 0 := by
+      dsimp [ρ]
+      have h_sq : (Real.sqrt (φ ^ 2 - 1)) ^ 2 = φ ^ 2 - 1 := Real.sq_sqrt h_sqrt_nonneg
+      nlinarith
+    exact ⟨h_abs_gt, h_root⟩
+
+/-- Ward Section 3.2.3 Case II (Positive Trace Branch):
+When `1 < φ`, the explicit root `ρ = φ + √(φ² - 1)` is strictly greater than 1. -/
 theorem second_order_unstable_real_eigenvalue_gt_one (φ : ℝ) (hφ : 1 < φ) :
     let ρ := φ + Real.sqrt (φ ^ 2 - 1)
     1 < ρ ∧ ρ ^ 2 - 2 * φ * ρ + 1 = 0 := by
