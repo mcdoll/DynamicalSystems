@@ -26,32 +26,35 @@ with periodic coefficients of the form `x'(t) = L(t) x(t)` where `L(t + T) = L(t
 We follow Michael J. Ward, *Basic Floquet Theory*, Chapter 3:
 - **Periodic Linear Propagators**: Transition operators `X(t₀, t)` satisfying `X(t₀, t₀) = id`,
   `X(t₁, t₂) ∘ X(t₀, t₁) = X(t₀, t₂)`, and `d/dt X = L(t) ∘ X`.
-- **Shift Invariance**: `X(t₀ + T, t + T) = X(t₀, t)`.
-- **Monodromy Operator**: `M = X(0, T)` (Ward Definition §3.1).
-- **Fundamental Factorization**: `X(0, t + T) = X(0, t) ∘ M` (Ward Theorem 3.3(i)).
-- **Stroboscopic Powers**: `X(0, t + k • T) = X(0, t) ∘ (M ^ k)` and `X(0, k • T) x₀ = (M ^ k) x₀`.
-- **Floquet Multipliers and Modes**: Eigenvalues `ρ` of `M` give solutions satisfying
+- **Fundamental Factorization & Stroboscopic Identities**: Assuming a linear propagator and
+  `HasShiftInvariance X T` (`X(t₀ + T, t + T) = X(t₀, t)`), we prove the factorization
+  `X(0, t + T) = X(0, t) ∘ M` (Ward Theorem 3.3(i)) and stroboscopic powers
+  `X(0, t + k • T) = X(0, t) ∘ (M ^ k)` and `X(0, k • T) x₀ = (M ^ k) x₀` (Ward eq (3.50))
+  for `M = X(0, T)`. Deriving shift invariance from ODE uniqueness for periodic `L` is not
+  formalized here.
+- **Floquet Multipliers and Modes**: Eigenvectors `M v = ρ • v` give solutions satisfying
   `x(t + T) = ρ • x(t)` (Ward Theorem 3.4(i)) and `x(k • T) = ρ ^ k • x₀`.
 - **Quasi-Periodic Normal Form**: For `ρ > 0` and `μ = log ρ / T`, any Floquet mode factors as
   `x(t) = exp(μ * t) • p(t)` where `p` is `T`-periodic (Ward Theorem 3.4(ii)).
-- **Stability of Periodic Orbits**: Linearization of an autonomous periodic orbit has `1` as a
-  Floquet multiplier along the orbit tangent (Ward Section 3.1.2).
+- **Periodic Orbit Multiplier**: Assuming tangent transport `X 0 T (f (φ 0)) = f (φ T)`, a nonzero
+  orbit velocity is an eigenvector with multiplier `1` (Ward Section 3.1.2). Deriving tangent
+  transport from the variational equation is not formalized here.
 - **Dynamic Stability of Discrete Flows**:
   - `IsStableOn`: If `‖M‖ ≤ 1`, the stroboscopic origin is Lyapunov stable (sufficient condition).
   - `IsAttractive`: If `‖M‖ < 1`, trajectories converge to `0` along `atTop`.
   - Mode convergence and divergence: If `M v = ρ • v`, the trajectory satisfies
     `X(0, k • T) v = (ρ ^ k) • v`. When `|ρ| < 1`, `X(0, k • T) v → 0`.
     When `1 < |ρ|` and `v ≠ 0`, `‖X(0, k • T) v‖ → ∞`.
-- **Second-Order Conservative Characteristic Roots**: For conservative 2D systems (`det M = 1`,
-  `φ = (tr M) / 2`):
-  - When `|tr M| < 2` (`|φ| < 1`), the roots are complex conjugates lying strictly on the unit
-    circle (`‖z‖ = 1`) with non-zero imaginary parts (Ward Section 3.2.3 Case I).
-  - When `|tr M| > 2` (`1 < |φ|`), there exists a real root with `1 < |ρ|` (Ward Section 3.2.3
-    Case II). Note that for negative trace `φ < -1`, the roots are negative, so `1 < |ρ|` rather
-    than `ρ > 1`.
-  - These are algebraic root lemmas for the scalar polynomial; lifting them to full 2D matrix
-    dynamic stability requires Jordan form or symplecticity, while operator norm bounds
-    `‖M‖ ≤ 1` give direct flow stability.
+- **Second-Order Conservative Characteristic Roots**: For scalar polynomial `r² - 2φ r + 1 = 0`
+  (characteristic polynomial of a 2D conservative system with `det M = 1`, `φ = (tr M) / 2`):
+  - When `|tr M| < 2` (`|φ| < 1`), `second_order_stable_roots_unit_circle` constructs a non-real
+    scalar root of unit norm (`‖z‖ = 1`) with positive imaginary part
+    (Ward Section 3.2.3 Case I).
+  - When `|tr M| > 2` (`1 < |φ|`), `second_order_unstable_root_abs_gt_one` constructs a real root
+    with `1 < |ρ|` (Ward Section 3.2.3 Case II). Note that for negative trace `φ < -1`, the roots
+    are negative, so `1 < |ρ|` rather than `ρ > 1`.
+  - The connection to matrix eigenvalues and a matrix-power boundedness proof are not formalized
+    here; strict-trace power boundedness can be obtained, for example, by diagonalization.
 -/
 
 @[expose] public noncomputable section
@@ -421,13 +424,14 @@ This section formalizes the scalar algebraic root analysis of the characteristic
 
 Scope note:
 - These theorems analyze the roots of the scalar characteristic polynomial.
-- For `|φ| < 1` (Ward Case I), both roots lie strictly on the unit circle (`‖z‖ = 1`).
-  Lifting this to uniform matrix power-boundedness (`sup_k ‖M^k‖ < ∞`) requires Jordan
-  decomposition or symplectic preservation, whereas the operator norm theorem
-  `isStableOn_monodromy_of_le_one` directly guarantees Lyapunov stability when `‖M‖ ≤ 1`.
+- For `|φ| < 1` (Ward Case I), `second_order_stable_roots_unit_circle` constructs a non-real
+  scalar root `z` of unit norm (`‖z‖ = 1`) with strictly positive imaginary part.
+  The connection to matrix eigenvalues and a matrix-power boundedness proof are not formalized
+  here; strict-trace power boundedness can be obtained, for example, by diagonalization.
+  Direct flow stability under operator norm bounds is given by `isStableOn_monodromy_of_le_one`.
 - For `1 < |φ|` (Ward Case II), there exists a real root with `1 < |ρ|`.
-  Coupled with `floquet_mode_tendsto_atTop`, this produces exponential trajectory divergence
-  along any corresponding Floquet eigenvector.
+  Connecting this root to an actual matrix eigenvector is not formalized here; if such a nonzero
+  eigenvector `v` is given, `floquet_mode_tendsto_atTop` proves trajectory norm divergence.
 -/
 
 /-- For a 2x2 conservative system with `det M = 1`, the characteristic polynomial is
