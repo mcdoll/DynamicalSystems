@@ -10,9 +10,13 @@ public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
 public import DynamicalSystems.Stability.Basic
 
 import Mathlib.Algebra.Ring.Periodic
+import Mathlib.Analysis.Complex.Basic
+import Mathlib.Analysis.Normed.Operator.Basic
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.LinearAlgebra.Eigenspace.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.LinearAlgebra.Eigenspace.Basic
+import Mathlib.Topology.Algebra.InfiniteSum.Real
 
 /-! # Basic Floquet Theory
 
@@ -32,14 +36,20 @@ We follow Michael J. Ward, *Basic Floquet Theory*, Chapter 3:
   `x(t) = exp(μ * t) • p(t)` where `p` is `T`-periodic (Ward Theorem 3.4(ii)).
 - **Stability of Periodic Orbits**: Linearization of an autonomous periodic orbit has `1` as a
   Floquet multiplier along the orbit tangent (Ward Section 3.1.2).
+- **Dynamic Stability of Discrete Flows**:
+  - `IsStableOn`: If `‖M‖ ≤ 1`, the stroboscopic origin is Lyapunov stable.
+  - `IsAttractive`: If `‖M‖ < 1`, trajectories converge to `0` along `atTop`.
+  - Floquet mode convergence to `0` when `|ρ| < 1`.
 - **Second-Order Trace Criterion**: For conservative 2D systems with `det M = 1`,
-  `|tr M| < 2` gives bounded/stable multipliers on the unit circle, while `|tr M| > 2` gives
-  exponential instability (Ward Section 3.2.3).
+  `|tr M| < 2` yields complex eigenvalues lying on the unit circle (`‖z‖ = 1`), while `|tr M| > 2`
+  yields a real eigenvalue strictly greater than 1 causing exponential instability
+  (Ward Section 3.2.3).
 -/
 
 @[expose] public noncomputable section
 
-open scoped Topology NNReal
+open Filter Topology
+open scoped NNReal
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
@@ -202,6 +212,31 @@ theorem floquet_mode_stroboscopic (hX : LinearPropagator L X)
   rw [zero_add] at h
   rw [h, hX.initial_apply 0 v]
 
+/-- Along any contracting Floquet mode `|ρ| < 1`, the discrete trajectory converges to 0. -/
+theorem tendsto_smul_pow_zero_of_lt_one {ρ : ℝ} (hρ : |ρ| < 1) (v : E) :
+    Tendsto (fun k : ℕ ↦ (ρ ^ k) • v) atTop (𝓝 0) := by
+  rw [tendsto_iff_norm_sub_tendsto_zero]
+  simp only [sub_zero]
+  have h_geo : Tendsto (fun k : ℕ ↦ |ρ| ^ k * ‖v‖) atTop (𝓝 (0 * ‖v‖)) := by
+    exact (tendsto_pow_atTop_nhds_zero_of_lt_one (abs_nonneg ρ) hρ).mul_const ‖v‖
+  rw [zero_mul] at h_geo
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h_geo ?_ ?_
+  · filter_upwards with k
+    exact norm_nonneg _
+  · filter_upwards with k
+    rw [norm_smul, Real.norm_eq_abs, abs_pow]
+
+/-- Floquet mode convergence to the origin: when `|ρ| < 1`, `X 0 (k • T) v → 0`. -/
+theorem floquet_mode_tendsto_zero (hX : LinearPropagator L X)
+    (h_shift : HasShiftInvariance X T) {v : E} {ρ : ℝ}
+    (hv : (monodromyOperator X T) v = ρ • v) (hρ : |ρ| < 1) :
+    Tendsto (fun k : ℕ ↦ X 0 (k • T) v) atTop (𝓝 0) := by
+  have h_eq : (fun k : ℕ ↦ X 0 (k • T) v) = (fun k : ℕ ↦ (ρ ^ k) • v) := by
+    ext k
+    exact floquet_mode_stroboscopic hX h_shift hv k
+  rw [h_eq]
+  exact tendsto_smul_pow_zero_of_lt_one hρ v
+
 end FloquetModes
 
 /-! ## 4. Quasi-Periodic Decomposition (Ward Theorem 3.4(ii)) -/
@@ -281,7 +316,66 @@ theorem periodic_orbit_isFloquetMultiplier_one (hφ : IsPeriodicOrbit f φ T)
 
 end PeriodicOrbits
 
-/-! ## 6. Stability Criteria and 2D Second-Order Systems (Ward §3.2) -/
+/-! ## 6. Dynamic Stability of Discrete Monodromy Flows -/
+
+section DynamicStability
+
+/-- Pointwise bound on operator powers: `‖(M ^ k) x‖ ≤ ‖M‖ ^ k * ‖x‖`. -/
+theorem norm_pow_apply_le (M : E →L[ℝ] E) (k : ℕ) (x : E) :
+    ‖(M ^ k) x‖ ≤ ‖M‖ ^ k * ‖x‖ := by
+  induction k with
+  | zero =>
+    simp
+  | succ n ih =>
+    rw [pow_succ']
+    calc ‖((M * M ^ n) : E →L[ℝ] E) x‖ = ‖M ((M ^ n) x)‖ := by rfl
+      _ ≤ ‖M‖ * ‖(M ^ n) x‖ := M.le_opNorm _
+      _ ≤ ‖M‖ * (‖M‖ ^ n * ‖x‖) := by gcongr
+      _ = ‖M‖ ^ (n + 1) * ‖x‖ := by rw [pow_succ', mul_assoc]
+
+/-- Lyapunov stability of the origin under discrete stroboscopic flow when `‖M‖ ≤ 1`.
+Formulated directly with `Filter.IsStableOn` from `DynamicalSystems.Stability.Basic`. -/
+theorem isStableOn_monodromy_of_le_one (M : E →L[ℝ] E) (hM : ‖M‖ ≤ 1) :
+    (𝓝 (0 : E)).IsStableOn (fun k x ↦ (M ^ k) x) Set.univ := by
+  rw [Metric.nhds_basis_ball.isStableOn_iff]
+  intro ε hε
+  use ε, hε
+  intro k _ x hx
+  rw [Metric.mem_ball, dist_zero_right] at hx ⊢
+  have h_le : ‖(M ^ k) x‖ ≤ ‖M‖ ^ k * ‖x‖ := norm_pow_apply_le M k x
+  have h_pow : ‖M‖ ^ k ≤ 1 := by
+    calc ‖M‖ ^ k ≤ 1 ^ k := by gcongr
+      _ = 1 := one_pow k
+  calc ‖(M ^ k) x‖ ≤ ‖M‖ ^ k * ‖x‖ := h_le
+    _ ≤ 1 * ‖x‖ := by gcongr
+    _ = ‖x‖ := one_mul ‖x‖
+    _ < ε := hx
+
+/-- Global asymptotic convergence to zero when `‖M‖ < 1`. -/
+theorem tendsto_monodromy_pow_zero_of_norm_lt_one (M : E →L[ℝ] E) (hM : ‖M‖ < 1) (x : E) :
+    Tendsto (fun k : ℕ ↦ (M ^ k) x) atTop (𝓝 0) := by
+  rw [tendsto_iff_norm_sub_tendsto_zero]
+  simp only [sub_zero]
+  have h_geo : Tendsto (fun k : ℕ ↦ ‖M‖ ^ k * ‖x‖) atTop (𝓝 (0 * ‖x‖)) := by
+    exact (tendsto_pow_atTop_nhds_zero_of_lt_one (norm_nonneg M) hM).mul_const ‖x‖
+  rw [zero_mul] at h_geo
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h_geo ?_ ?_
+  · filter_upwards with k
+    exact norm_nonneg _
+  · filter_upwards with k
+    exact norm_pow_apply_le M k x
+
+/-- Attractiveness of the origin under discrete stroboscopic flow when `‖M‖ < 1`.
+Formulated directly with `Filter.IsAttractive` from `DynamicalSystems.Stability.Basic`. -/
+theorem isAttractive_monodromy_of_lt_one (M : E →L[ℝ] E) (hM : ‖M‖ < 1) :
+    @Filter.IsAttractive ℕ E (𝓝 (0 : E)) (fun k x ↦ (M ^ k) x) atTop := by
+  change ∀ᶠ x in 𝓝 0, Tendsto (fun k ↦ (M ^ k) x) atTop (𝓝 0)
+  filter_upwards with x
+  exact tendsto_monodromy_pow_zero_of_norm_lt_one M hM x
+
+end DynamicStability
+
+/-! ## 7. Stability Criteria and 2D Second-Order Systems (Ward §3.2) -/
 
 section SecondOrderStability
 
@@ -295,21 +389,65 @@ theorem second_order_characteristic_discriminant (tr_M : ℝ) :
   dsimp [φ]
   ring
 
-/-- Ward Section 3.2.3: When `|tr M| < 2`, the discriminant is strictly negative,
-signifying purely oscillatory / neutrally stable Floquet multipliers. -/
+/-- Ward Section 3.2.3 Case I: When `|tr M| < 2`, the discriminant is strictly negative. -/
 theorem second_order_stable_of_trace_lt_two {tr_M : ℝ} (h : |tr_M| < 2) :
     tr_M ^ 2 - 4 < 0 := by
   have h2 : |tr_M| < |(2 : ℝ)| := by simpa using h
   have h_sq : tr_M ^ 2 < (2 : ℝ) ^ 2 := sq_lt_sq.mpr h2
   linarith
 
-/-- Ward Section 3.2.3: When `|tr M| > 2`, the discriminant is strictly positive,
-yielding real eigenvalues `ρ₁ * ρ₂ = 1` with `|ρ₁| > 1`, signifying exponential instability. -/
+/-- Ward Section 3.2.3 Case I (Unit Circle Eigenvalue Theorem):
+When `|φ| < 1`, the complex number `z = φ + i * σ` (where `σ = √(1 - φ²)`) is a root of the
+characteristic polynomial and lies precisely on the unit circle in `ℂ` (`‖z‖ = 1`). -/
+theorem second_order_stable_eigenvalues_unit_circle (φ σ : ℝ) (hσ : σ ^ 2 = 1 - φ ^ 2) :
+    let z : ℂ := ⟨φ, σ⟩
+    z ^ 2 - ((2 * φ : ℝ) : ℂ) * z + 1 = 0 ∧ ‖z‖ = 1 := by
+  intro z
+  have h_root : z ^ 2 - ((2 * φ : ℝ) : ℂ) * z + 1 = 0 := by
+    apply Complex.ext
+    · rw [sq]
+      simp only [Complex.sub_re, Complex.add_re, Complex.one_re, Complex.zero_re,
+        Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
+      dsimp [z]
+      nlinarith
+    · rw [sq]
+      simp only [Complex.sub_im, Complex.add_im, Complex.one_im, Complex.zero_im,
+        Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im]
+      dsimp [z]
+      ring
+  have h_norm : ‖z‖ = 1 := by
+    have h : Complex.normSq z = 1 := by
+      dsimp [z, Complex.normSq]
+      linarith
+    rw [Complex.normSq_eq_norm_sq] at h
+    nlinarith [norm_nonneg z]
+  exact ⟨h_root, h_norm⟩
+
+/-- Ward Section 3.2.3 Case II: When `|tr M| > 2`, the discriminant is strictly positive. -/
 theorem second_order_unstable_of_trace_gt_two {tr_M : ℝ} (h : 2 < |tr_M|) :
     0 < tr_M ^ 2 - 4 := by
   have h2 : |(2 : ℝ)| < |tr_M| := by simpa using h
   have h_sq : (2 : ℝ) ^ 2 < tr_M ^ 2 := sq_lt_sq.mpr h2
   linarith
+
+/-- Ward Section 3.2.3 Case II (Unstable Eigenvalue Theorem):
+When `1 < φ`, the real number `ρ = φ + √(φ² - 1)` is a root strictly greater than 1,
+yielding exponential instability. -/
+theorem second_order_unstable_real_eigenvalue_gt_one (φ : ℝ) (hφ : 1 < φ) :
+    let ρ := φ + Real.sqrt (φ ^ 2 - 1)
+    1 < ρ ∧ ρ ^ 2 - 2 * φ * ρ + 1 = 0 := by
+  intro ρ
+  have h_pos : 0 < φ ^ 2 - 1 := by nlinarith
+  have h_gt_one : 1 < ρ := by
+    dsimp [ρ]
+    have := Real.sqrt_pos.mpr h_pos
+    linarith
+  have h_eq : ρ ^ 2 - 2 * φ * ρ + 1 = 0 := by
+    dsimp [ρ]
+    have h_sq : (Real.sqrt (φ ^ 2 - 1)) ^ 2 = φ ^ 2 - 1 :=
+      Real.sq_sqrt (by linarith)
+    nlinarith
+  exact ⟨h_gt_one, h_eq⟩
 
 /-- Stroboscopic error contraction for discrete return map:
 `|x_{k+1} - x*| = |ρ| * |x_k - x*|`. This bridges Floquet multiplier contraction
