@@ -63,12 +63,16 @@ namespace MeasureTheory
 
 variable {f : α → E} {g : α → F}
 
-theorem eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞) (hf : AEStronglyMeasurable f μ) :
+theorem eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞) (hf : AEStronglyMeasurable f μ)
+    (hg : AEStronglyMeasurable g μ) :
     (eLpNorm (fun x ↦ WithLp.toLp p (f x, g x)) p μ) ^ p.toReal =
     (eLpNorm f p μ) ^ p.toReal + (eLpNorm g p μ) ^ p.toReal := by
+  have hfg : AEStronglyMeasurable (fun x ↦ WithLp.toLp p (f x, g x)) μ := by fun_prop
   have hp'' : 0 < p.toReal := (ENNReal.toReal_pos_iff_ne_top p).mpr hp'
   have hp''' : p ≠ 0 := (lt_of_lt_of_le zero_lt_one hp.out).ne'
-  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp']
+  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp' hf]
+  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp' hg]
+  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp' hfg]
   simp_rw [← ENNReal.rpow_mul]
   simp_rw [one_div_mul_cancel hp''.ne']
   simp only [ENNReal.rpow_one]
@@ -83,12 +87,16 @@ theorem eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞) (hf : AEStro
   rw [← Real.rpow_mul (by positivity), one_div_mul_cancel hp''.ne']
   simp
 
-theorem eLpNorm_withLp_prod' [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞) (hf : AEStronglyMeasurable f μ) :
+theorem eLpNorm_withLp_prod' [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞) (hf : AEStronglyMeasurable f μ)
+    (hg : AEStronglyMeasurable g μ) :
     eLpNorm (fun x ↦ WithLp.toLp p (f x, g x)) p μ =
     ((eLpNorm f p μ) ^ p.toReal + (eLpNorm g p μ) ^ p.toReal) ^ (1 / p.toReal) := by
+  have hfg : AEStronglyMeasurable (fun x ↦ WithLp.toLp p (f x, g x)) μ := by fun_prop
   have hp'' : 0 < p.toReal := (ENNReal.toReal_pos_iff_ne_top p).mpr hp'
   have hp''' : p ≠ 0 := (lt_of_lt_of_le zero_lt_one hp.out).ne'
-  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp']
+  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp' hf]
+  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp' hg]
+  simp_rw [MeasureTheory.eLpNorm_eq_lintegral_rpow_enorm_toReal hp''' hp' hfg]
   simp_rw [← ENNReal.rpow_mul]
   simp_rw [one_div_mul_cancel hp''.ne']
   simp only [ENNReal.rpow_one]
@@ -104,17 +112,19 @@ theorem eLpNorm_withLp_prod' [hp : Fact (1 ≤ p)] (hp' : p ≠ ∞) (hf : AEStr
   rw [← Real.rpow_mul (by positivity), one_div_mul_cancel hp''.ne']
   simp
 
-theorem eLpNorm_withLp_prod_le_add [hp : Fact (1 ≤ p)] (hf : AEStronglyMeasurable f μ) :
+theorem eLpNorm_withLp_prod_le_add [hp : Fact (1 ≤ p)] (hf : AEStronglyMeasurable f μ)
+    (hg : AEStronglyMeasurable g μ) :
     eLpNorm (fun x ↦ WithLp.toLp p (f x, g x)) p μ ≤ eLpNorm f p μ + eLpNorm g p μ := by
   by_cases! hp' : p ≠ ∞
   · calc
       _ = ((eLpNorm f p μ) ^ p.toReal + (eLpNorm g p μ) ^ p.toReal) ^ (1 / p.toReal) :=
-        eLpNorm_withLp_prod' hp' hf
+        eLpNorm_withLp_prod' hp' hf hg
       _ ≤ _ := by
         apply ENNReal.rpow_add_rpow_le_add
         simp [← ENNReal.ofReal_le_iff_le_toReal hp', hp.out]
   · unfold eLpNorm
-    simp only [hp', ENNReal.top_ne_zero, ↓reduceIte]
+    have hfg : AEStronglyMeasurable (fun x ↦ WithLp.toLp p (f x, g x)) μ := by fun_prop
+    simp only [hp', ENNReal.top_ne_zero, ↓reduceIte, hf, hg, hfg]
     apply MeasureTheory.eLpNormEssSup_le_of_ae_enorm_bound
     simp only [← WithLp.ennnorm_copy hp', WithLp.copy_toLp, WithLp.prod_enorm_eq_sup,
       WithLp.toLp_fst, WithLp.toLp_snd, sup_le_iff, eventually_and]
@@ -147,7 +157,8 @@ theorem addLEConst_ne_top {p : ℝ≥0∞} : addLEConst p ≠ ∞ := by
   · simp [addLEConst_of_ne hp]
   · simp [hp]
 
-theorem add_le_eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] (hf : AEStronglyMeasurable f μ) :
+theorem add_le_eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] (hf : AEStronglyMeasurable f μ)
+    (hg : AEStronglyMeasurable g μ) :
     eLpNorm f p μ + eLpNorm g p μ ≤ addLEConst p *
       eLpNorm (fun x ↦ WithLp.toLp p (f x, g x)) p μ := by
   by_cases! hp' : p ≠ ∞
@@ -164,13 +175,15 @@ theorem add_le_eLpNorm_withLp_prod [hp : Fact (1 ≤ p)] (hf : AEStronglyMeasura
       simp [← ENNReal.ofReal_le_iff_le_toReal hp', hp.out]
     _ = ((2 : ℝ≥0∞) ^ (p.toReal - 1) *
         (eLpNorm (fun x ↦ WithLp.toLp p (f x, g x)) p μ) ^ p.toReal) ^ (1 / p.toReal) := by
-      rw [← eLpNorm_withLp_prod hp' hf]
+      rw [← eLpNorm_withLp_prod hp' hf hg]
     _ = _ := by
       have hp'' : 0 < p.toReal := (ENNReal.toReal_pos_iff_ne_top p).mpr hp'
       rw [ENNReal.mul_rpow_of_nonneg _ _ (by simp), ← ENNReal.rpow_mul, ← ENNReal.rpow_mul,
         mul_one_div_cancel hp''.ne', mul_one_div]
       simp [addLEConst_of_ne hp']
-  · simp only [hp', eLpNorm_exponent_top, addLEConst_infty, two_mul]
+  · have hfg : AEStronglyMeasurable (fun x ↦ WithLp.toLp p (f x, g x)) μ := by fun_prop
+    simp only [hp', eLpNorm_exponent_top hf, eLpNorm_exponent_top hg, eLpNorm_exponent_top hfg,
+      addLEConst_infty, two_mul]
     gcongr
     · apply eLpNormEssSup_mono_enorm_ae'
       filter_upwards with x
