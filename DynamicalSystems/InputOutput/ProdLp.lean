@@ -77,8 +77,12 @@ theorem isFiniteGainStableWith_mapProdLp [Fact (1 ≤ p)]
     calc
       _ ≤ eLpNorm (f₁ (WithLp.fst ∘ u)) p _ + eLpNorm (f₂ (WithLp.snd ∘ u)) p _ := by
         apply eLpNorm_withLp_prod_le_add
-        rw [memLpLoc_withLp_prod_iff] at hu
-        exact (hf₁.memLpLoc hu.1).aestronglyMeasurable (hs t)
+        · rw [memLpLoc_withLp_prod_iff] at hu
+          exact (hf₁.memLpLoc hu.1).aestronglyMeasurable (hs t)
+        · apply MemLpLoc.aestronglyMeasurable (p := p) (hs t)
+          apply hf₂.memLpLoc
+          rw [memLpLoc_withLp_prod_iff] at hu
+          exact hu.2
       _ ≤ (k₁ * eLpNorm (WithLp.fst ∘ u) p _ + β₁) + (k₂ * eLpNorm (WithLp.snd ∘ u) p _ + β₂) := by
         rw [memLpLoc_withLp_prod_iff] at hu
         gcongr
@@ -102,5 +106,8 @@ theorem isFiniteGainStableWith_mapProdLp [Fact (1 ≤ p)]
         nth_rw 3 [this]
         gcongr
         apply add_le_eLpNorm_withLp_prod
+        · rw [memLpLoc_withLp_prod_iff] at hu
+          exact hu.1.aestronglyMeasurable (hs t)
+        apply MemLpLoc.aestronglyMeasurable (p := p) (hs t)
         rw [memLpLoc_withLp_prod_iff] at hu
-        exact hu.1.aestronglyMeasurable (hs t)
+        exact hu.2

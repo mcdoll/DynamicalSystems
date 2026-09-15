@@ -57,8 +57,7 @@ theorem HasBasis.isStableOn_iff {ι' : Sort*} {p : ι' → Prop} {s : ι' → Se
 
 theorem IsStableOn.mono {I I'} (hl : l.IsStableOn Φ I) (h : I' ⊆ I) : l.IsStableOn Φ I' := by
   unfold IsStableOn at hl ⊢
-  peel hl with s hs s' hs' hl
-  exact (hl · <| h ·)
+  gconvert hl
 
 variable {l' : Filter ι}
 

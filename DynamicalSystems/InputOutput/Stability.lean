@@ -166,15 +166,11 @@ theorem comp_setRel_graph {f : SetRel (α → E) (α → F)} (hg : g.IsFiniteGai
 
 /-- The addition of two finite gain stable maps is finite gain stable. -/
 theorem add {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 1 ≤ p)
-    (hs : ∀ t, IsCompact (s t))
     (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
     (f + g).IsFiniteGainStableWith (k + k') (β + β') s p μ where
   memLpLoc u hu := (hf.memLpLoc hu).add (hg.memLpLoc hu)
   stableWith t u hu := calc
-    _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := by
-      apply eLpNorm_add_le _ _ hp
-      · exact (hf.memLpLoc hu).aestronglyMeasurable (hs t)
-      · exact (hg.memLpLoc hu).aestronglyMeasurable (hs t)
+    _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := eLpNorm_add_le hp
     _ ≤ (k * eLpNorm u p _ + β) + (k' * eLpNorm u p _ + β') := by
       gcongr
       · exact hf.stableWith t u hu
@@ -184,15 +180,11 @@ theorem add {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 
 
 /-- The subtraction of two finite gain stable maps is finite gain stable. -/
 theorem sub {f : (α → E) → α → F} {g : (α → E) → (α → F)} (hp : 1 ≤ p)
-    (hs : ∀ t, IsCompact (s t))
     (hf : f.IsFiniteGainStableWith k β s p μ) (hg : g.IsFiniteGainStableWith k' β' s p μ) :
     (f - g).IsFiniteGainStableWith (k + k') (β + β') s p μ where
   memLpLoc u hu := (hf.memLpLoc hu).sub (hg.memLpLoc hu)
   stableWith t u hu := calc
-    _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := by
-      apply eLpNorm_sub_le _ _ hp
-      · exact (hf.memLpLoc hu).aestronglyMeasurable (hs t)
-      · exact (hg.memLpLoc hu).aestronglyMeasurable (hs t)
+    _ ≤ eLpNorm (f u) p _ + eLpNorm (g u) p _ := eLpNorm_sub_le hp
     _ ≤ (k * eLpNorm u p _ + β) + (k' * eLpNorm u p _ + β') := by
       gcongr
       · exact hf.stableWith t u hu
@@ -207,7 +199,8 @@ theorem isLpStable (hf : IsFiniteGainStableWith f k β s p μ)
     (hfu : ∀ u (_hu : MemLp u p μ), AEStronglyMeasurable (f u) μ)
     (hs : AECover μ atTop s) :
     IsLpStable f p μ := by
-  refine ⟨fun u hu ↦ ⟨hfu u hu, ?_⟩⟩
+  constructor
+  intro u hu
   /- For every `t ∈ I`, we have that `‖(f u)ₜ‖ ≤ k * ‖uₜ‖ + β ≤ k * ‖u‖ + β`-/
   have : ∀ᶠ t in atTop, eLpNorm ((s t).indicator (f u)) p μ ≤ k * eLpNorm u p μ + β := by
     filter_upwards with t
@@ -221,6 +214,7 @@ theorem isLpStable (hf : IsFiniteGainStableWith f k β s p μ)
       apply MeasureTheory.Lp.eLpNorm_le_of_ae_tendsto this
       · intro t
         exact (hfu u hu).indicator (hs.measurableSet t)
+      · apply hfu _ hu
       · apply hs.ae_tendsto_indicator
     _ < _ := by
       simp [MemLp.eLpNorm_lt_top hu, ENNReal.mul_lt_top_iff]
@@ -245,17 +239,14 @@ theorem IsCausal.isFiniteGainStableWith (hf : IsCausal f s p μ) (hs : ∀ t, Is
         (eLpNorm_indicator_eq_eLpNorm_restrict (hs t).measurableSet).symm
       _ = eLpNorm ((s t).indicator (f <| (s t).indicator u)) p μ := by
         rw [← hf.causal t u hu]
-      _ ≤ eLpNorm (f <| (s t).indicator u) p μ :=
-        eLpNorm_indicator_le (f ((s t).indicator u))
+      _ ≤ eLpNorm (f <| (s t).indicator u) p μ := by
+        apply eLpNorm_indicator_le
+        exact (hs t).measurableSet
       _ ≤ ↑k * eLpNorm ((s t).indicator u) p μ + β := by
         apply h
         exact hu.memLp_indicator (hs t)
       _ = _ := by
         rw [eLpNorm_indicator_eq_eLpNorm_restrict (hs t).measurableSet]
-
-/- Todo: define the gain -/
-
--- def eLpGain (f : (α → E) → α → F) (p : ℝ≥0∞) : ℝ≥0∞ := ⨅ i, sorry
 
 end Function
 
