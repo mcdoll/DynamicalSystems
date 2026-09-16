@@ -60,29 +60,21 @@ theorem _root_.IsIntegralCurve.eq_of_uniformlyLocallyLipschitz
     have hU' : U ∈ 𝓝 (γ₂ s) := by rwa [hs.symm]
     have hU2 : ∀ᶠ s' in 𝓝 s, γ₂ s' ∈ U :=
       h2.continuous.continuousAt.eventually_mem hU'
-    have heq_ev := IsIntegralCurveAt.eventuallyEq hfK
-      (h1.isIntegralCurveAt s) hU1
-      (h2.isIntegralCurveAt s) hU2
-      hs
+    have heq_ev := (h1.isIntegralCurveAt s).eventuallyEq hfK hU1 (h2.isIntegralCurveAt s) hU2 hs
     exact heq_ev.mono (fun s' hs' ↦ hs')
   have huniv : ∀ s : ℝ, γ₁ s = γ₂ s := by
-    have h : {s : ℝ | γ₁ s = γ₂ s} = Set.univ := by
-      refine isClopen_iff.mp ⟨hclosed, hopen⟩ |>.resolve_left ?_
-      intro hempty
-      have : t₀ ∈ ({s : ℝ | γ₁ s = γ₂ s} : Set ℝ) := heq
-      rw [hempty] at this
-      exact this
-    simpa [Set.ext_iff] using h
+    suffices {s : ℝ | γ₁ s = γ₂ s} = Set.univ by simpa [Set.ext_iff]
+    refine isClopen_iff.mp ⟨hclosed, hopen⟩ |>.resolve_left ?_
+    have : t₀ ∈ ({s : ℝ | γ₁ s = γ₂ s} : Set ℝ) := heq
+    grind
   grind
 
 theorem unique (hΦ : IsFundamentalSolution Φ f) (hΦ' : IsFundamentalSolution Φ' f)
     (hf : UniformlyLocallyLipschitz f) :
     Φ = Φ' := by
-  ext t₀ x₀
-  have heq := IsIntegralCurve.eq_of_uniformlyLocallyLipschitz hf
-    (hΦ.isIntegralCurve t₀ x₀) (hΦ'.isIntegralCurve t₀ x₀)
-    (by rw [hΦ.initial, hΦ'.initial])
-  rw [heq]
+  ext t₀ x₀ : 2
+  apply (hΦ.isIntegralCurve t₀ x₀).eq_of_uniformlyLocallyLipschitz hf (hΦ'.isIntegralCurve t₀ x₀)
+  rw [hΦ.initial, hΦ'.initial]
 
 section Linear
 
@@ -215,12 +207,11 @@ theorem IsFundamentalSolution.add_apply''
     Φ' 0 (Φ' 0 x t') t = Φ' 0 x (t + t') := by
   set γ₁ := Φ' 0 (Φ' 0 x t')
   set γ₂ := fun t ↦ Φ' 0 x (t + t')
-  have hf_curve : IsIntegralCurve γ₁ (fun _ ↦ f) := hΦ.isIntegralCurve 0 (Φ' 0 x t')
-  have hg_curve : IsIntegralCurve γ₂ (fun _ ↦ f) := (hΦ.isIntegralCurve 0 x).comp_add t'
+  have hf : IsIntegralCurve γ₁ (fun _ ↦ f) := hΦ.isIntegralCurve 0 (Φ' 0 x t')
+  have hg : IsIntegralCurve γ₂ (fun _ ↦ f) := (hΦ.isIntegralCurve 0 x).comp_add t'
   have ht₀ : γ₁ 0 = γ₂ 0 := by
     simp [γ₁, γ₂, hΦ.initial]
-  have heq := IsIntegralCurve.eq_of_uniformlyLocallyLipschitz hv.uniformlyLocallyLipschitz
-    hf_curve hg_curve ht₀
+  have heq := hf.eq_of_uniformlyLocallyLipschitz hv.uniformlyLocallyLipschitz hg ht₀
   rw [heq]
 
 /-- The fundamental solution satisfies the group property, `Φ t ∘ Φ t' = Φ (t + t')`. -/
@@ -231,12 +222,11 @@ theorem IsFundamentalSolution.add_apply
   set γ₁ := Φ (Φ x t')
   set γ₂ := fun t ↦ Φ x (t + t')
   rw [isFundamentalSolution_iff'] at hΦ
-  have hf_curve : IsIntegralCurve γ₁ (fun _ ↦ f) := (hΦ (Φ x t')).1
-  have hg_curve : IsIntegralCurve γ₂ (fun _ ↦ f) := (hΦ x).1.comp_add t'
+  have hf : IsIntegralCurve γ₁ (fun _ ↦ f) := (hΦ (Φ x t')).1
+  have hg : IsIntegralCurve γ₂ (fun _ ↦ f) := (hΦ x).1.comp_add t'
   have ht₀ : γ₁ 0 = γ₂ 0 := by
     simp [γ₁, γ₂, (hΦ (Φ x t')).2]
-  have heq := IsIntegralCurve.eq_of_uniformlyLocallyLipschitz hv.uniformlyLocallyLipschitz
-    hf_curve hg_curve ht₀
+  have heq := hf.eq_of_uniformlyLocallyLipschitz hv.uniformlyLocallyLipschitz hg ht₀
   rw [heq]
 
 end Autonomous
