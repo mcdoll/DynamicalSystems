@@ -31,14 +31,15 @@ section eLpNorm
 @[simp]
 theorem lpAddConst_top : ∞.LpAddConst = 1 := rfl
 
-variable [ENorm ε]
+variable [ENorm ε] [TopologicalSpace ε] [TopologicalSpace.PseudoMetrizableSpace ε]
 
 /-- Addition of measures -/
-theorem eLpNorm_add_measure {f : α → ε} :
+theorem eLpNorm_add_measure {f : α → ε} (hμ : AEStronglyMeasurable f μ)
+    (hν : AEStronglyMeasurable f ν) :
     eLpNorm f p (μ + ν) ≤ p.LpAddConst * (eLpNorm f p μ + eLpNorm f p ν) := by
   rcases p.trichotomy with (rfl | rfl | hp)
-  · simp
-  · simp only [eLpNorm_exponent_top]
+  · simp [hμ, hν]
+  · simp only [eLpNorm_exponent_top, hμ, hν, hμ.add_measure hν]
     refine eLpNormEssSup_le_of_ae_enorm_bound ?_
     simp only [ae_add_measure_iff]
     constructor
@@ -53,8 +54,9 @@ theorem eLpNorm_add_measure {f : α → ε} :
       grw [hx]
       simp
   · rw [ENNReal.toReal_pos_iff] at hp
-    simp_rw [eLpNorm_eq_eLpNorm' hp.1.ne' hp.2.ne, eLpNorm'_eq_lintegral_enorm, one_div,
-      lintegral_add_measure]
+    simp_rw [eLpNorm_eq_eLpNorm' hp.1.ne' hp.2.ne hμ, eLpNorm_eq_eLpNorm' hp.1.ne' hp.2.ne hν,
+      eLpNorm_eq_eLpNorm' hp.1.ne' hp.2.ne (hμ.add_measure hν),
+      eLpNorm'_eq_lintegral_enorm, one_div, lintegral_add_measure]
     apply ENNReal.rpow_add_le_mul_rpow_add_rpow''
 
 end eLpNorm
@@ -66,12 +68,10 @@ attribute [fun_prop] MemLp MemLp.add MemLp.sub MemLp.neg MemLp.aestronglyMeasura
 variable [TopologicalSpace ε] [TopologicalSpace.PseudoMetrizableSpace ε] [ENorm ε]
 
 theorem add_measure {f : α → ε} (hμ : MemLp f p μ) (hν : MemLp f p ν) : MemLp f p (μ + ν) := by
-  constructor
-  · rw [aestronglyMeasurable_add_measure_iff]
-    exact ⟨hμ.aestronglyMeasurable, hν.aestronglyMeasurable⟩
-  · grw [eLpNorm_add_measure]
-    rw [ENNReal.mul_lt_top_iff, ENNReal.add_lt_top]
-    exact Or.inl ⟨p.LpAddConst_lt_top, ⟨hμ.2, hν.2⟩⟩
+  rw [memLp_iff]
+  grw [eLpNorm_add_measure hμ.aestronglyMeasurable hν.aestronglyMeasurable]
+  rw [ENNReal.mul_lt_top_iff, ENNReal.add_lt_top]
+  exact Or.inl ⟨p.LpAddConst_lt_top, ⟨hμ, hν⟩⟩
 
 end MemLp
 

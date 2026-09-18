@@ -105,7 +105,7 @@ theorem gradient_sq_norm (ζ : E) :
 variable (E) in
 /-- The vector field of the harmonic oscillator -/
 abbrev harmonicOscillatorVf (ζ : WithLp 2 (E × E)) : WithLp 2 (E × E) :=
-  hamiltonvf (fun x : WithLp 2 (E × E) ↦ ‖x‖ ^ 2) ζ
+  hamiltonvf (‖·‖ ^ 2) ζ
 
 theorem fst_harmonicOscillatorVf (ζ : WithLp 2 (E × E)) :
     (harmonicOscillatorVf E ζ).fst = -2 • ζ.snd := by
@@ -117,8 +117,9 @@ theorem snd_harmonicOscillatorVf (ζ : WithLp 2 (E × E)) :
   simp [gradient_sq_norm]
 
 private
-theorem lipschitzWith_two_grad_norm_sq :
-    LipschitzWith 2 (gradient fun x : E ↦ ‖x‖ ^ 2) := by
+theorem exists_lipschitzWith_grad_norm_sq :
+    ∃ C, LipschitzWith C (gradient fun x : E ↦ ‖x‖ ^ 2) := by
+  use 2
   have h : (gradient fun x : E ↦ ‖x‖ ^ 2) = fun x : E ↦ (2 : ℝ) • x := by
     funext x
     simp [gradient_sq_norm, two_smul]
@@ -130,15 +131,13 @@ variable (E) in
 /-- The flow of the harmonic oscillator -/
 @[no_expose]
 def harmonicOscillatorFlow : AutonomousFlow ℝ (WithLp 2 (E × E)) :=
-  (exists_hamiltonvf_autonomousFlow (H := (fun x : WithLp 2 (E × E) ↦ ‖x‖ ^ 2))
-    ⟨2, lipschitzWith_two_grad_norm_sq⟩).choose
+  (exists_hamiltonvf_autonomousFlow exists_lipschitzWith_grad_norm_sq).choose
 
 /-- The harmonic oscillator flow is the fundamental solution of the harmonic oscillator vector
 field. -/
 theorem isFundamentalSolution_harmonicOscillatorFlow :
     (harmonicOscillatorFlow E).IsFundamentalSolution (harmonicOscillatorVf E) :=
-  (exists_hamiltonvf_autonomousFlow (H := (fun x : WithLp 2 (E × E) ↦ ‖x‖ ^ 2))
-    ⟨2, lipschitzWith_two_grad_norm_sq⟩).choose_spec
+  (exists_hamiltonvf_autonomousFlow exists_lipschitzWith_grad_norm_sq).choose_spec
 
 /-- The origin of the harmonic oscillator is stable. -/
 theorem isStableOn_harmonicOscillatorFlow [FiniteDimensional ℝ E] :
