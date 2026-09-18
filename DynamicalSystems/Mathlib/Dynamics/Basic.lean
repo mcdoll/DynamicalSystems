@@ -9,6 +9,7 @@ public import Mathlib.Dynamics.OmegaLimit
 public import Mathlib.Analysis.ODE.Transform
 
 public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistence
+public import DynamicalSystems.Mathlib.Analysis.ODE.GlobalExistenceLinear
 public import DynamicalSystems.Mathlib.Analysis.ODE.UniformlyLocallyLipschitz
 public import DynamicalSystems.Mathlib.Analysis.Calculus.Flow
 
@@ -117,9 +118,11 @@ theorem lipschitzWith (hf : IsLinearlyBddVectorField f) :
     LipschitzWith hf.nnbound f :=
   lipschitzWith_of_nnnorm_fderiv_le hf.differentiable hf.nnnorm_fderiv_le_nnbound
 
-proof_wanted isCompleteVectorField (hf : IsLinearlyBddVectorField f) :
-    IsCompleteVectorField (fun _ ↦ f)
-  -- this follows from Theorem 2.17 of Teschl and the fundamental theorem of calculus
+theorem isCompleteVectorField [CompleteSpace E] (hf : IsLinearlyBddVectorField f) :
+    IsCompleteVectorField (fun _ ↦ f) := by
+  intro t₀ x₀
+  obtain ⟨Φ, hΦ⟩ := global_existence_autonomous hf.lipschitzWith
+  exact ⟨Φ t₀ x₀, (hΦ t₀ x₀).2, (hΦ t₀ x₀).1⟩
 
 /- the following statements need the definition `IsCompleteVectorField.flow`
 
