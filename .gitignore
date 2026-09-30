@@ -3,6 +3,7 @@
 ## Lake
 .lake/*
 .cache/*
+html/
 ## Blueprint
 /blueprint/print/print.log
 /blueprint/web/

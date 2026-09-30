@@ -9,7 +9,7 @@ public import DynamicalSystems.InputOutput.ProdLp
 
 /-! # Closed loops -/
 
-public section
+@[expose] public section
 
 open MeasureTheory Filter Bornology Set
 open scoped NNReal ENNReal

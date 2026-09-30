@@ -5,12 +5,14 @@ import DynamicalSystems.InputOutput.ClosedLoop
 import DynamicalSystems.InputOutput.Dissipative
 import DynamicalSystems.InputOutput.Example
 import DynamicalSystems.InputOutput.Stability
+import DynamicalSystems.InputOutput.StateSpace
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option linter.hashCommand false
 set_option linter.missingDocs false
+set_option verso.docstring.allowMissing true
 
 #doc (Manual) "Input-output analysis" =>
 
@@ -122,3 +124,15 @@ as well.
 
 {docstring SetRel.IsDissipativeWith}
 {docstring Function.IsDissipativeWith}
+
+# State-space realizations
+
+A state-space dynamical system $`\dot{x}(t) = f(t, x(t), u(t))` with output
+$`y(t) = h(t, x(t), u(t))` induces relations between inputs and trajectories, and between
+inputs and outputs. When the underlying state differential equation admits unique Carathéodory
+solutions, these relations are graphs of well-defined operators:
+
+{docstring stateTrajectoryRel}
+{docstring stateTrajectoryRel_isGraph}
+{docstring inputOutputRel}
+{docstring inputOutputRel_isGraph}
