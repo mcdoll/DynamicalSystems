@@ -206,7 +206,7 @@ theorem isLpStable (hf : IsFiniteGainStableWith f k β s p μ)
     filter_upwards with t
     calc
       _ = eLpNorm (f u)  p (μ.restrict (s t)) :=
-        eLpNorm_indicator_eq_eLpNorm_restrict (hs.measurableSet t)
+        eLpNorm_indicator_eq_eLpNorm_restrict (hs.measurableSet t).nullMeasurableSet
       _ ≤ k * eLpNorm u p (μ.restrict <| s t) + β := hf.stableWith t u hu.memLpLoc
       _ ≤ _ := by gcongr; exact Measure.restrict_le_self
   calc
@@ -236,17 +236,17 @@ theorem IsCausal.isFiniteGainStableWith (hf : IsCausal f s p μ) (hs : ∀ t, Is
   · intro t u hu
     calc
       _ = eLpNorm ((s t).indicator (f u)) p μ :=
-        (eLpNorm_indicator_eq_eLpNorm_restrict (hs t).measurableSet).symm
+        (eLpNorm_indicator_eq_eLpNorm_restrict (hs t).nullMeasurableSet).symm
       _ = eLpNorm ((s t).indicator (f <| (s t).indicator u)) p μ := by
         rw [← hf.causal t u hu]
       _ ≤ eLpNorm (f <| (s t).indicator u) p μ := by
         apply eLpNorm_indicator_le
-        exact (hs t).measurableSet
+        exact (hs t).nullMeasurableSet
       _ ≤ ↑k * eLpNorm ((s t).indicator u) p μ + β := by
         apply h
         exact hu.memLp_indicator (hs t)
       _ = _ := by
-        rw [eLpNorm_indicator_eq_eLpNorm_restrict (hs t).measurableSet]
+        rw [eLpNorm_indicator_eq_eLpNorm_restrict (hs t).nullMeasurableSet]
 
 end Function
 

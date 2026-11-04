@@ -63,7 +63,7 @@ theorem isStableOn_of_isCoercive_inner_comp_neg_fderiv (hf : DifferentiableAt �
     (𝓝 x₀).IsStableOn Φ (Set.Ici 0) := by
   obtain ⟨δ₀, hδ₀, h_lya⟩ := exists_isLyapunovOnIn hf hx₀ h hΦ
   apply h_lya.isStableOn_nhds (δ₀ := δ₀) ?_ (by simp [sub_eq_zero]) (by simp) hδ₀ (by simp)
-  convert isCompact_closedBall x₀ (δ₀ ^ ((1 : ℝ) / 2))
+  convert isCompact_closedBall x₀ (δ₀ ^ ((1 : ℝ) / 2)) using 1
   ext x
   simp only [Set.mem_ofPred_eq, one_div, Metric.mem_closedBall]
   rw [Real.le_rpow_inv_iff_of_pos (by positivity) hδ₀.le (by norm_num), dist_eq_norm]

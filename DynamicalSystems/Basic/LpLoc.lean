@@ -67,7 +67,7 @@ attribute [fun_prop] MemLp MemLp.add MemLp.sub MemLp.neg MemLp.aestronglyMeasura
 
 variable [TopologicalSpace ε] [TopologicalSpace.PseudoMetrizableSpace ε] [ENorm ε]
 
-theorem add_measure {f : α → ε} (hμ : MemLp f p μ) (hν : MemLp f p ν) : MemLp f p (μ + ν) := by
+theorem add_measure' {f : α → ε} (hμ : MemLp f p μ) (hν : MemLp f p ν) : MemLp f p (μ + ν) := by
   rw [memLp_iff]
   grw [eLpNorm_add_measure hμ.aestronglyMeasurable hν.aestronglyMeasurable]
   rw [ENNReal.mul_lt_top_iff, ENNReal.add_lt_top]
@@ -115,7 +115,7 @@ theorem MemLpLoc.indicator [TopologicalSpace ε'] [ESeminormedAddMonoid ε'] (hs
     MemLpLoc (s.indicator f) p μ := by
   intro x
   filter_upwards [hf x] with s' hf
-  exact hf.indicator hs
+  exact hf.indicator hs.nullMeasurableSet
 
 end ENorm
 
@@ -148,7 +148,7 @@ theorem MemLpLoc.memLp_restrict_isCompact (hf : MemLpLoc f p μ) (hs : IsCompact
   · intro s t hst h
     exact h.mono_measure (μ.restrict_mono_set hst)
   · intro s t hs ht
-    apply (hs.add_measure ht).mono_measure
+    apply (hs.add_measure' ht).mono_measure
     exact Measure.restrict_union_le s t
   · intro x hx
     rw [memLpLoc_iff] at hf
@@ -173,13 +173,13 @@ theorem memLpLoc_iff_memLp_indicator [WeaklyLocallyCompactSpace α] [Topological
     MemLpLoc f p μ ↔ ∀ s (_hs : IsCompact s), MemLp (s.indicator f) p μ := by
   rw [memLpLoc_iff_memLp_isCompact]
   congrm (∀ s hs, ?_)
-  exact (memLp_indicator_iff_restrict hs.measurableSet).symm
+  exact (memLp_indicator_iff_restrict hs.nullMeasurableSet).symm
 
 theorem MemLpLoc.memLp_indicator [OpensMeasurableSpace α] [T2Space α]
     [TopologicalSpace ε'] [TopologicalSpace.PseudoMetrizableSpace ε'] [ESeminormedAddMonoid ε']
     {f : α → ε'} (hf : MemLpLoc f p μ) (hs : IsCompact s) :
     MemLp (s.indicator f) p μ := by
-  rw [memLp_indicator_iff_restrict hs.measurableSet]
+  rw [memLp_indicator_iff_restrict hs.nullMeasurableSet]
   exact hf.memLp_restrict_isCompact hs
 
 @[fun_prop]
