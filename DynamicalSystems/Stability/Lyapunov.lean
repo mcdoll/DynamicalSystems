@@ -365,7 +365,7 @@ theorem IsLyapunovOn.isInvariantOn {δ : ℝ} (h_lya : IsLyapunovOn v Φ s) (hs 
   have ht₀ : v (Φ t₀ x) ≤ δ := by rwa [h_id]
   have ht₀' : Φ t₀ x ∈ s := by rwa [h_id]
   have h_closed : IsClosed (s ∩ {x | v x ≤ δ}) := by
-    convert hv
+    convert hv using 1
     ext; simp [and_comm]
   refine continuity_method hs (hΦ' x) ht₀ ht₀' h_closed ?_ ht
   intro t (ht : t₀ ≤ t) h

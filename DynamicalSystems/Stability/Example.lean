@@ -61,7 +61,7 @@ theorem expFlow_apply (t : 𝕜) (x : E) : A.expFlow t x = NormedSpace.exp (t �
 
 @[fun_prop]
 theorem differentiable_expFlow (x : E) : Differentiable 𝕜 (A.expFlow · x) := by
-  fun_prop
+  fun_prop [ContinuousLinearMap.expFlow]
 
 theorem deriv_expFlow (x : E) : deriv (A.expFlow · x) 0 = A x := by
   simp only [expFlow_apply]
@@ -97,7 +97,7 @@ variable [ProperSpace E]
 /-- The origin is stable under the forward flow of `d/dt x = r x` -/
 theorem isStableOn_expFlow (hA : A.IsPositive) : (𝓝 0).IsStableOn (-A).expFlow (Set.Ici 0) := by
   apply (isLyapunov_inner_expFlow hA).isStableOn_nhds (by simp) (by simp) zero_lt_one
-  convert isCompact_closedBall (0 : E) 1
+  convert isCompact_closedBall (0 : E) 1 using 1
   ext; simp
 
 end InnerProductSpace
